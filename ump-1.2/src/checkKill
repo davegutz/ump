@@ -1,0 +1,17 @@
+#!/bin/sh
+# test installation of ump application program.
+# kill ump processes
+
+echo ""
+echo "$0: Running killUmp to verify it runs.  Killing ump jobs..."
+$srcdir/killUmp >/dev/null
+statUmp=$?
+if ( test $statUmp -lt 0 )
+    then
+    echo "ERROR($0):  could not kill ump processes."
+    sleep 5
+    exit 1
+fi
+echo "MESSAGE($0):  there were no hanging ump processes.  SUCCESS."
+sleep 2
+exit 0

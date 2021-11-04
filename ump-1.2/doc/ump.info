@@ -1,0 +1,3473 @@
+This is ump.info, produced by makeinfo version 4.8 from ump.texi.
+
+START-INFO-DIR-ENTRY
+* ump: (ump).   Practical ball vision method and device.
+* install-info: (ump)Invoking install-info. ...
+...
+END-INFO-DIR-ENTRY
+
+   This is the texinfo file for the ump method and application program.
+
+   Copyright 2006 David A. Gutz
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided also
+that the sections entitled "Copying" and "GNU General Public License"
+are included exactly as in the original, and provided that the entire
+resulting derived work is distributed under the terms of a permission
+notice identical to this one.
+
+   Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that this permission notice may be stated in a
+translation approved by the Free Software Foundation.
+
+
+File: ump.info,  Node: Top,  Next: Overview,  Prev: (dir),  Up: (dir)
+
+* Menu:
+
+* Overview::             Brief description and abstract.
+* Installation::         How to install the application.
+* Install Video Cards::  How to install video cards (software).
+* Blink GUI::            The main GUI description and options.
+* Main Application::     The application description and options.
+* When Things Go Wrong:: If the application locks up.
+* Troubleshooting::      A simple guide to fix system problems.
+* Streamer Functions::   Brief word about xawtv streamer functions ported.
+* External Calibration:: Sighting the cameras - setting up files.
+* Samples::              Examples in different modes of operation
+* Messages::             Main ump application messages
+* Tune::                 Tuning the application.
+* Maintenance::          The author's cheat sheet.
+* Program Index::        Programs used
+* Concept Index::        Find concepts
+
+
+File: ump.info,  Node: Overview,  Next: Installation,  Prev: Top,  Up: Top
+
+1 Overview
+**********
+
+Monitor dual video capture card, segment captured images to detect
+moving balls, and predict whether balls intersect strike zone.
+
+   There are two main ways to run this application.  The original way
+it was developed was using a command line interface.  The principal
+commands are `ump' and `checkSetup -i' to run the application and the
+setup script respectively.   Much of the info documentation is focused
+on those applications and their various ingredients and accessories.
+The latest way to run it is using a graphical user interface.   The
+principal command is `Blink' to conduct and coordinate all of the
+command line interface functions in a way that is intuitive and more
+error-proofed.
+
+   The underlying technology is eigenvalue mathematics with perceptual
+grouping concepts.  See the project documentation `cuts.ps' for more
+information and lots of discussion of mathematical segmentation and
+perceptual grouping.  There is a very useful discussion of accuracy in
+there.  Following is the abstract from the report:
+
+   'With careful setup and the computational methods presented herein,
+a skilled consumer can use off-the-shelf frame-grabber equipment to
+accurately predict baseball strikes and speed. Using a 1:7 scale
+prototype, a moving baseball's impact is measured in real time within
+one-half ball width 3 standard deviations. Successful detection relies
+on optimum camera position, small field of view, good lighting,
+efficient spectral segmentation, efficient perceptual grouping, and a
+standard vector triangulation. The entire method is documented and the
+application software available for standard Linux. Results are
+displayed real-time with pitch statistics in pictorial format from an
+umpire's viewpoint. A record-playback mode is available for complete
+visual record.'
+
+   Throughout, the default units used are inches.  Should the user wish
+to use other units I believe they only need to use the other units in
+the `world.dat' file and the `gravity' constant in the `zone.tune'
+file.  Of course, the zone in `zone.tune' file needs to be in the new
+units.  As a caution, I cannot imagine using meters or centimeters.
+New units introduce the potential for mixing up the results and making
+more problems than a human umpire.
+
+
+File: ump.info,  Node: Installation,  Next: Install Video Cards,  Prev: Overview,  Up: Top
+
+2 Installation
+**************
+
+* Menu:
+
+* What Gets Installed::  Programs installed.
+* Checks::               Automatic make checks
+* Dependencies::         What's needed to make the program work.
+* blas::                 How to try the blas libraries.
+
+   Install a new release of ump as follows:
+
+     NEWVER=0.12  # Enter the version you want here
+     NEWREL=7
+     cd ~/Desktop
+
+     # get rpms if need to.  Create process install them in ~
+     ftp upload.comcast.net
+     computergutz
+
+     prompt
+     mget ump-*
+     quit
+
+     sudo rpm -ev ump --allmatches   # if reinstalling
+     sudo rpm -ivh ump-$NEWVER-$NEWREL.i386.rpm
+     sudo rpm -ivh ump-$NEWVER-$NEWREL.src.rpm
+     rpm -q ump
+     hash -r   # clear the path
+     which ump  # should be /usr/bin/ump.
+                # If /usr/local/bin/ump-<some ver> then
+                # do 'sudo make -s uninstall' in the
+                # ump-<some ver> directory that is the culprit.
+                # Follow that up with 'hash -r' as a regular user
+                # to force new path search.
+
+     #sudo cp /usr/src/redhat/SOURCES/ump-$NEWVER.tar.gz\
+                                              ~/redhat/SOURCES/.
+     #sudo cp /usr/src/redhat/SPECS/ump-$NEWVER.spec     ~/redhat/SPECS/.
+     cd /usr/src/redhat/SOURCES/
+     sudo tar zxvf ump-$NEWVER.tar.gz
+     cd ump-$NEWVER
+     ./configure && make -s check
+     # ERROR(lptout): Couldn't get the port at 378
+     # is due to local copy of lptout run that cannot have root permissions
+     # Will work OK after install.
+     sudo make -s install
+
+   `rpm' installs binaries in /usr/bin. If later do `make install' then
+new binaries are installed in /usr/local/bin.  Your PATH should have
+/usr/local/bin before /usr/bin.  Do `make -s uninstall' as root then
+`hash -r' as user to look at the `rpm' version again.
+
+
+
+   Instructions: follow the typical build process
+
+     $NEWVER=0.12
+     prog=ump-$NEWVER
+     tar zxvf $prog.tar.gz
+     cd $prog
+     ./configure && make -s
+     # login as root, run
+     sudo make -s install
+
+
+
+   The structure did not work well with a ./build directory because the
+scripts that stand alone in the ./scripts directory would not get
+copied over and installed.
+
+
+*Note External Calibration::, for first setup.
+
+
+File: ump.info,  Node: What Gets Installed,  Next: Checks,  Prev: Installation,  Up: Installation
+
+2.1 What Gets Installed
+=======================
+
+`sudo make -s install' run as root puts the following scripts and
+programs available to all users.  The `make -s check' scripts exercise
+these capabilities.  The user needs to get in the habit of running from
+a directory with needed tuning files.
+
+`annoppm'
+     A program that takes the `.lbl' file output from `ump' that is
+     associated with each `.ppm' file and uses Image Magick to write
+     the `.lbl' information onto the `.ppm' file.
+
+`checkRealAll'
+     Script that cycles through real-time loading combinations to
+     produce .tim files for analysis in a spreadsheet.
+
+`checkSetup'
+     Script that exercises the camera external calibration programs.
+
+`convertTsai'
+     Program that takes Tsai format camera position files and puts out
+     external calibration files for the ump application.
+
+`mm2ppm'
+     A program that take the `.mm' and `.lbl' output files of `ump'
+     real-time operation with `-W' option and writes viewable `.ppm'
+     files. The `.mm' file format is the 'Matrix Market' format of
+     array management.
+
+`savemms'
+     A script that takes the output of a real-time run `-w' and saves
+     in a time-stamped directory located in the directory where the
+     script was run.  Go to the directory and run `showmms'.
+
+`saveppms'
+     A script that takes the output of a file run `-i' or `-o' and
+     saves in a time-stamped directory located in the directory where
+     the script was run.
+
+`showmms'
+     A script that takes the output of a real-time run `-w' and creates
+     viewable `.ppm' files in a format like `showppms'.  Use the
+     -r<rownum> option to create the contact sheet and display it the
+     first time.
+
+`showppms'
+     A script that displays `ump' output files in an animation loop.
+     It also leaves behind some static 'contact sheet' type of files
+     for viewing.  Use the -r<rownum> option to create the contact
+     sheet and display it the first time.
+
+`killUmp'
+     A script that hunts down and destroys all processes with `ump -'
+     and `streamery' in the job name (as seen by `ps -axm' command)
+     that would be for jobs such as `ump -M2' or `ump -R2' or
+     `streamery'.
+
+`killSty'
+     A script that hunts down and destroys all processes with
+     `streamery' in the job name (as seen by `ps -axm' command) that
+     would be for jobs such as `ump -ofile.raw'.  Normally called by
+     `killUmp'.
+
+`sliceraw'
+     A program that takes long image sequences in `.raw' files using
+     the `-i' option files and produces shorter sequences specified
+     using the `-t<start>:<end>' option in a single `.raw' file using
+     the `-o' option.  When two files are input simultaneously as `-i'
+     files they are melded in alternating images.  The program
+     automatically keeps track of the `.tim' and `.set' files and
+     prints out the time and number of frames at the end.
+
+`tim2clk'
+     A program that takes a binary time `.tim' file and converts it
+     into ASCII `.clk' file.  The `.tim' files have two longs for each
+     time slice, corresponding to two longs from `timeval' structure
+     for time utilities in `#include <sys/time.h>'.  These files are
+     impossible to read so this utility program was written to allow a
+     peek.
+
+`streamery'
+     A program to grab frames.  It operates either real time or as
+     limited time to file.  Adapted from `xawtv' program `streamer'.
+
+`triangulate'
+     A program that takes raw image coordinates from two different
+     cameras and computes the three-dimensional location.  It is useful
+     to use The Gimp program to derive raw image information.
+
+`ump'
+     The main application.  The user may run with minimal options in
+     two modes:  record/playback `-i || -o' and real time ` -Rx '.
+     Wrapper script `Ump' runs the application.
+
+`Ump'
+     A wrapper script that runs the application in a new xterm window
+     that is sized just right proportions to display the results.
+
+`ump.info'
+     A teXinfo file.  You may have to hand-edit the `dir' file where
+     the ump.info file gets installed.
+
+`ump.x'
+     A script called by the wrapper to give the arguments to `ump'.  It
+     will also run still shots by `ump.x -s' and replay those shots
+     with `ump.x -s -R'
+
+`extCal'
+     A program that takes `.cam' and `.dat' geometry file information
+     to produce a calibration `.cal' file used by `ump'.  Called by
+     `checkSetup'.
+
+`makeUmpDist'
+     A script that the user calls with arguments for old release, new
+     release, and new version.  The script goes through all the
+     necessary file edits, with user interaction, to build new
+     distribution rpm's for ump.  The script must be run with root
+     permissions.
+
+
+
+File: ump.info,  Node: Checks,  Next: Dependencies,  Prev: What Gets Installed,  Up: Installation
+
+2.2 Checks
+==========
+
+`make check' runs the following automatic tests.  It will throw
+incomplete status, without failing though, if the large data files have
+not been downloaded.
+
+`checkKill'
+     Script that checks for hanging programs and IPC before running
+     other checks.
+
+`checkSetup -i'
+     Script that runs interactively to guide the user through the
+     camera external calibration process.
+
+`checkTriangulate'
+     Script that exercises the `triangulate' program.
+
+`checkCal'
+     Script that runs through various calibration methods as an
+     exercise.  Compares results to stored files.
+
+`checkReal'
+     Script that runs a real-time invariant loading test.
+
+`checkFile'
+     Script that tests ability to re-open `.raw' file then re-process.
+
+`checkOfile'
+     Script that tests ability to stream frame-grabber to file then
+     re-process as in checkFile.
+
+`checkUmp'
+     Script that demonstrates the wrapper script that is intended to be
+     the interface to the application.
+
+`checkKillEnd'
+     Script that checks for hanging programs and IPC after all tests
+     have completed.
+
+
+
+File: ump.info,  Node: Dependencies,  Next: blas,  Prev: Checks,  Up: Installation
+
+2.3 Dependencies
+================
+
+The method is dependent upon capabilities that are either built into
+Linux already or need to be installed by the user.  These are:
+
+`bttv'
+     Interface program to the PCI frame grabber cards.  See chapter
+     "Install Video Cards."
+
+`The Gimp (or equivalent)'
+     The GNU Image Manipulation Program or equivalent to view still
+     shots and pick off pixel coordinates as needed for tuning the
+     application.
+
+`Image Magick'
+     The Linux image manipulation tool box `-lmagick'.
+
+`pthreads'
+     The Linux thread scheduler `-lpthread'.
+
+`tuner'
+     Part of interface to PCI frame grabber cards.  See chapter
+     "Install Video Cards."
+
+`X11R6'
+     Used with Image Magick.
+
+
+
+File: ump.info,  Node: blas,  Prev: Dependencies,  Up: Installation
+
+2.4 blas
+========
+
+Early in development I wondered if the `tnt' numerical library was
+slowing down the application.  An experiment proved that it was just as
+fast as the `blas' library.  Early versions of the distribution have
+it, e.g. ump-0.2.tar.gz but it has been dropped for simplicity.
+Contact the author for a method.
+
+
+File: ump.info,  Node: Install Video Cards,  Next: Blink GUI,  Prev: Installation,  Up: Top
+
+3 Install Video Cards
+*********************
+
+The minimum recommended computer architecture is Pentium II, 350 MHz,
+128 MB ram.  Anything less will set the user up for a frustrating
+experience with dropped frames due to slow operation.
+
+   * Install the PCI Brooktree 84x video cards.  Follow the
+     instructions that come with the card.  Linux (RedHat 6.1) will
+     recognize the cards but will not automatically load the bttv
+     drivers.
+
+   * Edit /etc/rc.d/rc.sysinit and add the following lines BEFORE "Now
+     that we":
+          # Attach bttv
+          action "Starting tuner..." /sbin/modprobe -k tuner
+          action "Starting bttv..." /sbin/modprobe -a bttv
+
+
+File: ump.info,  Node: Blink GUI,  Next: Main,  Prev: Install Video Cards,  Up: Top
+
+4 Blink GUI
+***********
+
+`Blink' will startup in the `Setup Guide' tab if anything is incomplete
+about the setup configuration.  Follow the `Setup Guide' checklist
+going from top to bottom then left to right before attempting to run
+the functions on `Main' or `Tests'.
+
+* Menu:
+
+* Main::          Main run tab
+* Left camera::   Left camera setup tab where calibrations are made.
+* Right camera::  Left camera setup tab where calibrations are made.
+* World::         World definition tab where camera locations, etc. are.
+* Zone::          The strike zone tuning parameters
+* Tests::         Miscellaneous test programs
+* Setup Guide::   Checklist to follow to properly setup
+* Blink Program Notes:: Information that doesn't fit anywhere else
+
+
+File: ump.info,  Node: Main,  Next: Left camera,  Prev: Blink GUI,  Up: Blink GUI
+
+4.1 Main
+========
+
+``Change Main:''
+     Select the working directory where streamed capture video will be
+     saved.  The directory does not get too full, since the `Store'
+     function creates a subdirectory from main to save for future
+     analysis.  The status window just to the right displays the path
+     to the main working directory.
+
+``To Guide''
+     Jump to the `Setup Guide' tab.
+
+``Link Main to Cal''
+     Link the calibration files to the main working directory.  These
+     files are used by the `ump' application for information about
+     camera calibration and world geometry.  The status window just to
+     the right displays the path to the calibration files to be used or
+     a message if not.
+
+``Continuous''
+     Run a real-time continuously running application that spawns into
+     a new xterm window. This process continuously monitors the video
+     streams for objects and predicts zone impacts as they are
+     detected.   It is possible to interact with the spawned process
+     with a simple interactive syntax.  Type `ctrl-c' to initiate it.
+     Typing `h' at the ensuing prompt accesses a help menu.
+
+``Pause''
+
+``Kill''
+     Sometimes the applications become zombies, usually due to careless
+     interrupts.  That's OK because the `Kill' function will hunt them
+     out.  Sometimes a warning about IPC memory is thrown.   This means
+     that zombie Interprocess Memory has been allocated but not
+     de-allocated.
+
+``Single''
+     This is the main interactive button.  Press it a couple seconds
+     before a pitch is released and it will capture and replay the
+     pitch.  Normally, the application it starts will beep to
+     acknowledge it has started and then beep when it may acquire video
+     the beep a third time when it has finished scanning.  Pressing
+     `Store' will save the pitch for future `Replay'.  TODO:  explain
+     how to access the replay.
+
+``Plot''
+     Put the images from the previous pitch into display windows.
+
+``Store''
+     Put the previous pitch into a directory off of the main named for
+     the time stamp available the instance that the `Store' button has
+     been pressed.
+
+``Stills''
+     It is possible to run still pitches by taking a shot with the ball
+     in a spot then replacing it immeditately with a black, contrasting
+     ball for a follow-up shot.  The application will instruct you when
+     to place the balls.  This is useful for accuracy studies because
+     it disables functions that screen for real motion.
+
+``Dialog''
+     View the standard input/output from the `ump' application for the
+     previous pitch. This may help debug problems.
+
+``Change Cal:''
+     Select the calibration directory where several special test
+     snapshots are made for the 3-dimensional vector calibration
+     process.  A separate directory allows several locations
+     (ballfields) to be supported by one computer.
+
+
+File: ump.info,  Node: Left camera,  Next: Run Parameters,  Prev: Main,  Up: Blink GUI
+
+4.2 Left camera
+===============
+
+Various setup for the left camera.
+
+* Menu:
+
+* Run Parameters:: Status window of current calibration.
+* Run Mask::  Control of the main run vision mask and control of vision tuning.
+* Calibration Mask A:: Control of vision mask used to screen ball A.
+* Calibration Mask B:: Same as Mask A except Ball B.
+* Calibration Mask C:: Same as Mask A except Ball C.
+
+   The buttons described do not take effect until the `save' button has
+been pressed.
+
+4.2.1 Aberration
+----------------
+
+Various aberration settings for the left camera.  These are saved in
+the file video0.cam for use by the main application ump.  *Note Tune::.  
+
+*`imWidth'
+     Calibration width, pixels.  
+
+*`imHeight'
+     Calibration height, pixels.  
+
+*`focal'
+     Camera focal length, pixels equivalent to imWidth.  Camera focal
+     length in pixels (for 1/4" CCD, f=3.8 mm, w=3.63 mm so if image
+     width in pixels is 160 the focal_length=3.8/3.63*160=167.5 pixels.  
+
+*`AbConstant'
+     Aberration intercept.  
+
+*`Abrqw2'
+     Aberration radial distortion.  
+
+*`AbipimR'
+     Aberration x linear correction.  
+
+*`AbjpjmR'
+     Aberration y linear correction.  
+
+*`ARC'
+     Image aspect ratio.  
+
+*`colpGrid'
+     A 5 row by 7 column raw pixel array for the column coordinates of
+     a uniform 5 by 7 grid viewed through cameras at the image size to
+     be run at.  This, along with `rowpGrid', determine necessary
+     corrections to square up an image and correct it for aberration.  
+
+*`rowpGrid'
+     A 5 row by 7 column raw pixel array for the row coordinates of a
+     uniform 5 by 7 grid viewed through cameras at the image size to be
+     run at.  This, along with `colpGrid', determine necessary
+     corrections to square up an image and correct it for aberration.
+
+*`Revert'
+     If buttons have changed since file loaded, you may restore to the
+     file values.
+
+*`Show .masks'
+     Display images of the masks applied to the snapshots. If the
+     snapshots do not yet exist then the Blink logo is displayed
+     instead, without a mask.
+
+*`extCal'
+     Execute the `extCal' utility program.  This takes the saved values
+     of the parameters and calculates the corrections and 3-dimensional
+     rotations to be applied to the detected pixel motion to predict
+     object location.
+
+4.2.2 BallRaw Pixels
+--------------------
+
+Various ball observations made from the snapshots are used as input to
+the `extCal' function to enable calculation of 3-dimensional rotation
+matrices.
+
+*`Measure A Pixels'
+     Request the `ump' application to detect pixels centroids changed
+     in the snapshot.  The mask will localize the search to be sure
+     just ball A is detected for more accurate centroid calculation.
+     The output of the command will have raw pixels `ballRaw pixels'
+     identified clearly.
+
+*`A'
+     Enter the output of the `Measure A Pixels' command here.
+
+*`Measure B Pixels'
+     Repeat for ball B.
+
+*`B'
+     Repeat for ball B.
+
+*`Measure C Pixels'
+     Repeat for ball C.
+
+*`C'
+     Repeat for ball B.
+
+*`Revert'
+     If buttons have changed since file loaded, you may restore to the
+     file values.
+
+*`Save'
+     Save the aberration and pixel data to `video0.cam' and
+     `video0.dat' respectively.  The right camera would save to
+     `video1.cam' and `video1.dat'.
+
+
+File: ump.info,  Node: Run Parameters,  Next: Run Mask,  Prev: Left camera,  Up: Left camera
+
+4.3 Run Parameters
+==================
+
+This is just a status window displaying the presently used `video0.cal'
+file contents.   You must save your work and run `extCal' to have your
+entries recognized.
+
+
+File: ump.info,  Node: Run Mask,  Next: Calibration Mask A,  Prev: Run Parameters,  Up: Left camera
+
+4.4 Run Mask
+============
+
+The spin buttons set various characteristics of masks.  A mask who's
+`val' is 1 will allow picture to pass through and 0 blanks that area.
+See *Note Input Files:: section called `.mask'.  Image pixel counting
+convention starts from the top upper left-hand corner of an image.
+There are handy rulers around the images access by `Show .masks'.
+Masks are applied in order to the image, starting with the default row,
+proceeding to line 1, line 2, so on.           The `Run Mask' in
+particular is used for normal run operation of the application after
+calibrations have been performed.  It is useful to block parts of the
+image where the ball does not normally travel.  Too many extraneous
+motion detections slow down and potentially confuse the application.  
+*`Default' line
+     Set the baseline for the entire image.  If the `val' is 0 then
+     subsequent masks will allow picture to pass.  Conversely if the
+     `val' is 1 then subsequent masks will select picture to block.
+
+*`Sx' element
+     Enter the x coordinate set point for the top left corner of the
+     mask, fraction, from left side.
+
+*`Sy' element
+     Enter the y coordinate set point for the top left corner of the
+     mask, fraction, from top side.
+
+*`Dx' element
+     Enter the width of the mask, fraction.
+
+*`Dy' element
+     Enter the height of the mask, fraction.
+
+*`DDx' element
+     Enter the skew of the bottom of the mask, fraction.  The mask is
+     always a regular parallelogram. A positive `DDX' shifts the bottom
+     of the parallelogram in the positive, right direction.  Since the
+     parallelogram is always regular, `DDX' cannot be combined with
+     `DDY'.  The program spin button setup prevents them from being
+     entered simultaneously.
+
+*`DDy' element
+     Enter the skew of the right of the mask, fraction.  The mask is
+     always a regular parallelogram. A positive `DDY' shifts the right
+     of the parallelogram in the positive, downward direction.  Since
+     the parallelogram is always regular, `DDY' cannot be combined with
+     `DDX'.  The program spin button setup prevents them from being
+     entered simultaneously.
+
+*`val' element
+     Mask weight, 0 or 1.  A value of 0 applies a block of the mask
+     area to the image constructed up to this line.
+
+*`1' line, etc.
+     Mask added to all the previous masks for this run mask.
+
+   The following tune scalars control how the application behaves.
+*`agaussScalar'
+     *Note Input Files::.
+
+*`bgaussScalar'
+     *Note Input Files::.
+
+*`minBallDensityScalar'
+     *Note Input Files::.
+
+*`minBallAreaScalar'
+     *Note Input Files::.
+
+*`maxBallAreaScalar'
+     *Note Input Files::.
+
+*`minBallRatioScalar'
+     *Note Input Files::.
+
+*`maxBallRatioScalar'
+     *Note Input Files::.
+
+*`minProxScalar'
+     *Note Input Files::.
+
+*`Revert .mask'
+     If buttons have changed since file loaded, you may restore to the
+     file values.
+
+*`Save .mask'
+     Save the mask data to `video0.mask'.
+
+*`Revert .tune'
+     If buttons have changed since file loaded, you may restore to the
+     file values.
+
+*`Save .tune'
+     Save the tune data, agaussScalar etc, to `video0.tune'.
+
+
+
+File: ump.info,  Node: Calibration Mask A,  Next: Calibration Mask B,  Prev: Run Mask,  Up: Left camera
+
+4.5 Calibration Mask A
+======================
+
+Calibration for `ump' and `Blink' is the process of telling the
+application how to convert pixels into 3-dimensional rays and
+ultimately into triangulated object location.  You need 3 balls in 3
+known locations to calculate a 3-dimensional calibration. The process
+is to take a snapshot of a white then a black ball in each of 3 known
+locations, detect the raw pixel centroid of each ball in each camera,
+enter the raw pixel values into the spin buttons, the run the `extCal'
+function.  The `Setup Guide' will help you get the sequence right.  The
+`World' tab is where you enter the real world location of the balls and
+cameras.
+
+   The syntax for the mask is the same as for the `Run Mask'.  *Note
+Run Mask::.
+
+   Note that when taking pictures of balls for calibration, it is
+easiest to setup all balls at once, take three pictures, then setup the
+contrasting black balls and take three more pictures.  The calibration
+masks allow the other balls to exist in the image and be ignored
+selectively.
+
+   The best convention to follow for naming balls is to start with the
+ball nearest the umpire.  Call this ball A.  Then proceed clockwise to
+the other balls.
+
+   The `Calibration Mask A' in particular is used for calibration
+operation of the application.  It is useful to block parts of the image
+where ball A is not visible.  Extra detection, say for the other balls,
+will generate confusing output causing you to enter erroneous raw pixel
+data following a measurement run.
+
+   For descripton of entry format in the mask, *Note Run Mask::.
+
+
+File: ump.info,  Node: Calibration Mask B,  Next: Calibration Mask C,  Prev: Calibration Mask A,  Up: Left camera
+
+4.6 Calibration Mask B
+======================
+
+*Note Calibration Mask A::.
+
+
+File: ump.info,  Node: Calibration Mask C,  Next: Right camera,  Prev: Calibration Mask B,  Up: Left camera
+
+4.7 Calibration Mask B
+======================
+
+*Note Calibration Mask A::.
+
+
+File: ump.info,  Node: Right camera,  Next: World,  Prev: Calibration Mask C,  Up: Blink GUI
+
+4.8 Right camera
+================
+
+This is analogous to *Note Left camera::.
+
+
+File: ump.info,  Node: World,  Next: Zone,  Prev: Right camera,  Up: Blink GUI
+
+4.9 World
+=========
+
+Define the physical world geometry.
+
+   The xyz coordinates have their origin at the front center of the
+batter's plate.  Viewed from the point of view of the umpire, x points
+right and y points to the pitcher.  In right-handed fashion, z points
+up. Strike zone locations are x and z coordinates.  Pitch velocity
+consists mainly of large, negative y.  Left and right are from the
+point of view of the umpire.  The left camera will have negative x and
+the right camera will have positive x.
+
+4.9.1 Camera Locations
+----------------------
+
+These measurements must be made carefully.  Suggest using plumb bob to
+locate nails or pins in the ground directly below for a tape measure
+point.  Use an accurate tape and hold it level, using a plumb bob if
+necessary. Use a laser level to get relative elevations from the front
+center of home plate.  Measurements should be better than +/-0.1 inches.
+
+   There is tuning capability for the final pitch prediction in the
+application settings.  But this cannot compensate for distortion caused
+by accumulation of many careless measurements.
+
+   There is a spreadsheet `TODO enter name of calibration spreadsheet'
+included with...  that will assist in the calculation of world
+coordinates from raw measurements.   The spreadsheet also checks for
+survey closure to verify accuracy and provides a checklist and form
+useful for recording all the needed measurements.  
+
+*`Left, Pl'
+     Enter the xyz coordinates of the left camera's lens focal point.
+
+*`Right, Pr'
+     Enter the xyz coordinates of the right camera's lens focal point.
+
+4.9.2 Ball Locations for Calibration
+------------------------------------
+
+The two cameras should focus on a spot about 12 feet in front of the
+plate about 5 feet high and have a field of view width of about 12 feet
+total.  Setup 3 balls in this field of view.  A good convention is to
+call the ball nearest the umpire ball A and proceed clockwise from
+there.
+
+*`Ball A, OA'
+     Enter the location of ball A.
+
+*`Ball B, OB'
+     Enter the location of ball B.
+
+*`Ball C, OC'
+     Enter the location of ball C.
+
+4.9.3 Bottom functions
+----------------------
+
+*`Revert'
+     If buttons have changed since file loaded, you may restore to the
+     file values.
+
+*`Save world.dat'
+     Save the camera location and ball location data.
+
+4.9.4 Still Photos
+------------------
+
+Both cameras take pictures at the same time for these functions so make
+sure they're both on.  For any of these functions, there may be balls
+in place for the other balls to make the task easier and these can be
+masked out later in the video process.  The main task is to get white
+balls with white function and black balls with black function.  Since
+moving balls create video motion by being present one frame and absent
+the next, we need to recreate motion using white and black balls.  A
+black ball is absolutely essential to get an accurate reading, versus
+using no ball, to prevent the application from being confused by
+changing shadows.
+
+   To summarize, it is easiest to take all the pictures of three normal
+white balls, like the ones being pitched, then take all the picture of
+three normally sized black balls, like the ones being picthed.  With
+the white balls in place, press all three white ball buttons in any
+order desired.  Then with the black balls in place, press all three
+black ball buttons in any order desired.  The check boxes keep track of
+key presses.  They reset if all the snapshots have been taken and you
+start over.
+
+   There are three buttons for white in case you have just one fixture
+for placing a ball in the visible zone.
+
+*`White A'
+     Place a ball at position A and take a snap.
+
+*`Black A'
+     Place a black ball at position A and take a snap.
+
+*`White B'
+     Place a ball at position B and take a snap.
+
+*`Black B'
+     Place a black ball at position B and take a snap.
+
+*`White C'
+     Place a ball at position C and take a snap.
+
+*`Black C'
+     Place a black ball at position C and take a snap.
+
+
+File: ump.info,  Node: Zone,  Next: Tests,  Prev: World,  Up: Blink GUI
+
+4.10 Zone
+=========
+
+Enter here any changes you wish to make to the default physical world
+settings such as strike zone.  There are some miscellaneous tuning
+parameters as well.  
+
+*`Shift Right (dxZone)'
+     If the balls are measured to be striking to the right, enter this
+     to shift the zone to agree.
+
+*`Shift Up (dzZone)'
+     If the balls are measured to be striking high, enter this to shift
+     the zone to agree.
+
+*`Gravity constant (gravity)'
+     Used to account for the accelerating drop of the ball from the
+     focal point of the cameras to the plate.  Use this if `dzZone' is
+     inconsistent.
+
+*`Velocity threshold (velThresh)'
+     This is used to filter out balls that are moving the other way,
+     i.e. a hit.
+
+*`Velocity max threshold (velMax)'
+     This is used to filter out unrealistic detections, noise.
+
+*`Left side of zone (left)'
+     Enter the location of the left side of the zone, straight up from
+     the outer edge.
+
+*`Right side of zone (right)'
+     Enter the location of the right side of the zone, straight up from
+     the outer edge.
+
+*`Top of zone from plate (top)'
+     Enter the location of the top of the zone from the top of the
+     plate.
+
+*`Bottom of zone from plate (bottom)'
+     Enter the location of the bottom of the zone from the top of the
+     plate.
+
+*`Ball diameter (ballDia)'
+     Enter ball diameter, used to determine if the ball nicks the zone.
+     Note that the camera system measures the centroid of the ball,
+     not it's edge.
+
+*`Accuracy scalar (triangulationScalar)'
+     Enter an adjustment to screen bad triangulation results.  Useful
+     to allow a poor calibration to be run for diagnostic reasons.
+
+*`Speed display scalar (speedDisplayScalar)'
+     Enter here the conversion to display the speed.  The default value
+     of 17.6 converts the convention of in/sec internal to the
+     appication to mph for display.
+
+*`Revert'
+     If buttons have changed since file loaded, you may restore to the
+     file values.
+
+*`Save zone.tune'
+     Save the camera location and ball location data.
+
+
+File: ump.info,  Node: Tests,  Next: Setup Guide,  Prev: Zone,  Up: Blink GUI
+
+4.11 Tests
+==========
+
+*`Check realtime communication'
+     TODO.
+
+*`Check Setup Utility Script'
+     TODO.
+
+*`verbose='
+     Set the level of verbosity that `Blink' should provide.  This is
+     useful primarily for debugging Gnome callback logic.
+
+
+File: ump.info,  Node: Setup Guide,  Next: Blink Program Notes,  Prev: Tests,  Up: Blink GUI
+
+4.12 Setup Guide
+================
+
+Follow top to bottom, left to right to setup cameras and settings.
+
+4.12.1 Part I Outside Preparation
+---------------------------------
+
+*`chose working directory'
+     Enter here
+
+*`chose cal directory'
+     Enter here
+
+*`world.dat saved'
+     Enter here
+
+*`left aberraton saved'
+     Enter here
+
+*`snaps done'
+     Enter here
+
+*`sliceraw run'
+     Enter here
+
+4.12.2 Part II Measure Calibration Balls
+----------------------------------------
+
+*`left mask A saved'
+     Enter here
+
+*`right mask A saved'
+     Enter here
+
+*`left mask B saved'
+     Enter here
+
+*`right mask B saved'
+     Enter here
+
+*`left mask C saved'
+     Enter here
+
+*`right mask C saved'
+     Enter here
+
+*`left pixel data saved'
+     Enter here
+
+*`right pixel data saved'
+     Enter here
+
+*`external calibration run'
+     Enter here
+
+4.12.3 Part III End to End Check
+--------------------------------
+
+*`End end ready'
+     Enter here
+
+*`end end'
+     Enter here
+
+4.12.4 Part IV Prepare for Running
+----------------------------------
+
+*`Left default mask save'
+     Enter here
+
+*`Right default mask save'
+     Enter here
+
+*`zone.tune save'
+     Enter here
+
+*`left tune save'
+     Enter here
+
+*`right tune save'
+     Enter here
+
+
+File: ump.info,  Node: Blink Program Notes,  Next: Main Application,  Prev: Setup Guide,  Up: Blink GUI
+
+4.13 Blink Program Notes
+========================
+
+TODO.
+
+
+File: ump.info,  Node: Main Application,  Next: Options,  Prev: Blink Program Notes,  Up: Top
+
+5 Main Application
+******************
+
+* Menu:
+
+* Options::       Verbose explanation of command line options
+* Input Files::   Explanation of format for ump input files
+* Output Files::  Explanation of output files from ump
+* Program Notes:: Miscellaneous information that doesn't fit anywhere else
+
+   This is the main application, invoked by `ump' or wrapper script
+`Ump' that:
+
+   * performs executive functions of starting and stopping streamer
+
+   * starts an interrupt driven thread that starts and stops
+
+   * spawns producer thread for each device
+
+        - read input files
+
+        - create masks from input specifications `.mask'.
+
+        - pre-filter pixel map to detect light colored changes
+
+        - make edges of affinity between pixels
+
+        - segment edges into affine clusters
+
+        - determine shape of clusters and select balls
+
+        - output cluster properties
+
+        - color clusters and write image to file `.ppm'.
+
+   * spawns a consumer thread
+        - collects balls from each producer thread
+
+        - interpolate by time to synchronize balls
+
+        - triangulate position of ball
+
+        - calculate trajectory of ball
+
+        - predict strike zone
+
+        - output strike zone results
+
+   The ump application has been tested solely with Brooktree (Bt) PCI
+frame-grabber cards.  The xawtv UNIX application is a standard system
+application interface to frame-grabbers which were used to check basic
+operation.  Many low-level driver functions from xawtv streamer program
+were borrowed to drive the ump application.
+
+
+File: ump.info,  Node: Options,  Next: Input Files,  Prev: Main Application,  Up: Main Application
+
+5.1 Options
+===========
+
+The application has no default mode.  At least, the R option must be
+selected for real-time streaming, or the -i option must be selected for
+record-playback.  The record-playback option keeps the image stream in
+'raw' image file for each device and also paints the segmented images
+and stores them in 'ppm' image files for each image from each device
+including masks.  The entire list of options are:
+
+`-h, --help'
+     this screen
+
+`-a, --gauss'
+     weight, pixels norm to 160 [ 4.00].  This is the distance affinity
+     weighting factor as described by `a' in the report `cuts.ps'.  It
+     is normalized to an image width of 160 and the nominal value is 4.
+     This means a=4 for size=160xheight and is scaled proportional to
+     image size to preserve the physical world correspondence.  The
+     pixel intensity weighting factor described by 'b' in the report
+     `cuts.ps' is nominal 30 counts out of 256 full scale and is
+     unadjustable without changing the value in file Image.h and
+     recompiling.
+
+`-S, --sub'
+     subsample multiple          [1].  This is the image pixel map
+     sub-sampling factor.  Nominally for record-playback mode the
+     factor is 1 which samples every pixel and segments it.  Nominally
+     for real-time mode the factor is 2 which samples every other pixel
+     when forming the pre-filtered pixel map.  The savings in
+     throughput is approximately 4 times for a factor of 2 since the
+     number of affine edges increases with the square of number of
+     changed pixels.   There is little loss of accuracy for a factor of
+     2.  Larger factors, they may be 3, 4, 5, so on, save throughput
+     more but usually result in poor segmentation performance.  The
+     application automatically scales all other factors as
+     appropriately with the sub-sampling factor to maintain physical
+     world correspondence.
+
+`-l, --load'
+     do a load test.  This option works with -R real-time mode to feed
+     the threads with the maximum possible number of pre-filtered pixel
+     changes.  The resulting frame times indicate slippage or not
+     dependent on image size and sub-sampling factors.
+
+`-s, --size'
+     capture WIDTHxHEIGHT     [160x120].  This is the frame-grabber
+     image size controlled at the device level.  The application
+     automatically queries the frame-grabber devices to ensure the
+     image size will work.  The user is free to try any image size
+     within the constraints of the frame grabber.  The calibration is
+     automatically adjusted.
+
+`-C, --calibrate'
+     doing calibration           [0].  This option over-rides many of
+     the high-level perceptual grouping options normally used to
+     identify a moving baseball so that still baseballs can be used to
+     externally calibrate the two devices.  Alternate black and white
+     still baseballs images in playback mode create a pseudo-motion
+     that will cause ump to output pixel locations useful for external
+     calibration.  This option always produces .ppm images regardless
+     of motion present.
+
+`-c, --device'
+     [/dev/video0 & /dev/video1].  Use this to provide the UNIX system
+     file handle to the frame-grabber devices.  It is recommended that
+     video0 be the umpire's left hand side camera and video1 be the
+     right hand side.  Then the geometry information in world.dat will
+     be Pl for left and Pr for right camera locations with respect to
+     world coordinates.  The orientation information in the video.cal
+     files will correctly align the cameras with the real world.  The
+     first device on the command line is first, and so on.  The user
+     could switch devices this way but that is best done with the wires
+     because the calibration files go with the device name which goes
+     with the card which goes with the wires.  I is recommended that
+     camera be calibrated with frame grabber and be kept together
+     unless re-calibrated.
+
+     The `ump' application has simple logic when running triangulation
+     to detect reversed wiring and print a fault isolation message.
+
+`-r, --fps'
+     frame rate, fps             [30].  This is the frame-grabber frame
+     rate.  The frame-grabber will not complain if the application
+     requests faster rates.  If greater than 30 is requested, the
+     application throws just a warning.
+
+`-M, --memtime'
+     memory mapped process.  This is identical to -R except that the
+     application `exec's a `streamery' process and that maps the
+     results to the application using shared System V memory mapping
+     with token passing IPC using `pipe's.
+
+`-R, --realtime'
+     acquire/calc loop, # devices.  This specifies that the application
+     run in real-time mode.   The argument is the total number of
+     devices, from 1 to 2, to acquire.  The application `fork's a
+     streamer process which performs grabbing and pre-filtering and
+     leaves the filtered pixmap definition in a small area of shared V
+     memory.  When saving in this mode with the -W option only these
+     pre-filtered pixmap is plotted on a gray background.
+
+`-t, --absframes'
+     frames after warm-up         [45].  These are the total number of
+     frames to be captured in the record function.  The number is the
+     number to be saved by each producer thread after the warm-up
+     period has expired.
+
+`-D, --deadband'
+     deadband passed onto        [30].  This is the pre-filter noise
+     threshold.  To be detected as a changed pixel, the difference with
+     the previous update must exceed this value.  Then the entire
+     difference is used (not just how much it exceeds the threshold).
+     The default of 30 is +/-30 counts out of +/-256 possible.
+
+`-i, --in'
+     specify file name (.raw), may have two on separate -i inputs .
+     This is the primary option to make the application perform
+     playback mode.  The first occurrence of an -i option assumes
+     device0.  The second assumes device1.  Each device requires a
+     separate -i invocation followed by a file name to save the images
+     for playback.  The resulting files are in 'raw' format, a straight
+     binary dump of the unsigned character pixel map values.  It is
+     traditional to give these a .raw extension though this is left to
+     the user because an `xawtv' source program is being re-used that
+     required user input of file suffix.  The off-line non real-time
+     option for ump (-i and -o) are asynchronous to emulate the
+     real-time behavior.  As a result, results vary.  There should be
+     just two variants depending on which thread wins the race
+     condition as the first image used.
+
+`-d, --dump'
+     look for .dmp files.  This switch asks the application to dump
+     debugging information into various files.  The files all have .dmp
+     extension.  Some dumps are cumulative; others are from the last
+     frame.
+
+`-o, --out'
+     specify file name (.raw).  This is the primary option to make the
+     application perform record mode.  Immediately following record,
+     the -i option is automatically invoked as described above. The
+     user may run the -i option by itself to use saved files for
+     off-line running.  The first occurrence of an -i or -o option
+     assumes device0.  The second assumes device1.  Each device
+     requires a separate -o invocation followed by a file name to save
+     the images for playback.  The resulting files are in 'raw' format,
+     a straight binary dump of the unsigned character pixel map values.
+     It is a convention left from `xawtv' to give these a .raw
+     extension though this is left to the user.
+
+`-v, --verbose'
+     print lots of information             [0].  This is useful for
+     troubleshooting various problems, especially used in `ump -R2 -v3
+     >tempfile'.
+
+`-v0, --verbose0'
+     Does nothing.  Useful for scripting perhaps.
+
+`-v1, --verbose1'
+     Print very minor memory and basic diagnostics.
+
+`-v2, --verbose2'
+     Print basic BALL selection information.
+
+`-v3, --verbose3'
+     First level of debug.  Can look at basic perceptual grouping
+     reject messages here to help determine why a setup is not
+     detecting pitches.
+
+`-v4, --verbose4'
+     More detailed debugging from 3.
+
+`-v5, --verbose5'
+     Triangulation debugging.
+
+`-v6, --verbose6'
+     Print synchronization debug information to the screen.  This was
+     used during development to correct a race condition.  The
+     parameter nready.nready should not be incremented without
+     signaling the nready mutex.  The `-v6' option was run and the
+     resulting output counted for number of times wait for nready
+     compared to signaled nready.  The hung jobs had equal or greater
+     number of waits as signals.
+
+`-w, --warmup'
+     card warm-up, sec         [ 1.50].  Some frame-grabber cards are
+     not fully functional until a small time has passed since the query
+     for an image stream.  The image fades in.  This option discards
+     all information in both cards until the specified time has passed.
+
+`-T<num>, --tri<num>'
+     specify number of iterations to slide the 'other' images times
+     scale to try to line up the rays from each camera in perfect
+     intersection.  This presumes that the reason for poor uncertainty
+     in triangulation is uncertainty in time resolution between cameras.
+
+`-U, --units'
+     speed units, char string   [mph].  If you change
+     speedDisplayScalar in zone.tune for different units you can change
+     display of units using this parameter.
+
+`-W, --write'
+     write circular 100 files (.mm).  This requests that the real-time
+     mode write a sampling of images for display by application
+     'showmms.'  This function may be invoked by the interrupt handler,
+     too.  These files will not display the masks, unlike the
+     record-playback mode which are less time-critical.
+
+`-X, --maxedgepix'
+     specify maximum pixels changed [200].  Increase if message "too
+     many pixels changed."  Throughput affected.  The cameras may be
+     too close or the focal length too large.  Also consider if masks
+     are needed to filter extraneous motion.
+
+`-e, --singledist'
+     single cam to object (in)   [48.00].  This is a special mode that
+     uses a single camera to dupe a second image stream useful for some
+     debugging.  The argument is the distance to the object assumed for
+     artificial triangulation calculations.
+
+
+
+File: ump.info,  Node: Input Files,  Next: Output Files,  Prev: Options,  Up: Main Application
+
+5.2 Input Files
+===============
+
+`.cal'
+     Camera aberration correction factors and external calibration
+     tuning data.  These are generated by `extCal' and `convertTsai'
+     programs from `.dat', `.cam' and `.tam' files.  The Tsai method is
+     provided for those users who use it.  Aberration correction does
+     not have a large effect on accuracy and the program will run
+     without it.  The application does require some external
+     calibration information, however, to know where the camera points.
+
+`.mask'
+     These files allow the user to used whatever part of the image is
+     desired.  Since the cameras look at a compound angle then the
+     balls travel diagonally across the images within a path then mask
+     specifications are parallelograms or variants such as rectangles.
+     For simplicity, only one set of sides may vary from
+     non-perpendicular at a time.  Only one file is used for each
+     device.  Up to eight masks may be applied.  The program applies
+     them in order starting at the top line.  A mask may include a
+     region by weighting of 1, exclude a region by weighting of -1, or
+     nothing by a weighting of 0 (useful to comment out a mask).  The
+     weights at any pixel are added and if the net weight is 1 that
+     pixel is used.  Following is a figure explaining the format:
+
+
+     Each mask has 7 properties which must be present across the line
+     in the order specified: 
+
+          Sx - x coordinate set point, fraction
+          Sy - y coordinate set point, fraction
+          Dx - x coordinate parallelogram width, fraction > 0
+          Dy - y coordinate parallelogram width, fraction > 0
+          DDx- x coordinate parallelogram skew added to Dx, fraction
+                 (=0 if DDy ~=0)
+          DDy- y coordinate parallelogram skew added to Dy, fraction
+                 (=0 if DDx ~=0)
+          add- mask weight = 0
+
+     All the mask file lines are added to determine for each pixel its
+     total mask weight which if greater than 0 includes the pixel in
+     the image.  The application draws a white line on the used image
+     (not the mask) to indicate pixels on the mask edge.  This may hide
+     pixels.  The application discards balls that touch the edge,
+     anyway, unless calibration is being performed `ump -C' which still
+     uses the mask but no longer discards balls that touch the edge.
+     There is noise present at the edge of an image so it is generally
+     useful to mask the very edge of most devices.
+
+`videoX.tune'
+     Each camera is tuned separately.  Leave a file empty to get the
+     application to print out the required format.  Running the
+     application in `-v5, --verbose5' mode will display the tuning
+     values used for a run.
+
+`agaussScalar'
+     A clumping gauss parameter based on pixel location similarity.
+     Make it larger to allow a more widespread set of pixels to clump
+     and make it smaller to require close pixels to clump.
+
+`bgaussScalar'
+     A clumping gauss parameter based on pixel intensity similarity.
+     Make it larger to allow a more diffuse, multi-brightness set of
+     pixels to clump and make it smaller to require very sharp, similar
+     pixels to clump.
+
+`minBallDensityScalar'
+     Tune a check for the object pixel density smaller than the tune
+     file allows.  An object that is clearly identified will have
+     density near 1.0 while an object that is indistinct will have a
+     density near 0.0.   Decrease the scalar to accept more low density
+     objects.
+
+`minBallAreaScalar'
+     Tune a check for image rejected because it covers too small an
+     area on the pixel map.  Decrease it to accept smaller area objects.
+
+`maxBallAreaScalar'
+     Tune a check for image rejected because it covers too large an
+     area on the pixel map.  Increase it to accept larger area objects.
+
+`minBallRatioScalar'
+     Tune a check for small smear aspect ratio.  Decrease to accept
+     more objects.  Try decreasing until the number of BALL VELOCITY
+     findings run using `-v2,--verbose 2' is large.
+
+`maxBallRatioScalar'
+     Tune a check that the object aspect ratio is large.  Increase to
+     accept more. Try increasing until the number of BALL VELOCITY
+     findings run using `-v2|--verbose 2' mode is large.
+
+`minProxScalar'
+     A simple test to get pixel clumps to combine appropriately.
+     Increase it to gather more clumps.
+
+`zone.tune'
+     Define the strike zone, gravity constant, and other worldly things
+     here.  Leave a file empty to get the application to print out the
+     required format.  Running the application in `-v5, --verbose5'
+     mode will display the tuning values used for a run.
+
+    `dxZone, dzZone'
+          Biases applied to strike zone measurements.  They are the
+          users final tweak on application output.  Start with zero
+          values and use `left', `right', `top' and `bottom' to set the
+          exact nominal zone location.
+
+    `velThresh'
+          The y-velocity in in/sec that is required for a smear to be
+          considered a ball.  Start with it small.  Run a few trials to
+          determine a nominal value.  This should be a negative number
+          (annoying, I agree, but the program is written from the point
+          of view of the umpire).  Use half the observed nominal for
+          `velThresh'.
+
+    `velMax'
+          The maximum negative y-velocity in in/sec that is allowed for
+          a smear to be considered a ball.
+
+    `gravity'
+          The well-known constant in 386.0 in/s/s.  The user may adjust
+          gravity effects this way.  Setting 0, for example, allows use
+          of a pendulum.
+
+    `left, right, top, bottom'
+          The location of the strike zone edges, inches,  referred to a
+          spot on the ground at the front of the plate in the center
+          from the umpire's viewpoint.  These are exact.  The program
+          accounts for the size of the ball and whether the ball
+          touches the zone.
+
+    `ballDia'
+          The ball diameter, `B',  inches.
+
+    `triangulationScalar'
+          The number of allowed ball diameters for triangulation
+          uncertainty.  Use this to eliminate `TRIANGULATION REJECT'
+          messages; there is a problem to fix but you can keep going.
+
+    `speedDisplayScalar'
+          Conversion to `mph' from program's internal units, `inches'.
+          A value of 17.6 inches/sec/mph is the usual.
+
+     For example:
+          dxZone    = 0.0
+          dzZone    = 0.0
+          velThresh = -110.
+          velMax    =-2290.
+          gravity   = 386.0
+          left      = -3.0
+          right     = +3.0
+          top       = 9.625
+          bottom    = 1.625
+          ballDia   = 0.5
+          speedDisplayScalar = 17.6
+
+
+
+File: ump.info,  Node: Output Files,  Next: Program Notes,  Prev: Input Files,  Up: Main Application
+
+5.3 Output Files
+================
+
+`.raw'
+     Raw image file created by `streamery' program exec'd by the
+     application.  If you really need to look at these, try running
+     `sliceraw' to extract an image at a particular time then run
+     `showppms' to see it.
+
+`.set'
+     A very short file summarizing the basic setup for a run.  The
+     filename matches the root for the `.raw' files but there is just
+     one for each device.
+
+`.ppm'
+     A frame.  These are cleaned up at the START of an `ump' run.  The
+     user may wish to save some of these to another directory for
+     future use.  To do this automatically, add some code to `ump.x'
+     ore `showppms' scripts to make a unique directory or each sequence
+     of images, or alternatively save the contact sheet file, e.g.
+     tempRCX.ppm, generated by `showppms'.
+
+`.lbl'
+     A very short file providing the time stamp for a frame.
+
+
+File: ump.info,  Node: Program Notes,  Next: When Things Go Wrong,  Prev: Output Files,  Up: Main Application
+
+5.4 Program Notes
+=================
+
+Programs streamer, capture and others part of the xawtv package
+(~/xawtvx/src/) are constructed to use global variables for sharing
+information between functions. The purpose is to pass information
+easier and to perform internal synchronization functions. These
+programs use a token passing scheme using fork combined with a mix of
+blocked and unblocked read/write calls. They appear to provide
+performance good enough for the image sizes being passed at 30 Hz rate.
+
+It is usually most effective to re-use whatever working code is
+available. So at first the stereo image tracking program is using an
+extension of the xawtv streamer program. Unfortunately the global
+variables make the functions non-reentrant and they can only be used by
+fork/pipe/exec techniques which are much less efficient than reentrant
+threading techniques because they involve kernel calls to spawn the
+separate process and protect the global variables. The first stereo
+image tracking programs reuse existing code in an inefficient manner.
+This is the -M2 option of ump application.
+
+Additional work has eliminated some of the kernel processing steps by
+calling the xawtv functions from the realStream.c functions called by
+ump.  This required figuring out how xawtv handled the static variables
+and artificially bookkeeping them in realStream.  It still uses fork
+system calls.  Performance is somewhat better; real-time works with
+sufficient fidelity - barely.  PCs will only get faster and have more
+RAM.
+
+It is important to make a hack to the `grab-v4l.c' and `grab-v4l2.c
+grab_queue()' functions as follows (changed `#if 1' to `#if 0'):
+
+     #if 0
+         /* might be useful for debugging driver problems */
+         memset(map + gb_buffers.offsets[frame],0,
+     	   gb_buffers.size/gb_buffers.frames);
+     #endif
+
+   This memory clearing step uses a lot of CPU time and approximately
+halves the margin available to the ump application.
+
+At some time full threading techniques are recommended to get the most
+throughput from the system. The present program barely works real-time
+because of fork-exec structure. Slower frame rates do not help. Neither
+does buffering. The frame grabber seems to drop frames under any
+stress. A faster CPU and more memory would not help. The main program
+uses pthread with a producer/consumer mutex and works very well. When
+used with the off-line streamery functions (stream to file for
+post-processing) a perfect 30 frames per second (fps) fidelity is
+achieved with near real time response after the event.
+
+High fidelity image tracking requires calculating image changes at each
+frame. In other words, if a frame grabbing process is filling buffers
+with images the motion calculation should use the two most recent
+images. If you look in the extension of streamer that has function
+writer_shm you will see NONBLOCK attribute on the stdin read so that
+writer_shm does not wait on the calling executive but continues to
+update the image. Of course if the executive is inefficient and does
+not call every update then the program is wasting resources calculating
+information that will be discarded. At worst this technique can make a
+bad executive even worse. The more the executive slips the more the
+writer slips robbing yet more resources from the executive. In the end,
+the total pixel throughput usage must be reduced. Use smaller images or
+slower frame rate. Sub-sampling is just as effective without a penalty
+on accuracy.
+
+
+File: ump.info,  Node: When Things Go Wrong,  Next: Troubleshooting,  Prev: Program Notes,  Up: Top
+
+6 When Things Go Wrong
+**********************
+
+The application makes every reasonable attempt to catch, trap, and kill
+all erroneous operation.  The application is asynchronous, however, and
+sometimes but rarely falls into a race condition that cannot resolve
+and all threads go into a wait state.  This happens mostly when
+modifying the program as a developer.  Generally issuing a ctrl-C
+interrupt command at the prompt will be caught and if the user quits or
+answers `n' at this point the application cleans up everything.
+
+When that doesn't work, here is how to recover without re-booting the
+computer.
+
+   - Stop the processes. Run a script distributed and installed for
+     that purpose:
+
+          killUmp    # kills ump -R and ump -M processes
+          killSty    # kills streamery processes
+
+   - If that doesn't work, do it manually:
+
+          ps -axm       # to see processes
+
+          # Find the `ump' process with the lowest process id <pid>.
+
+          kill <pid>   # to send quit signal to process and children.
+          ps -axm       # to verify killed.  Try kill -9 if failed.
+
+          # Repeat `ps -axm' and `kill' until all the `ump' processes die.
+
+   - Clear memory.  The program will not run again otherwise.
+
+          ipcs shm          # to see shared memory status and id, <shmid>
+          ipcrm shm <shmid> # to release the memory
+
+
+
+File: ump.info,  Node: Troubleshooting,  Next: Streamer Functions,  Prev: When Things Go Wrong,  Up: Top
+
+7 Troubleshooting
+*****************
+
+While running, the application may not perform satisfactorily for
+various reasons.  Below is a troubleshooting table to assist in
+system-level debugging.
+
+`Symptom - too many pixels changed'
+
+     Isolation:  Lots of `*' messages.  Taking a video snap with `-W'
+     option reveals players moving in the images.
+
+     Action:  verify  camera setup - there should be no players
+     normally in image.  Also consider using a mask, *Note Input
+     Files::.
+
+`Symptom - too many pixels changed'
+
+     Isolation:  Lots of `*' messages.  Taking a video snap with `-W'
+     option shows just balls moving through image sequence, *Note
+     Options::.
+
+     Action:  Focal length changed or cameras moved too close.  Action:
+     adjust the focal length and distance per the recommendations of
+     the project report which will produce 4 ball streaks on each
+     pitch.  Re-run the camera setup.  See *Note External Calibration::.
+
+`Symptom - no balls'
+
+     Isolation:  Running with `-v2' option shows lots of detected
+     moving balls, `BALL VELOCITY =' but no call and lots of `BALL
+     SPEED REJECT' annunciations, *Note Options::.
+
+     Action:  Tune `velThresh' or `velMax' in `zone.tune', *Note Input
+     Files::.  Note especially that balls coming toward the umpire are
+     negative so balls `greater than' the value are slower and will be
+     rejected with `BALL SPEED REJECT'  Make the `velThresh' less
+     negative to detect small negative velocities.  For example, if
+     `velThresh=-500' and the typical velocity is -80, then change
+     `velThresh=-50' to detect.  It is not possible to set to reject
+     negative velocities while accepting positive velocities though a
+     large positive `velThresh' will accept all velocities.
+
+`Symptom - no balls'
+
+     Isolation:   Running with `-v3' option shows few detected moving
+     balls, `ball:'.  Also running with `-W' option and running
+     `showmms' shows balls streaking across the corner of the image,
+     *Note Options::. *Note What Gets Installed::.
+
+     Action:  Point the cameras to focus at a point in front of the
+     action and on the flight path of the ball so that the ball travels
+     diagonally across both camera images.  Re-run the setup process.
+     See *Note External Calibration::.
+
+`Symptom - no balls'
+
+     Isolation:   Running with `-v2' option shows lots of triangulation
+     rejects, `BALL TRIANGULATION REJECT'.
+
+     Action:  The cameras have moved or the external calibration was
+     performed incorrectly.  Re-run the setup process.  See *Note
+     External Calibration::.  You can adjust `triangulationScalar' in
+     `zone.tune' to get by.  
+
+`Symptom - no balls'
+
+     Isolation:   Running with `-v3' option shows few detected moving
+     balls, `ball:'.  Also running with `-W' option and running
+     `showmms' shows only one or two smears for each pitch, *Note
+     Options::. *Note What Gets Installed::.
+
+     Action:  Move the cameras further away or shorten lens focal
+     length until at least 3 smears show up in each camera for each
+     pitch.  Re-run the setup process.  See *Note External
+     Calibration::.
+
+`Symptom - no balls'
+
+     Isolation:   Running with `-v3' option shows few detected moving
+     balls, `ball:'.  Also there are numerous messages `POSSIBLY
+     SWAPPED CAMERA WIRES'.
+
+     Action:  Swap the camera device wires.  It is not advisable to
+     swap the `.cal' files.
+
+`Symptom - no balls'
+
+     Isolation:   Running with `-v3' option shows few detected moving
+     balls, `ball:'.  Possibly the perceptual grouping needs to be
+     tuned.
+
+     Action:  Tune `agauss'.
+
+`Symptom - no balls'
+
+     Isolation:   Running with `-v3' option shows few detected moving
+     balls, `ball:' and there are many `area too small' messages.  Also
+     running with `-W' option and running `showmms' shows few excited
+     pixels, *Note Options::. *Note What Gets Installed::.
+
+     Possibilities:  This is ambiguous isolation.  The possibilities
+     are:
+
+    `too little light'
+          Action:  open camera iris or increase lighting.
+
+    `too much sub-sampling'
+          Action:  educe the `-S' size, *Note Options::.
+
+    `dirty ball'
+          Action: use clean, white baseballs.
+
+    `light background'
+          The application has difficulty detecting baseballs if there
+          is not enough contrast with the background.  A uniform dark
+          background is best.  Patches of dirt look like baseballs.
+          Action:  darken the background (paint?).
+
+    `camera too far away'
+          Action:  Move the cameras closer until at least 3 smears show
+          up in each camera for each pitch.  Re-run the setup process.
+          See *Note External Calibration::.
+
+    `focal length too small'
+          Action:  increase lens focal length until at least 3 smears
+          show up in each camera for each pitch.  Re-run the setup
+          process.  See *Note External Calibration::.  You may also
+          need to re-calibrate the device aberration coefficients in
+          the `video?.cam' files for new focal length.
+
+`Symptom - inaccurate calls'
+
+     Isolation:  Plenty of balls, just wrong
+
+     Possibilities:
+
+    `never externally calibrated'
+          Perhaps the sample external calibration files were installed
+          but the process was never followed to generate new files for
+          this site.  Action:  run the setup process.  See *Note
+          External Calibration::.  You may also need to calibrate the
+          device aberration coefficients in the `video?.cam' files.
+
+    `wrong directory'
+          Perhaps you started the application in the wrong directory.
+          Action:  change to the correct directory.
+
+    `cameras changed'
+          Focal length changed or cameras moved.  Action: run the setup
+          process.  See *Note External Calibration::.  You may also
+          need to calibrate the device aberration coefficients in the
+          `video?.cam' files.
+
+    `cameras swapped'
+          It is easy to connect the video cables up backward.  Action:
+          verify video cables connected correctly.
+
+    `tune'
+          You may simply adjust the ball location or strike zone.
+          Action: adjust parameters in `zone.tune' file.  See *Note
+          Input Files::.
+
+    `cameras too far'
+          There will be more than two balls called for every pitch.
+          Action: move cameras closer or increase lens focal length.
+          Re-run setup process.   See *Note External Calibration::.
+          You may also need to calibrate the device aberration
+          coefficients in the `video?.cam' files.
+
+`Symptom - multiple balls'
+
+     Isolation:  Normal unless excessive.  If more than two balls for
+     each pitch, then cameras are too far away or focal length is too
+     large and the accuracy will be poor.  See the preceeding section.
+
+     Action: use last ball identified; it is most accurate because it
+     is closest to the plate.
+
+
+
+File: ump.info,  Node: Streamer Functions,  Next: External Calibration,  Prev: Troubleshooting,  Up: Top
+
+8 Streamer Functions
+********************
+
+The idea of the streamery functions are to patch Gerd Knorr's `xawtv'
+`streamer' program to provide streaming video to the ump program.  This
+application extracts several files from `xawtv/src/stream' directory
+and enhances one existing function and creates two new ones:
+   - extends `writer_file' function to create companion files to the
+     `.raw' single file output to record time (`.tim') and image vital
+     statistics (`.set').
+
+   - creates an endless loop that is `exec''d by the application to
+     calculate image rate and write to a shared memory sector.  This is
+     available by the `ump -M2' option.
+
+   - create an endless loop that is attached to and `fork''d by the
+     application to calculate image rate and write to a shared memory
+     sector.  This is available by the `ump -R2' option.  It differs
+     from the `ump -M2' option because it saves a kernel call and runs
+     slightly faster.
+
+
+   Extending `xawtv/src/stream/streamer' was difficult because it is
+part of a large project with many configure options to sort out and
+meld with the application's.  Moreover, the `streamer' program and its
+associated functions contain numerous static variables and functions
+that make it unsuitable for threading and difficult to `exec' multiple
+times.  This application deals with this by interfacing crudely to the
+static variables in a straightforward brute way.
+
+These are the steps used to make the `realstream' contents:
+
+   - install xawtv development version with source
+
+   - copy
+          byteorder.h, channel.c, channel.h, colorspace.c, colorspace.h,
+          commands.c, commands.h, frequencies.c, frequencies.h, grab.h,
+          parseconfig.c, parseconfig.h, videodev.h, videodev2.h, writefile.c
+      and `writefile.h' from `xawtv/src/stream' into
+     `ump/src/realstream'.
+
+   - copy `grab.c, grab-v4l2.c, grab-v4l.c,' and `streamer' into
+     `ump/src/realstream' and edit as shown in the files to create
+     `graby.c, grab-v4l2y.c, grab-v4ly.c,' and `streamery.c'.
+
+   - write `grab-stat.h, grab-v4l-stat.h, realStream.c,' and
+     `realStream.h' to interface with the `static' variables.
+
+
+   It is important to make a hack to the `grab-v4l.c' and `grab-v4l2.c
+grab_queue()' functions as follows (changed `#if 1' to `#if 0'):
+
+     #if 0
+         /* might be useful for debugging driver problems */
+         memset(map + gb_buffers.offsets[frame],0,
+     	   gb_buffers.size/gb_buffers.frames);
+     #endif
+
+
+File: ump.info,  Node: External Calibration,  Next: Samples,  Prev: Streamer Functions,  Up: Top
+
+9 External Calibration
+**********************
+
+The external calibration method determines the rotation matrix -
+direction cosines - that transform camera pixel coordinates to world
+coordinates. In other words, external calibration orients the cameras
+in space. We know the cameras' world positions a-priori, through a
+plumb and tape measurement. To solve for the remaining three angles of
+rotation of each camera the direction vectors to three known still
+target locations provide directions for an inverse triangulation. We
+use the same three balls for each camera to allow a triangulation check
+after external calibration.
+
+   Utility programs `extCal' and `convertTsai' will perform this task.
+If Tsai internal aberration calibration is available simply run
+`convertTsai' with image size as input and skip the following.  Next
+are instructions for `extCal'.  You are advised to use the script
+`checkSetup -i' to be guided through the process.
+
+9.1 Files for `extCal' application.
+===================================
+
+Input Files:
+
+`world.dat'
+     File containing:
+
+       1. camera positions Pl and Pr in world space
+
+       2. still object positions OA, OB and OC in world space.
+          Caution:  the objects centerlines sit off the hard surface.
+          
+`video0.cam'
+     File containing for camera and capture card combination:
+
+       1. imWidthCalEx, calibration width,   pixels
+
+       2. imHeightCalEx, calibration height,  pixels
+
+       3. focalCalEx, camera focal length, pixels equivalent to
+          imWidthCalEx.  Camera focal length in pixels (for 1/4" CCD,
+          f=3.8 mm, w=3.63 mm so if image width in pixels is 160 the
+          focal_length=3.8/3.63*160=167.5 pix.
+
+       4. AbConstant, aberration intercept
+
+       5. Abrqw2, aberration radial distortion
+
+       6. AbipimR, aberration x linear correction
+
+       7. AbjpjmR, aberration y linear correction
+
+       8. ARC, image aspect ratio
+
+       9. RgSir, image x-direction off-register scalar
+
+      10. RgSiri, image x-direction off-register error adder
+
+      11. RgSjr, image y-direction off-register scalar
+
+      12. RgSjrj, image y-direction off-register adder
+
+      13. colpGrid, 5 row X 7col array of raw pixel grid column reading
+          values
+
+      14. rowpGrid, 5 row X 7col array of raw pixel grid row reading
+          values
+                  Unless over-ridden by ump -sSIZE, the size of the
+     image sensed by ump will follow the imWidthCalEx and imHeightCalEx
+     values above.
+
+`video0.dat'
+     File containing for camera and capture card combination:
+
+       1. OAp, object pixel coordinates, raw
+
+       2. OBp, object pixel coordinates, raw
+
+       3. OCp, object pixel coordinates, raw
+
+`video1.cam/dat'
+     Same for second device
+
+
+   Output Files:
+
+`video0.cal'
+     File used to contain all calibration information for ump and Pl
+     from world.dat
+
+`video1.cal'
+     Same for second device but from video1.dat and Pr from world.dat
+
+
+9.2 Equipment needed:
+=====================
+
+   - 3 black balls
+
+   - 3 white balls
+
+   - 2 camera devices and frame-grabber, sized and setup with correct
+     orientation
+
+   - measurements of cameras in world coordinates
+
+   - measurements of 3 ball locations in world coordinates
+
+9.3 Programs used:
+==================
+
+`checkSetup [-i|-l]'
+     script to automate this external calibration process.  Use the
+     interactive option `checkSetup -i' to be guided step by step.  Use
+     the local option `checkSetup -l' to run it through without taking
+     any data.
+
+`lptout'
+     program to turn on lpt port pins.  Presently Ump turns on pins 2,
+     3, and 4 for BALL, STRIKE, and NO CALL respectively.  Pins 2-9 are
+     controlled by values of 1, 2, 4, 8,...128. Pins 18 - 25 are
+     grounds. Pins 1,14,16, & 17 are 5 vdc sources. Use low current
+     LEDs (2 mA) and drop a resistor so no more than 2.6 mA is drawn at
+     2.4 vdc total drop.
+
+`showppms'
+     script to display the output of a file run
+
+`sliceraw'
+     slice and dice raw image files, with ump distribution
+
+`tim2clk'
+     utility to convert binary .tim files into ASCII .clk for viewing
+
+`streamery'
+     xawtv frame-grabbing program, with ump distribution
+
+`The Gimp'
+     gnu Image Manipulation Program (optional, some viewer is needed)
+
+`ump'
+     segmentation main program, with ump distribution
+
+`xawtv'
+     camera viewer (optional, some viewer is needed)
+
+`makeUmpDist'
+     script to automate generation of distribution rpms
+
+9.4 Example Run
+===============
+
+Before you get too far, note that the script `checkSetup -i' will
+interactively guide you through the setup process and prompt you to
+make the necessary files.  Run with option `checkSetup -l' to run it
+all the way through without taking data.
+
+
+If you wish to see how it works or debug it follow these steps.  First
+setup working paths:
+
+     export DATA=
+       # enter full path to data here
+     export CAL=$DATA/cal
+     export UMP=
+        # enter full path to the ump directory here,
+        # e.g. where you ran make install'
+
+     # Start with sample files
+     cd $CAL
+     cp $UMP/data/X/cal/world.dat .
+     cp $UMP/data/X/cal/video?.dat .
+     cp $UMP/data/X/cal/video?.cam .
+     cp $UMP/data/X/cal/*.mask* .
+     cp $UMP/data/X/cal/video?.tune .
+     cp $UMP/data/X/cal/cal.xls .
+
+   First mount the cameras and orient them as optimally as possible.
+The paper describes the optimum lens focal length (depends on ball size
+and distance from balls), distance from balls, sweep back angle (~50
+degrees from the line connecting the cameras), and look down angle (~30
+degrees from horizontal).  The cameras do not have to be symmetrically
+located because the vector math will compensate by calibration.  The
+other camera must not be visible in either camera or the vector math
+will fail due to numerics of potential head-on sightings.
+
+   Note that if making a scale size prototype, scale the distance `D'
+by the ratio of the ball size to CCD size `B/W'.  If you have a limited
+supply of lenses, as I do, and are stuck with the focal length you
+have, then adjust distance and ball size to achieve a working system
+per the equations in the paper that provide at least 4 images per run.
+
+   To determine some distances easily use the following results:
+
+`Prework'
+     Determine distance to balls, focal length, and ball size first
+     using the project paper and some thought to make a good scale
+     model.
+
+`Distance between cameras'
+     The optimum distance between cameras, R-L, is 2*D*cos(50 deg) =
+     1.29*D.
+
+`Height above ground'
+     The optimum height of cameras above ground, h, is D*tan(30 deg) =
+     0.577*D.
+
+`For B = 0.75 inches/ f= 4mm/ and w=1/3 inch:'
+     D = 36 inches, R-L = 47 inches, and h = 21 inches.
+
+
+   Note that the coordinate system for this project is hard-coded into
+the main program.  So you must use the following convention.  It helps
+to imagine from the point of view of a live umpire.  The origin is the
+front center of the plate, on the ground.  The x/i direction is to the
+right.  The y/j direction is toward the mound.  And the z/k direction
+is vertically upward.  This makes a canonical right-hand system.
+Imaginary vectors are drawn to balls and cameras from this origin and
+entered into the files in vector form.
+
+   Setup a working directory.  In there, create a `cal' directory for
+external calibration files.
+
+   Descriptions of format for each of these file types appear elsewhere
+in the documentation.  You will need to edit them to match your
+configuration.  Now run cameras and setup focus for middle of image.
+Check orientation so balls pass diagonally across image through center.
+Check focus.  This is the final setting for the cameras so make sure
+they're right:
+
+     xawtv -c/dev/video0&
+     xawtv -c/dev/video1&
+
+   # Take data on still calibration
+     cd $CAL
+
+   # Take single snaps, e.g. to check camera orientation.
+     # Place three white balls.  Take snaps.  Verify balls visible.
+     # Verify balls pass diagonally across image through center.
+     OUTFA=snapA
+     streamer -q -c/dev/video0 -s480x360 -nNTSC -t2 -r1\
+            -iComposite1 -o"$OUTFA"0.pgm
+     gimp "$OUTFA"1.pgm&
+     OUTFB=snapB
+     streamer -q -c/dev/video1 -s480x360 -nNTSC -t2 -r1\
+            -iComposite1 -o"$OUTFB"0.pgm
+     gimp "$OUTFB"1.pgm&
+
+   Using The Gimp, measure mask locations in pixels, convert to
+fraction, and enter into  video*.mask* files.  It is unnecessary to
+adjust for aberration because the masks work on raw images.  Designate
+a letter for each ball and be consistent between cameras for
+triangulation check later.  Use cal.xls as convenient way to convert
+ball measurements into mask.
+
+Take shots of black and white balls.  One camera at a time - memory.
+Ignore the error messages.  First with black balls in place:
+
+     ump -s320x240 -oblanka.raw -t8
+     ump -s320x240 -c/dev/video1 -oblankb.raw -t8
+
+   # Then with white balls in place:
+
+     ump -s320x240 -oballa.raw  -t8
+     ump -s320x240 -c/dev/video1 -oballb.raw  -t8
+
+   # Meld black and white balls to create pseudo-motion images cala.raw
+and calb.raw
+
+     sliceraw -iblanka.raw -oblankas.raw -t1.5:2
+     sliceraw -iballa.raw  -oballas.raw  -t1.5:2
+     sliceraw -iballas.raw -iblankas.raw -ocala.raw
+     sliceraw -iblankb.raw -oblankbs.raw -t1.5:2
+     sliceraw -iballb.raw -oballbs.raw   -t1.5:2
+     sliceraw -iballbs.raw -iblankbs.raw -ocalb.raw
+
+     # To troubleshoot these images (if needed later):
+     rm -f video0.mask
+     ump -v4 -C -icala.raw -w0
+     rm -f video1.mask
+     ump -v4 -C -icalb.raw -w0
+
+   Get the centroids for balls.  Check images to check quality of mask.
+Best to pick out the highest density centroids.  Adjust mask as
+necessary.  Iteratively guess mask.  Look at tempR files using The
+Gimp.  Also try taking a single snap and look with The Gimp.  The
+centroid output of ump has been corrected for aberration.  Therefore,
+internally calibrate the device before external calibration, which
+would be the normal procedure anyway.  One would not want to externally
+calibrate every time the camera is moved.  The mask percentages are
+before correction for aberration and are meant to be used as
+approximate for trial and error determination of the best mask.  Enter
+the undistorted values for centroid into video*.dat.
+The script checkSetup performs this interactively.  Change directory to
+where the data is.  Make sure video*.dat are writable.  Run:
+
+     checkSetup -i
+
+     # Setup data file
+     cd $DATA
+     ln -s $CAL/video0.cal .
+     ln -s $CAL/video1.cal .
+
+   If this is the first time in $DATA, you may need to get the .tune
+file to start:
+
+     cp $UMP/data/X/*.mask* .
+     chmod +w *.mask*
+     cp $UMP/data/X/video?.tune .
+     chmod +w video?.tune
+     cp $UMP/data/X/zone.tune .
+     chmod +w zone.tune
+
+   Then start running:
+     Ump -r
+
+
+File: ump.info,  Node: Samples,  Next: Messages,  Prev: External Calibration,  Up: Top
+
+10 Samples
+**********
+
+There are two main modes of running the main application ump:
+record/playback `-i, -o' and real time `-Rx', where x is either `1' or
+`2' to denote how many cameras to use.
+
+10.1 Record/Playback
+====================
+
+`make check' will generate samples if files available.  The files if
+not available may be downloaded as file umpsamp.tar and over-installed
+in ump-ver/data directory.
+
+Manual sample run.  Go to the directory where the data and tuning files
+are, usually `DATA=ump-ver/data/X'.  Run:
+
+     cd $DATA
+     ump -w0 -ixLas.raw -ixLbs.raw
+     showppms    # to look at results in .ppm files
+
+   There will be different results depending on asynchronous start of
+image pipeline.  The file xL0.dat contains an example run.  The file
+xL0v.dat contains an example run with -v5 verbose option.   Also
+examine some files previously made:
+
+     cd $DATA/xLs_images
+     showppms
+
+   There is a wrapper script to simplify running this mode.  It
+generates an xterm window that comes up in an endless loop driven by a
+menu.  Run `Ump' to go into this mode.  The `make check' feature,
+specifically script `checkUmp', offers an example.
+
+10.2 Real Time
+==============
+
+This is an automatic running mode.  It is an endless record/playback
+loop conducted by the main application.  The application uses higher
+level visual perception the filter out unwanted motion and identify
+only the balls so the mode, in theory, could run continuously.  Go to a
+directory where you normally keep data and where the calibration and
+tuning files are.  Run:
+
+     cd $DATA
+     ump -R2
+
+   There is a wrapper script to simplify running this mode.  It
+generates an xterm window that comes up in an endless loop driven by a
+menu.  Run `Ump -r' to go into this mode.  This gives the same look and
+feel as the record/playback mode.
+
+In practice, the real time mode slips.  The standard Linux operating
+system attempts to schedule tasks in a time sharing method.  No matter
+how hard the user tries to force total attention to the vision task,
+the operating system occasionally checks other tasks and therefore
+causes the `ump' application to drop a frame.  Additional work may
+improve this situation.  The record/playback mode does not drop frames
+because when capturing the images it is in a devoted, threaded
+application mode.  The real time mode is an attempt to run concurrently
+with this threaded application, called `streamery' that is derived from
+`xawtv' application, and so uses fork-exec methods to generate the
+monitor processes.  Probably efforts to bring the `streamery' code into
+the thread scheduler of the real time application will result in much
+better synchronization.
+
+The slips are not all that frequent.  It may be possible to run this
+way with one of the newer computers with minimal slippage.  The
+application can drop a frame every third or fourth time and still call
+balls and strikes.  But it sometimes has problems with three or four
+consecutive dropped frames out of twelve.  The experience is with a
+Pentium II 350 MHz computer with 128 MB ram and PCI Brooktree frame
+grabber cards.  A more capable computer will work better.
+
+10.3 Requirements for `streamery' Program
+=========================================
+
+Following are the requirements used to extend the `xawtv' application
+to run concurrently with the `ump' application:
+
+     Coordinate (synchronize) through a pipe. May be stdio. Use shared
+     memory, named after the device, e.g. /dev/video0. As soon as
+     started and memory created send a ready signal to the exec. Get
+     one start signal from the executive. Then load mask from shared
+     memory. Do own buffering locally. Whenever a reading is available
+     send its location in reading_t down the pipe. Add a header - and
+     make sufficient space in memory - of the reading_t information for
+     each reading for executive to check proper information. Send
+     information to executive with non-blocking write and let executive
+     empty the pipe.
+
+   As discussed in the previous section, this synchronization model
+does not work perfectly and possible solutions are discussed.
+
+10.4 load test
+==============
+
+The user may use the following component tests to verify
+synchronization against his own requirements.   The final validation is
+how well the application runs on its own.   Go to where you usually
+keep data files and the tuning files.  Run the installed script
+`checkRealAll' that cycles through a spectrum of loading
+configurations.  To change the conditions, make a local copy of the
+script, edit it, and re-run.
+
+     cd $DATA
+     checkRealAll
+
+   An empty file means unable to synchronize real time.  Try running
+again or delete that combination from checkRealAll.
+
+To analyze the results, import the .tim files into a spreadsheet
+program for analysis.  The first column is the device name, e.g.
+video0.  The second column is the time stamp of a successfully acquired
+image.  The final column is the time since the previous image.  A
+perfectly operating system will have all values in the final column,
+except the first row, by equal to 0.0333 seconds.
+
+Alternatively, look at the script checkReal which sorts out the data
+for just one second and counts the number of frames occurring.
+
+
+File: ump.info,  Node: Messages,  Next: Tune,  Prev: Samples,  Up: Top
+
+11 Messages
+***********
+
+The application can produce a lot of output, especially in
+`-v,--verbose' mode.
+
+`density too small: <number>'
+     This means that the object pixel density is smaller than the tune
+     file allows (tune with minBallDensityScalar).  An object that is
+     clearly identified will have density near 1.0 while an object that
+     is indistinct will have a density near 0.0.   Decrease the scalar
+     to accept more low density objects.
+
+`ratio too large: <number>'
+     This means that the object aspect ratio is larger than the tune
+     file allows (tune with maxBallRatioScalar).  Increase to accept
+     more. Try increasing until the number of BALL VELOCITY findings
+     run using `-v2,--verbose2' mode is large.
+
+`POSSIBLY SWAPPED CAMERA WIRES'
+     The camera wires are swapped as determined by a simple algorithm
+     that looks for two consequetive balls to have positive velocity
+     and uncertain triangulation.
+
+`BALL ZONE'
+                     time(s) zonex(in) zonez(in) err(in)
+          BALL ZONE= 2.52337 3.15469   5.83826   0.04354
+                     vx(in/s) vy(in/s) vz(in/s) y(in)
+                     21.0282 -143.117 -18.4117 14.217
+
+`MESSAGE(Image): too many pixels changed: <number>'
+     The maximum number of pixels changed is usually 2x the ball shape.
+     This works out to be 200*(n/160)^2. This number is adjustable
+     with -X option.  Beware that adjusting this affects throughput
+     possible resulting in missed balls.  It might be advisable to move
+     cameras further away or shorten focal length.  Consider using a
+     mask to filter extraneous motion, *Note Input Files::.
+
+`Final dev[<dev>] number=<number>'
+     The number of pictures from device that had motion.  A tempR file
+     has been saved when in record/playback mode.  When running
+     calibration mode `-C' all images are saved.
+
+`MESSAGE(Image):  Cleaning up image files .mm, .lbl, and .ppm.'
+     When saving image files for viewing later using showppms, the
+     application cleans up the old ones.  If the user wishes to save
+     the old images they need to be copied elsewhere.  The script
+     'showppms' creates files tempRC0.ppm and tempRC1.ppm that are
+     equivalent to contact strips for each device and contain every
+     image with motion that was captured in a run.  These files are
+     automatically cleaned up at the beginning of the next application
+     run.  These files could be saved to another directory to save them
+     for future use.  The `ump.x' or `showppms' or `showmms' scripts
+     would be the best place to add such a feature.
+
+`MESSAGE(Image): mask for device 1:'
+     This confirms the mask that the user entered, e.g.:
+          Start(6, 0) to (313, 224); Value=1
+
+`MESSAGE(Image): calibration parameters for device 1:'
+`MESSAGE(Calibration): cal for device video1.cal:'
+     This confirms the .cal file inputs.  The aberration parameters are
+     Abconstant, etc.  The application estimates the Tsai equivalent
+     values for reference only. The user may input Tsai format.  For
+     example:
+          imWidthCalEx  = 480, imHeightCalEx = 336
+          focalCalEx    = 515
+          imCalEx       = 240, jmCalEx = 175.503
+          ARC= 1.3675
+          Aberration= 0.983734 0.187962 0.062455 -0.031536
+          Register  = 0 0 0 0
+          P         = 3
+          10
+          -3.875
+          18
+          ACPW      = 3 3
+          0.789535 -0.327165 -0.527005
+          0.610783 0.399862 0.682072
+          0.000197127 0.872102 -0.50683
+
+          Tsai Equivalent:
+          cx=   unknown
+          Nfx=   480 assumed
+          dx=    unknown
+          dy=    unknown
+          dpx=   unknown
+          dpy=   unknown
+          Cx=    240
+          Cy=    175.503
+          sx=    unknown
+          f=     unknown
+          kappa1=unknown
+          Tx=    -144.997
+          Ty=    272.168
+          Tz=    433.702
+          Rx=    2.21352
+          Ry=    0.554423
+          Rz=    -0.383916
+          p1=    unknown
+          p2=    unknown
+
+`MESSAGE(Image): tuning parameters for device 1: agauss_=16 bgauss_=30 minBallDensity=0.05 minBallArea=40 maxBallArea=440 minBallRatio=0.05 maxBallRatio=1 minProx=8 maxEdgePix_=200'
+     This echoes the tuning parameters resulting from scaling by the
+     *.tune file parameters.  When running calibrate mode, `-C', the
+     same .tune files will create different parameters because
+     calibrate assumes the balls are still.
+
+`MESSAGE(Calibration): zone for device zone.tune:'
+     See the `zone.tune' file, *Note Input Files::.  
+
+`ratio too small: 0.0320502'
+     The smear aspect ratio is smaller than allowed.  Tune with
+     `minBallRatio';  decrease to accept more.  Try decreasing until
+     the number of BALL VELOCITY findings run using -v2 is large.)
+
+`ratio too large: inf'
+     The smear aspect ratio is larger than allowed.  Tune with
+     `maxBallRatio';  increase to accept more.  Try increasing until
+     the number of BALL VELOCITY findings run using -v2 is large.)
+
+`on Edge'
+     The smear contacts a mask or image edge.  There may be part of the
+     smear obscured so using the smear would be inaccurate.  These
+     smears are discarded.
+
+`on Corner'
+     There are four corner points artificially added to get the
+     segmentation results to cluster properly.  The application marks
+     these and deletes any clusters containing them.   Usually, only
+     the four corner points are part of those clusters.
+
+`Motion Detected /dev/video0 45/45 { 2936.2 skew=-54.897 / slips=0 } <0/0/0/0/0/0.033356>'
+     Each device producer thread puts this out anytime more than a few
+     pixels are excited by motion.  The example shown means that device
+     zero detected 45 pixels changed, all 45 segmented into a cluster
+     (small clusters are discarded), the time was 2936.2 milliseconds
+     since the start of the process, the image is 54.897 milliseconds
+     behind the other device, there were no images discarded since the
+     last video0 sampling (done intentionally to reduce skew) and this
+     frame's minor frame time usage was 0 seconds to load the image, 0
+     seconds to calculate motion, 0 seconds to print the result, 0
+     seconds to reach the end, 0 seconds total image processing time
+     and 0.033356 seconds since last image used.  These are normal
+     times for record/playback mode.  Results would be different for
+     real time operation.
+
+`1:  L B Found  2.94792 sec, val= 122, cnt=  4, area= 65, dens=0.06, cent= 74.8,149.1 undistorted'
+     After determining that a cluster is a ball, each device prints
+     this out.  In this case, the consumer detected 1 new light ball.
+     This is followed by the time since start, the average pixel
+     intensity of all the excited pixels (not the others ), the count
+     of the number of excited pixels in the cluster, the planar area on
+     the image that the cluster covers, the fractional density of the
+     area that has excited pixels, and finally the raw, uncorrected
+     pixel location of the centroid.
+
+`1 NEW LIGHT BALLS:'
+          1  1       2.947918 size= 65 dens=0.06 centroid= 74.8,149.1
+          0  1       2.769369 size=130 dens=0.95 centroid=107.6, 63.4
+          1  1       2.747714 size= 87 dens=0.97 centroid=250.2, 40.0
+           After finding light balls they are sorted by time and
+     device.  This message is a summary of all the balls presently
+     retained in memory to be used for triangulating position.  The
+     first column is the device thread which produced the object.  Then
+     is a 0 or 1 digit signifying whether the object is light or dark.
+     This should always be 1 for LIGHT BALLS.  This is followed by the
+     time since start, the planar area on the image that the cluster
+     covers, the fraction of the area that has excited pixels, and
+     finally the undistorted, corrected pixel location of the centroid.
+
+`CHOSEN:'
+          1 2.747 size=87 dens=0.97 centroid=250,40 other=86.5,47.9
+          X O X previous is unique; interpolate others to previous
+           After sorting the balls the application makes its best
+     attempt to determine the ball position.  Even if the sorting has
+     produced a new object skewed backward in time there is still new
+     information to be gleaned so the triangulation is repeated to
+     produce the latest, best estimate of ball position.  This message
+     identifies the 'L B Found' object that is used to interpolate the
+     predicted ball position.  In this case the object associated with
+     the past, previous time, from device 1, is between two objects
+     detected on the other device 0.  Only one object from device 1 is
+     used and is unique.  It is denoted as "O" in the pattern and the
+     two from device 0 are denoted as "X" in the pattern.  The time of
+     the "O" object falls between the "X" objects.  After interpolating
+     the "X" positions to the "O" time the result is a predicted "X"
+     position at the same time as "O".  The result is the "other"
+     position in the message.  There are three possible combinations
+     for this message:  "X O X", "X X O", and "O X X".  Sometimes
+     device 0 will be "X" and sometime device 1 will be "X" depending
+     on which one contains the unique, lone object.
+
+`uncertainty = 0.0696117 0 0'
+     Triangulation is over-constrained such that three simultaneous
+     equations predict two scalars on the camera direction vectors to
+     produce a three-dimensional intersection.  The triangulation
+     method finds the closest distance between the vectors and predicts
+     the ball is midway between.  The uncertainty message is the (x, y,
+     z) magnitudes of the uncertainty in the intersection.
+
+`BALL_POSITION(2.74771)1=-0.1422 20.0199 9.91169'
+     This is the triangulated ball location (x, y, z), inches (at time).
+
+`BALL TIME REJECT'
+     Interpolation skips if the time between candidate balls is larger
+     than an arbitrary time limit set to exceed two frames.
+
+`BALL TRIANGULATION REJECT'
+     Triangulation errors in excess of one ball indicate a fractured
+     image or shift in external calibration.  The threshold is not
+     tunable at present.
+
+`BALL UNCERTAINTY(2.74771)=0.0696117'
+     See `uncertainty' above.
+
+`BALL VELOCITY         =0 0 0'
+     Calculated three-dimensional ball velocity vector, inches/sec.
+
+`BALL PREV POSITION(2.74771)1=-0.137469 20.2696 10.0025'
+     Like POSITION but at previously successful time.
+
+`BALL PREV VELOCITY=0 0 0'
+     Like VELOCITY but at previously successful time.
+
+`area too small: 38'
+     An image has been rejected because it covers too small an area on
+     the pixel map.  Tune with minBallAreaScalar.
+
+`area too large: 200'
+     An image has been rejected because it covers too large an area on
+     the pixel map.  Tune with maxBallAreaScalar.  The cameras may be
+     too close or focal length too long.
+
+
+
+File: ump.info,  Node: Tune,  Next: Maintenance,  Prev: Messages,  Up: Top
+
+12 Tune
+*******
+
+The user needs to tune the device for best accuracy.  It will certainly
+run as installed but may not even detect motion unless tuned.
+
+12.1 Tune Segment Calibration
+=============================
+
+The basic actions are, as needed:
+
+   - Take some reference photos with three balls in known location.
+     Also take photo of no balls. Create faux motion sequence by mixing
+     blank photos with ball photos in preparation for external
+     calibration so program can find balls.
+
+   - Tune dead-band in `ump' to eliminate random flashes identified in
+     the .ppm files after segmentation.
+
+   - Tune 'agauss' in `ump' to make pixels be selected together.  Use
+     'agaussScalar.'
+
+   - Tune 'minProx' in `ump' to get pixel clumps to combine
+     appropriately.  Use 'minProxScalar.'  Increase it to gather more
+     clumps.
+
+   - Tune 'bgauss' in `ump' to get light and dark pixels to clump
+     appropriately.  Use 'bgaussScalar.'
+
+
+12.2 Tune for Throughput
+========================
+
+The basic actions are, as needed:
+
+   - load up real time program `ump -R2 -l -v4'. Examine time step and
+     look at CPU and MEM in `top' function. Tune -S or -s until runs.
+
+   - Take largest possible record/playback pictures `ump -o<filename>
+     -o<filename> -s<width>x<height>' to determine limit. Examine time
+     step.
+
+   - Select optimum image for your setup. The largest image size
+     possible produces most accurate result. Sub-sample to speed up.
+     About 2 is a good value. There probably is no reason to sub-sample
+     for the record/playback method.
+
+   - Run the script `checkRealAll' to save some time with this task
+
+12.3 aberration
+===============
+
+The application is not all that sensitive to device internal
+calibration aberration errors such as "barrel distortion" or "fish-eye"
+provided the cameras point approximately to the position in front of
+the plate where you wish the call to be made.  See the project report
+`cuts.ps' for more information.  Also see the spreadsheets for
+examples.   The basic actions are, if needed:
+
+   - edit `.xls' file using `gnumeric' or `excel'.  Add xf,yf
+
+   - calculate AbConstant etc and add to `videoX.cam' files.
+
+   - run `extCal'  # to get correct AbConstant etc into `videoX.cal'
+     for data collection
+
+   The equations for correction are:
+     // Adjust for Aberration Error
+     iim = float(i)   - CAL_->im();
+     jmj = CAL_->jm() -   float(j);
+     rho = sqrt( iim*iim + jmj*jmj );
+     rat = CAL_->AbConstant() +
+           CAL_->Abrqw2()  * ( rho*rho / float(n_*n_) ) +
+           CAL_->AbipimR() *   iim     / float(n_)      +
+           CAL_->AbjpjmR() *   jmj     / float(n_);
+     xr_[index] = rat *  iim   +  CAL_->im();
+     yr_[index] = rat *(-jmj)  +  CAL_->jm();
+
+     // Adjust for Register Error
+     xr_[index] += ( float(n_) / float(CAL_->imWidthCalEx())  - 1.0 ) *
+       (CAL_->RgSir()  + CAL_->RgSiri()*xr_[index]);
+     yr_[index] += ( float(m_) / float(CAL_->imHeightCalEx()) - 1.0 ) *
+       (CAL_->RgSjr()  + CAL_->RgSjrj()*yr_[index]);
+
+
+File: ump.info,  Node: Maintenance,  Next: Program Index,  Prev: Tune,  Up: Top
+
+13 Maintenance
+**************
+
+This chapter is primarily for the author's use but a developer might
+find it useful.
+
+13.1 Project data generation
+============================
+
+Generate the results using the ump program as follows:
+
+     cd /umpire/data/L
+     listl="A B C D E F G H"
+     lists="I J K L M N O P Q"
+     ln -sf cal/video?.cal .
+     for i in $lists
+     do
+        echo "$i"
+        >temp ump -ix"$i"A.raw -ix"$i"B.raw -v2
+     done
+     for i in $listl
+     do
+        echo "$i"
+        >temp ump -ix"$i"A.raw -ix"$i"B.raw -v2
+     done
+     grep mph >xsum.dat
+
+13.2 Report Graphics
+====================
+
+Create box and line drawings using Powerpoint.  Select all and paste
+into Paint.  Save as a monochrome bitmap file.  Mail to Linux.  Open
+using The Gimp.  Save as .ps using default settings.
+
+13.3 Coding Standards Checklist
+===============================
+
+This was taken from GNU project web site:
+
+   - put start of function names in column 0
+
+   - put open function braces in column 0
+
+   - put a space before an open parenthesis
+
+   - split lines before operators such as |*/+-&&
+
+   - put a comment after #endif to identify the condition being ended
+
+   - do not use the return value of sprintf call
+
+   - avoid arbitrary length limits; use dynamic memory allocation when
+     possible
+
+   - use getopt_long instead of older getopt
+
+   - abort programs on impossible situations
+
+   - error message format   <program> : <source file name> : <lineno> :
+     <lower case message without .>
+
+13.4 Portability Reminders
+==========================
+
+   - use /bin/sh in scripts
+
+   - put '-' arguments before stdio arguments in argument lists to
+     programs used in scripts to avoid confusing getopt on some
+     platforms
+
+   - code such as `char sample[10] = "a string";' is deprecated and
+     generates warnings
+
+   - `NAME_MAX' is too short for naming on many platforms.  Use
+     `MAX_CANON' instead
+
+   - byte order for multi-byte variables is different between platforms
+     so `read' and `write' of binary data files will not work.  It is
+     the binary data files that are not portable.
+
+   - `fscanf(file, "%12c ...' does not always work.  Eliminate the
+     characters or use a different method such as `cin' or `getline'.
+
+13.5 Editing Files
+==================
+
+After editing a source file or other perform the following in an xterm:
+
+     VER=0.12
+     cd /usr/src/redhat/SOURCES/ump-$VER
+     make -s && sudo make -s install && make -s installcheck
+     make -s check
+     # ERROR(lptout): Couldn't get the port at 378
+     # is due to local copy of lptout run that cannot have root permissions
+     sudo make -s install
+     sudo make -s uninstall
+     hash -r  # to reset hash table and do a full path search
+
+13.6 Running check scripts
+==========================
+
+     VER=0.12
+     cd /usr/src/redhat/SOURCES/ump-$VER/src
+     export srcdir="."
+     checkUmp
+     # ERROR(lptout): Couldn't get the port at 378
+     # is due to local copy of lptout run that cannot have root permissions
+
+13.7 Namespaces
+===============
+
+The `tnt', the `Template Numerical Toolkit' available at
+`http://math.nist.gov/tnt' uses namespace std, i.e. `std::istream'.
+This fails on systems without ISO C++.  The author hacked up the
+downloaded code in `tnt' directory for `HAVE_STD' conditional
+compilation.
+
+13.8 Install Distribution
+=========================
+
+Follow the instructions in the *Note Installation::.
+
+13.9 Create Distribution
+========================
+
+Make a new release of ump as follows:
+
+     OWNER=davegutz  # your user name here
+     OLDVER=0.12
+     NEWVER=0.12
+     NEWREL=7
+     makeUmpDist $OWNER $OLDVER $NEWVER $NEWREL
+
+   The script, which you must run as root, will start two edit sessions
+automatically.  The first one opens three files:  `./configure.in',
+`./ChangeLog', and `./NEWS'.  Change revision numbers in those.  The
+`configure.in' file has only a version.
+
+13.10 Automake
+==============
+
+To setup and periodically update the Automake setups (configure,
+Makefiles and so on):
+
+   - First time setup of automake
+     autoscan             # creates configure.scan.
+
+   - Copy configure.scan and edit to make configure.in
+
+   - Create Makefile.am
+
+   - In top level Makefile.am add
+          `SUBDIRS= src'      `EXTRA_DIST = @top_srcdir@/scripts/*
+          @top_srcdir@/TODO'
+
+   - Add Makefile.am to every subdirectory.
+
+   - Define makefiles in top level configure.in.
+          ` AC_OUTPUT(Makefile src/Makefile ...) '
+
+   - If making ranlib:
+          ` AC_PROG_RANLIB ' in top level configure.in.
+
+   - In Makefile.am of subdirectories containing source:
+              noinst_LIBRARIES=libfoo.a
+              libfoo_a_SOURCES= foo.h foo.cc ...
+              INCLUDE=-I@top_srcdir @/src/includes
+
+   - In Makefile.am of higher directories
+          ` LDADD=foofiles/libfoo.a '
+
+   - For non-executable subdirectories:
+          In Makefile.am:       ` EXTRA_DIST=foo.txt foo.dat '
+
+   - Now run:
+          autoheader                         #creates config.h.in
+          touch NEWS README AUTHORS ChangeLog
+          touch stamp-h
+
+   - There is a good documentation of automake, autoconf, and libtool
+     at:
+        * `http://sources.redhat.com/autobook/links.html'    and
+          locally at
+
+        * `/home/dgutz/autobook-1.3/autobook.html'.
+
+   - # Redo loop.  Usually 'make' will initiate this:
+          # autogen.sh:  script to automake redo/remake
+          # contained in root of installation. Not installed.
+          #!/bin/sh
+          set -x
+          export CXX="g++"
+          # -O is for optimized code. (-O2 is default).
+          # No -O2 is for compilation speed and good symbolic debugger.
+          # Run the first way for good debugging
+          #export CFLAGS="-g -Wall"
+          #export CXXFLAGS="-g -Wall"
+          export CFLAGS="-g -O2 -Wall"
+          export CXXFLAGS="-g -O2 -Wall"
+          rm -f config.cache
+          aclocal -I config                                  && \
+          autoheader                                         && \
+          automake --gnits --add-missing --copy              && \
+          autoconf                                           && \
+          ./configure
+          set +x
+
+          #!/bin/sh
+          set -x
+          aclocal -I config
+          autoheader
+          automake --gnits --add-missing --copy
+          autoconf
+
+          # more automatic:
+          sudo make -s uninstall        # uninstall
+          ./autogen.sh && make -s check  # create all and check
+          # ERROR(lptout): Couldn't get the port at 378
+          # is due to local copy of lptout run that cannot have
+          # root permissions
+          sudo make -s install     # do as root
+
+13.11 Make umpsamp
+==================
+
+     cd $DATA/cal
+     rm -f tempR* core *~
+     cd ..
+     rm -f tempR* core *~
+     cd ..
+     tar cvf umpsamp.tar X
+     gzip umpsamp.tar
+     mv umpsamp.tar.gz umpsamp.tgz
+
+13.12 Copy to Floppy
+====================
+
+     #fdformat -n /dev/fd0H1440
+     #/sbin/mkfs -t msdos /dev/fd0 1440
+     su
+     umount /mnt/floppy
+     mount /dev/fd0 /mnt/floppy
+     ls -l /mnt/floppy
+     cp $FILE /mnt/floppy
+     ls -l /mnt/floppy
+     umount /mnt/floppy
+     cp $FILE /mnt/C/linux
+
+13.13 Create TODO file
+======================
+
+     cd ~/ump
+     date > TODO
+     grep TODO */*.h */*.cc */*/*.h */*/*.cc */*/*.c */*.texi src/check* |
+     sed '/ump-/d' | sed '/,v/d' | sed '/~/d' |
+     sed '/In top level/d' | sed '/Create TODO/d' | sed '/date > TODO/d' |
+     sed '/grep TODO/d' | sed '/EXTRA_DIST/d' >> TODO
+
+13.14 Create ump.info File
+==========================
+
+Go to `ump-ver/doc' directory.
+
+     # For ump.info
+     makeinfo ump
+
+     # For ump.html; just one large html file supported now.
+     makeinfo --html ump
+
+13.15 Running repeated throws
+=============================
+
+Run `while ( test "$ans " = " " )do ump.x -a; sleep 25; done;'.
+
+   When you have a few stored up, go to an `xterm' to the `main
+directory' that `Blink' is running.  Load up an environment variable
+such as `list=`ls -1 | grep 2005-11-26`'.  Then iteratively run `for i
+in $list; do cp video?.cal $i; cd $i; ump.x -s -R; cd..; done'.
+
+13.16 Running repeated still shots
+==================================
+
+Take `stills' using `Blink'.  `store' them.
+
+   When you have a few stored up, go to an `xterm' to the `main
+directory' that `Blink' is running.  Load up an environment variable
+such as `list=`ls -1 | grep 2005-11-26`'.  Then iteratively run `for i
+in $list; do cp video?.cal $i; cd $i; ump.x -s -R; cd..; done'.
+
+13.17 Checking calibration
+==========================
+
+There is a matlab script that will faithfully calculate the required
+rotation matrix.  It is in the scripts directory of the source
+distribution, `extCal.m'.  Open it, add your data, and run it in
+`octave'.
+
+   One thing learned the hard way is that the cameras have an internal
+shift; the one I had in one camera was in the x-direction.  It became
+evident because the shift changes with image resolution while I had
+assumed that internal calibration could be scaled with resolution.  The
+`Rg' parameters were added for this reason.  It is recommended that you
+perform calibration at the same resolution you will be running at, to
+avoid the possibility of this happening.
+
+13.18 Accuracy
+==============
+
+The accuracy consists of static gage R&R plus a dynamic uncertainty
+error.  The basic static uncertainty is approximately 1 pixel.  The
+project report provides sensitivity of a +/- 1 pixel to measured
+position.
+     For example, thetaLeft=7 deg, phiLeft=38 deg, thetaRight=18 deg, phiRight=36 deg corresponds to a setup I had in the basement.  In that setup, a ball appears to be 3 pixel wide on average at 160x120.  From the charts, the left camera sensitivity is (1.3, 0.6, 0.5) pixels/pixel and the right camera sensitivity is (0.8, 0.6, 0.6) pixels/pixel.  The rss of these are 1.5 left and 1.2 right, pixels/pixel. Because a ball appears to be 3 pixels wide at 160x120, the static accuracies are 0.5 and 0.4 balls/pixel.  Overall, +/-0.5 balls/pixel static accuracy.  For 320x240 the improves to +/-0.25 balls/pixel.
+
+     Dynamic accuracy is +/-0.75 balls (TODO: need to explain this better).  Adding these two together rss yields a predicted accuracy of +/-1 balls.
+
+   The example is representative of a real ball field including the
+number of pixels per ball.
+
+
+File: ump.info,  Node: Program Index,  Next: Concept Index,  Prev: Maintenance,  Up: Top
+
+Program Index
+*************
+
+ [index ]
+* Menu:
+
+* annoppm:                               What Gets Installed. (line  12)
+* checkCal:                              Checks.              (line  22)
+* checkFile:                             Checks.              (line  29)
+* checkKill:                             Checks.              (line  11)
+* checkKillEnd:                          Checks.              (line  40)
+* checkOfile:                            Checks.              (line  32)
+* checkReal:                             Checks.              (line  26)
+* checkRealAll <1>:                      Samples.             (line 100)
+* checkRealAll:                          What Gets Installed. (line  17)
+* checkSetup <1>:                        External Calibration.
+                                                              (line  97)
+* checkSetup <2>:                        Checks.              (line  15)
+* checkSetup:                            What Gets Installed. (line  21)
+* checkTriangulate:                      Checks.              (line  19)
+* checkUmp:                              Checks.              (line  36)
+* convertTsai:                           What Gets Installed. (line  24)
+* extCal:                                What Gets Installed. (line 112)
+* killSty:                               What Gets Installed. (line  62)
+* killUmp:                               What Gets Installed. (line  56)
+* makeUmpDist:                           What Gets Installed. (line 117)
+* mm2ppm:                                What Gets Installed. (line  28)
+* savemms:                               What Gets Installed. (line  34)
+* saveppms:                              What Gets Installed. (line  39)
+* showmms:                               What Gets Installed. (line  44)
+* showppms:                              What Gets Installed. (line  50)
+* sliceraw <1>:                          External Calibration.
+                                                              (line  97)
+* sliceraw:                              What Gets Installed. (line  68)
+* streamery <1>:                         Samples.             (line  80)
+* streamery:                             What Gets Installed. (line  85)
+* tim2clk:                               What Gets Installed. (line  77)
+* triangulate:                           What Gets Installed. (line  89)
+* ump:                                   Messages.            (line   6)
+* Ump:                                   What Gets Installed. (line  99)
+* ump:                                   What Gets Installed. (line  94)
+* ump.x:                                 What Gets Installed. (line 107)
+
+
+File: ump.info,  Node: Concept Index,  Prev: Program Index,  Up: Top
+
+Concept Index
+*************
+
+ [index ]
+* Menu:
+
+* -lmagick:                              Dependencies.        (line   9)
+* -lpthread:                             Dependencies.        (line   9)
+* -lX11R6:                               Dependencies.        (line   9)
+* ...NEW LIGHT BALLS:...:                Messages.            (line 160)
+* .cal file:                             Input Files.         (line   6)
+* .clk files:                            What Gets Installed. (line  77)
+* .lbl file:                             Output Files.        (line   6)
+* .mask file:                            Input Files.         (line  15)
+* .ppm file:                             Output Files.        (line   6)
+* .ppm images missing:                   Options.             (line  56)
+* .set file:                             Output Files.        (line   6)
+* .tim files:                            What Gets Installed. (line  77)
+* AbConstant <1>:                        External Calibration.
+                                                              (line  34)
+* AbConstant:                            Left camera.         (line  34)
+* aberration <1>:                        Tune.                (line  55)
+* aberration <2>:                        External Calibration.
+                                                              (line  34)
+* aberration:                            Left camera.         (line  23)
+* AbipimR <1>:                           External Calibration.
+                                                              (line  34)
+* AbipimR:                               Left camera.         (line  40)
+* AbjpjmR <1>:                           External Calibration.
+                                                              (line  34)
+* AbjpjmR:                               Left camera.         (line  43)
+* Abrqw2 <1>:                            External Calibration.
+                                                              (line  34)
+* Abrqw2:                                Left camera.         (line  37)
+* accuracy:                              Maintenance.         (line 311)
+* additional download:                   Samples.             (line  10)
+* agauss <1>:                            Tune.                (line   6)
+* agauss <2>:                            Troubleshooting.     (line  10)
+* agauss:                                Options.             (line  13)
+* agaussScalar <1>:                      Input Files.         (line  59)
+* agaussScalar:                          Run Mask.            (line  60)
+* annotating the images:                 What Gets Installed. (line  12)
+* ARC <1>:                               External Calibration.
+                                                              (line  34)
+* ARC:                                   Left camera.         (line  46)
+* aspect ratio:                          Options.             (line  48)
+* asynchronous behavior:                 When Things Go Wrong.
+                                                              (line   6)
+* ball diameter:                         Zone.                (line   8)
+* ball locations:                        World.               (line  50)
+* BALL PREV POSITION...:                 Messages.            (line 222)
+* BALL PREV VELOCITY...:                 Messages.            (line 225)
+* BALL SPEED REJECT:                     Troubleshooting.     (line  30)
+* BALL TIME REJECT...:                   Messages.            (line 207)
+* BALL TRIANGULATION REJECT <1>:         Messages.            (line 211)
+* BALL TRIANGULATION REJECT:             Troubleshooting.     (line  58)
+* BALL UNCERTAINTY...:                   Messages.            (line 216)
+* BALL VELOCITY...:                      Messages.            (line 219)
+* BALL ZONE:                             Messages.            (line  28)
+* BALL_POSITION...:                      Messages.            (line 204)
+* ballDia:                               Input Files.         (line 135)
+* ballRaw:                               Left camera.         (line  81)
+* barrel distortion:                     Tune.                (line  55)
+* bgauss:                                Options.             (line  13)
+* bgaussScalar <1>:                      Input Files.         (line  64)
+* bgaussScalar:                          Run Mask.            (line  63)
+* black balls:                           World.               (line  95)
+* blas, BLAS:                            blas.                (line   6)
+* Blink:                                 Overview.            (line   6)
+* bottom:                                Input Files.         (line 128)
+* Brooktree <1>:                         Main Application.    (line  51)
+* Brooktree:                             Install Video Cards. (line  10)
+* bttv <1>:                              Install Video Cards. (line  10)
+* bttv:                                  Dependencies.        (line   9)
+* cal directory:                         Setup Guide.         (line   8)
+* cal for device...:                     Messages.            (line  64)
+* calibrating <1>:                       Checks.              (line  15)
+* calibrating:                           What Gets Installed. (line  21)
+* calibration <1>:                       External Calibration.
+                                                              (line   6)
+* calibration <2>:                       Input Files.         (line   6)
+* calibration <3>:                       Options.             (line  48)
+* calibration <4>:                       Setup Guide.         (line   8)
+* calibration <5>:                       World.               (line  50)
+* calibration:                           Calibration Mask A.  (line   6)
+* calibration directory:                 Setup Guide.         (line   8)
+* calibration mask:                      Calibration Mask A.  (line   6)
+* calibration parameters...:             Messages.            (line  64)
+* camera external calibration <1>:       Checks.              (line  15)
+* camera external calibration:           What Gets Installed. (line  21)
+* camera locations:                      World.               (line  33)
+* camera too far away:                   Troubleshooting.     (line  97)
+* change cal:                            Main.                (line   6)
+* change main:                           Main.                (line   6)
+* check calibration:                     Maintenance.         (line 295)
+* checkSetup:                            Tests.               (line   6)
+* CHOSEN:...:                            Messages.            (line 174)
+* Cleaning up image files...:            Messages.            (line  47)
+* colpGrid <1>:                          External Calibration.
+                                                              (line  34)
+* colpGrid:                              Left camera.         (line  49)
+* command line interface:                Overview.            (line   6)
+* communication:                         Tests.               (line   6)
+* computer:                              Install Video Cards. (line  10)
+* configure:                             Installation.        (line  56)
+* continuous:                            Main.                (line   6)
+* coordinate system:                     World.               (line   6)
+* DDx <1>:                               Input Files.         (line  31)
+* DDx:                                   Run Mask.            (line  16)
+* DDy <1>:                               Input Files.         (line  31)
+* DDy:                                   Run Mask.            (line  16)
+* deadband:                              Options.             (line  84)
+* debugging with dump files:             Options.             (line 118)
+* density too small:                     Messages.            (line  10)
+* device specification:                  Options.             (line  48)
+* dialog:                                Main.                (line   6)
+* dirty ball:                            Troubleshooting.     (line  97)
+* displaying results:                    What Gets Installed. (line  44)
+* distribution:                          What Gets Installed. (line 117)
+* dropped frames:                        Samples.             (line  40)
+* Dx <1>:                                Input Files.         (line  31)
+* Dx:                                    Run Mask.            (line  16)
+* dxZone <1>:                            Input Files.         (line 105)
+* dxZone:                                Zone.                (line   8)
+* Dy <1>:                                Input Files.         (line  31)
+* Dy:                                    Run Mask.            (line  16)
+* dzZone <1>:                            Input Files.         (line 105)
+* dzZone:                                Zone.                (line   8)
+* End to end:                            Setup Guide.         (line   8)
+* endless loop:                          When Things Go Wrong.
+                                                              (line   6)
+* extCal:                                Left camera.         (line  81)
+* External Calibration:                  External Calibration.
+                                                              (line   6)
+* external calibration:                  What Gets Installed. (line 112)
+* Final dev[X] number=...:               Messages.            (line  42)
+* fish-eye:                              Tune.                (line  55)
+* flashing screen:                       Options.             (line  13)
+* focal <1>:                             External Calibration.
+                                                              (line  34)
+* focal:                                 Left camera.         (line  29)
+* focal length too small:                Troubleshooting.     (line  97)
+* focal point:                           World.               (line  33)
+* force images:                          Options.             (line  56)
+* frame grabber:                         Main Application.    (line  51)
+* frame grabber capability:              Options.             (line  48)
+* frame rate:                            Options.             (line  84)
+* frame slips:                           Samples.             (line  40)
+* frame-grabber:                         What Gets Installed. (line  85)
+* Gaussian:                              Tune.                (line   6)
+* Gaussian weighting <1>:                Options.             (line  13)
+* Gaussian weighting:                    Main Application.    (line  51)
+* Gerd Knorr:                            Streamer Functions.  (line   6)
+* Gimp <1>:                              External Calibration.
+                                                              (line  97)
+* Gimp:                                  Dependencies.        (line   9)
+* gimp:                                  Dependencies.        (line   9)
+* grab-v4l.c:                            Program Notes.       (line   6)
+* grab-v4l2.c:                           Program Notes.       (line   6)
+* graphical user interface:              Overview.            (line   6)
+* gravity <1>:                           Input Files.         (line 123)
+* gravity <2>:                           Zone.                (line   8)
+* gravity:                               Overview.            (line  38)
+* hang-up:                               When Things Go Wrong.
+                                                              (line   6)
+* hung-up:                               When Things Go Wrong.
+                                                              (line   6)
+* image height:                          Options.             (line  48)
+* Image Magick:                          Dependencies.        (line   9)
+* image size:                            Options.             (line  48)
+* image width:                           Options.             (line  48)
+* imHeight <1>:                          External Calibration.
+                                                              (line  34)
+* imHeight:                              Left camera.         (line  26)
+* imWidth <1>:                           External Calibration.
+                                                              (line  34)
+* imWidth:                               Left camera.         (line  25)
+* info:                                  What Gets Installed. (line 103)
+* input files:                           Options.             (line 118)
+* install:                               Installation.        (line  56)
+* internal calibration:                  Tune.                (line  55)
+* IPC:                                   Options.             (line  90)
+* item area too large:...:               Messages.            (line 232)
+* item area too small:...:               Messages.            (line 228)
+* item on Corner:                        Messages.            (line 129)
+* item on Edge...:                       Messages.            (line 124)
+* kill:                                  Main.                (line   6)
+* killing process:                       When Things Go Wrong.
+                                                              (line   6)
+* killing processes:                     What Gets Installed. (line  56)
+* killSty:                               When Things Go Wrong.
+                                                              (line  20)
+* killUmp:                               When Things Go Wrong.
+                                                              (line  20)
+* L B Found...:                          Messages.            (line 150)
+* left:                                  Input Files.         (line 128)
+* limiting run time:                     Options.             (line  84)
+* link main to cal:                      Main.                (line   6)
+* load test <1>:                         Samples.             (line 100)
+* load test:                             Options.             (line  27)
+* lock-up:                               When Things Go Wrong.
+                                                              (line   6)
+* main application:                      What Gets Installed. (line  94)
+* make check:                            Checks.              (line  10)
+* makeing rpm's:                         What Gets Installed. (line 117)
+* making .clk files:                     What Gets Installed. (line  77)
+* mask <1>:                              Input Files.         (line  31)
+* mask <2>:                              Setup Guide.         (line   8)
+* mask:                                  Run Mask.            (line  16)
+* mask A:                                Calibration Mask A.  (line   6)
+* mask B:                                Calibration Mask A.  (line   6)
+* mask C:                                Calibration Mask A.  (line   6)
+* mask files:                            Input Files.         (line  15)
+* mask for device...:                    Messages.            (line  59)
+* matlab:                                Maintenance.         (line 295)
+* maxBallAreaScalar <1>:                 Input Files.         (line  81)
+* maxBallAreaScalar:                     Run Mask.            (line  72)
+* maxBallRatioScalar <1>:                Input Files.         (line  90)
+* maxBallRatioScalar:                    Run Mask.            (line  78)
+* maxedgepix:                            Options.             (line 211)
+* measure pixels:                        Left camera.         (line  81)
+* measurements:                          World.               (line  33)
+* melding image files:                   What Gets Installed. (line  68)
+* memory mapping:                        Options.             (line  90)
+* messages:                              Messages.            (line   6)
+* minBallAreaScalar <1>:                 Input Files.         (line  77)
+* minBallAreaScalar:                     Run Mask.            (line  69)
+* minBallDensityScalar <1>:              Input Files.         (line  70)
+* minBallDensityScalar:                  Run Mask.            (line  66)
+* minBallRatioScalar <1>:                Input Files.         (line  85)
+* minBallRatioScalar:                    Run Mask.            (line  75)
+* minProxScalar <1>:                     Input Files.         (line  95)
+* minProxScalar:                         Run Mask.            (line  81)
+* missing images:                        Overview.            (line   6)
+* Motion Detected /dev/....:             Messages.            (line 135)
+* multiple balls:                        Troubleshooting.     (line 173)
+* new versions:                          What Gets Installed. (line 117)
+* no balls:                              Troubleshooting.     (line  30)
+* no images:                             Options.             (line  56)
+* octave:                                Maintenance.         (line 295)
+* output files <1>:                      Output Files.        (line   6)
+* output files:                          Options.             (line 118)
+* pause:                                 Main.                (line   6)
+* PCI <1>:                               Install Video Cards. (line  10)
+* PCI:                                   Dependencies.        (line   9)
+* perceptual grouping:                   Overview.            (line   6)
+* pixel data:                            Setup Guide.         (line   8)
+* plot:                                  Main.                (line   6)
+* pointing cameras:                      External Calibration.
+                                                              (line   6)
+* pointing the cameras <1>:              Checks.              (line  15)
+* pointing the cameras:                  What Gets Installed. (line  21)
+* POSSIBLY SWAPPED CAMERA WIRES <1>:     Messages.            (line  23)
+* POSSIBLY SWAPPED CAMERA WIRES:         Troubleshooting.     (line  80)
+* pre-filtering:                         Options.             (line  84)
+* process control:                       What Gets Installed. (line  56)
+* process waiting:                       When Things Go Wrong.
+                                                              (line   6)
+* program notes:                         Program Notes.       (line   6)
+* prox:                                  Tune.                (line   6)
+* pthread <1>:                           Samples.             (line  40)
+* pthread:                               Dependencies.        (line   9)
+* ratio too large...:                    Messages.            (line 119)
+* ratio too small...:                    Messages.            (line 114)
+* real-time <1>:                         Tune.                (line  36)
+* real-time <2>:                         Samples.             (line  40)
+* real-time <3>:                         Options.             (line  90)
+* real-time:                             Main Application.    (line  51)
+* record-playback:                       Main Application.    (line  51)
+* reducing image file size:              What Gets Installed. (line  68)
+* repeating:                             Maintenance.         (line 275)
+* resizing image files:                  What Gets Installed. (line  68)
+* restrictions on image size:            Options.             (line  48)
+* right:                                 Input Files.         (line 128)
+* rowpGrid <1>:                          External Calibration.
+                                                              (line  34)
+* rowpGrid:                              Left camera.         (line  55)
+* run mask:                              Run Mask.            (line  16)
+* run parameters:                        Run Parameters.      (line   6)
+* running with single camera:            Options.             (line 211)
+* sample runs:                           Samples.             (line  10)
+* saving results:                        What Gets Installed. (line  34)
+* screen flash:                          Options.             (line  13)
+* segmentation:                          Overview.            (line   6)
+* segmentation faults:                   When Things Go Wrong.
+                                                              (line   6)
+* setting up masks:                      External Calibration.
+                                                              (line  97)
+* setup:                                 Setup Guide.         (line   8)
+* shared memory:                         Options.             (line  90)
+* shared memory considerations:          When Things Go Wrong.
+                                                              (line   6)
+* showppms:                              Output Files.        (line   6)
+* SI units:                              Overview.            (line  38)
+* single camera mode:                    Options.             (line 211)
+* single snaps:                          External Calibration.
+                                                              (line 239)
+* sliceraw:                              Output Files.        (line   6)
+* snaps <1>:                             External Calibration.
+                                                              (line 239)
+* snaps:                                 World.               (line  95)
+* snapshops:                             World.               (line  95)
+* snapshot:                              External Calibration.
+                                                              (line 239)
+* spectral:                              Overview.            (line   6)
+* speed scalar:                          Zone.                (line   8)
+* speedDisplayScalar:                    Input Files.         (line 143)
+* stills:                                World.               (line  95)
+* streamer program construction:         Streamer Functions.  (line   6)
+* streamery:                             Output Files.        (line   6)
+* streamery requirements:                Samples.             (line  80)
+* sub-sampling:                          Options.             (line  27)
+* Sx <1>:                                Input Files.         (line  31)
+* Sx:                                    Run Mask.            (line  16)
+* Sy <1>:                                Input Files.         (line  31)
+* Sy:                                    Run Mask.            (line  16)
+* sysinit:                               Install Video Cards. (line  10)
+* task scheduling:                       Samples.             (line  40)
+* tests:                                 Tests.               (line   6)
+* The Gimp:                              Dependencies.        (line   9)
+* threads <1>:                           Samples.             (line  40)
+* threads:                               Dependencies.        (line   9)
+* three-dimensional coordinates:         What Gets Installed. (line  89)
+* throughput <1>:                        Tune.                (line  36)
+* throughput <2>:                        Samples.             (line  40)
+* throughput <3>:                        Checks.              (line  26)
+* throughput:                            What Gets Installed. (line  17)
+* throughput, throughput:                blas.                (line   6)
+* tim2clk:                               Output Files.        (line   6)
+* time <1>:                              Checks.              (line  26)
+* time:                                  What Gets Installed. (line  17)
+* too light background:                  Troubleshooting.     (line  97)
+* too little light:                      Troubleshooting.     (line  97)
+* too many pixels changed <1>:           Messages.            (line  34)
+* too many pixels changed:               Options.             (line 211)
+* too many pixels changes:               Troubleshooting.     (line  10)
+* too much sub-sampling:                 Troubleshooting.     (line  97)
+* top:                                   Input Files.         (line 128)
+* transform .tim files to ASCII:         What Gets Installed. (line  77)
+* triangulation <1>:                     Options.             (line 193)
+* triangulation <2>:                     What Gets Installed. (line  89)
+* triangulation:                         Overview.            (line   6)
+* triangulationScalar <1>:               Troubleshooting.     (line  58)
+* triangulationScalar:                   Input Files.         (line 138)
+* Tsai format <1>:                       External Calibration.
+                                                              (line   6)
+* Tsai format <2>:                       Input Files.         (line   6)
+* Tsai format:                           What Gets Installed. (line  24)
+* tune <1>:                              Tune.                (line  36)
+* tune:                                  Setup Guide.         (line   8)
+* tuner <1>:                             Install Video Cards. (line  10)
+* tuner:                                 Dependencies.        (line   9)
+* tuning <1>:                            Tune.                (line   6)
+* tuning:                                Input Files.         (line  53)
+* tuning parameters...:                  Messages.            (line 105)
+* uncertainty:                           Options.             (line 193)
+* uncertainty=...:                       Messages.            (line 196)
+* units <1>:                             Options.             (line 199)
+* units:                                 Overview.            (line  38)
+* velMax:                                Input Files.         (line 119)
+* velocity threshold:                    Zone.                (line   8)
+* velThresh:                             Input Files.         (line 111)
+* verbose <1>:                           Options.             (line 153)
+* verbose:                               Tests.               (line   6)
+* verbose output:                        Messages.            (line   6)
+* video cards:                           Install Video Cards. (line  10)
+* video0.cal:                            Run Parameters.      (line   6)
+* video0.tune file:                      Input Files.         (line  53)
+* video1.tune file:                      Input Files.         (line  53)
+* videoX.cal files:                      External Calibration.
+                                                              (line  89)
+* videoX.cam files:                      External Calibration.
+                                                              (line  34)
+* videoX.dat files:                      External Calibration.
+                                                              (line  34)
+* videoX.tune file:                      Input Files.         (line  53)
+* warm-up:                               Options.             (line  84)
+* white balls:                           World.               (line  95)
+* working directory:                     Setup Guide.         (line   8)
+* world.dat:                             Overview.            (line  38)
+* world.dat file:                        External Calibration.
+                                                              (line   6)
+* wrapper scripts:                       What Gets Installed. (line  94)
+* X11R6:                                 Dependencies.        (line   9)
+* xawtv <1>:                             Streamer Functions.  (line   6)
+* xawtv:                                 What Gets Installed. (line  85)
+* zone:                                  Zone.                (line   8)
+* zone for device...:                    Messages.            (line 111)
+* zone.tune <1>:                         Setup Guide.         (line   8)
+* zone.tune:                             Overview.            (line  38)
+* zone.tune file:                        Input Files.         (line  99)
+
+
+
+Tag Table:
+Node: Top1126
+Node: Overview2074
+Node: Installation4427
+Node: What Gets Installed6785
+Node: Checks11619
+Node: Dependencies12826
+Node: blas13633
+Node: Install Video Cards14029
+Node: Blink GUI14800
+Node: Main15630
+Node: Left camera18622
+Node: Run Parameters22023
+Node: Run Mask22322
+Node: Calibration Mask A25582
+Node: Calibration Mask B27279
+Node: Calibration Mask C27472
+Node: Right camera27659
+Node: World27833
+Node: Zone31923
+Node: Tests34070
+Node: Setup Guide34401
+Node: Blink Program Notes35731
+Node: Main Application35896
+Node: Options37559
+Node: Input Files48075
+Node: Output Files54935
+Node: Program Notes55944
+Node: When Things Go Wrong59541
+Node: Troubleshooting61011
+Node: Streamer Functions68119
+Node: External Calibration70725
+Node: Samples81668
+Node: Messages87018
+Node: Tune97977
+Node: Maintenance101098
+Node: Program Index111562
+Node: Concept Index114313
+
+End Tag Table

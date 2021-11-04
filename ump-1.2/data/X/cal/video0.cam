@@ -1,0 +1,15 @@
+% Baseline 08/03/01
+imWidthCalEx  =      320;
+imHeightCalEx =      240;
+focalCalEx    =      358; % Scaled to imWidthCalEx
+AbConstant    = 0.993084;
+Abrqw2        = 0.334932;
+AbipimR       =-0.020826;
+AbjpjmR       = 0.004861;
+ARC           =   1.3675;
+RgSir         =        0;
+RgSiri        =        0;
+RgSjr         =        0;
+RgSjrj        =        0;
+
+

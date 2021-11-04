@@ -1,0 +1,37 @@
+#!/bin/sh
+# test installation of ump application program.
+# kill ump processes
+
+
+if ( test "$srcdir " == " " )
+    then
+    srcdir=$srcdir
+    buildsrcdir=$srcdir
+else
+    buildsrcdir=$PWD
+    cd $srcdir
+    srcdir=$PWD
+    cd $buildsrcdir
+fi
+if ( test "$srcdir " == ". " )
+    then
+    srcdir=$PWD
+    buildsrcdir=$srcdir
+fi
+srcdirpath="$srcdir/"
+buildsrcdirpath="$buildsrcdir/"
+
+echo ""
+printf "$0: Running killUmp to cleanup from make.  Killing ump jobs..."
+"$srcdirpath"killUmp >/dev/null
+statUmp=$?
+if ( test $statUmp -ne 0 )
+    then
+    echo "ERROR($0):  left with ump processes."
+    sleep 5
+    exit 1
+fi
+echo "SUCCESS."
+sleep 2
+exit 0
+

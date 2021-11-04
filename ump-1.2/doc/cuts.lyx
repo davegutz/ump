@@ -1,0 +1,6644 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass article
+\language english
+\inputencoding latin1
+\fontscheme default
+\graphics default
+\paperfontsize default
+\spacing single 
+\papersize Default
+\paperpackage a4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 2
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+
+Method and Prototype for a Practical Ball Vision Device
+\layout Author
+
+Dave Gutz
+\layout Address
+
+18 Pickering Street, Danvers, MA 01923, davegutz@alum.mit.edu
+\layout Abstract
+
+With careful setup and the computational methods presented herein, a skilled
+ consumer can use off-the-shelf frame-grabber equipment to accurately predict
+ baseball strikes and speed.
+ Using a 1:7 and 1:3 scale prototypes, a moving baseball's position is measured
+ in real time at 30 frames per second within one-half ball width 3 standard
+ deviations and it's impact with a zone 50 ball diameters further on predicted
+ to within three ball width 3 standard deviations.
+ Successful detection relies on optimum camera position, small field of
+ view, good lighting, efficient spectral segmentation, efficient perceptual
+ grouping, and a standard vector triangulation.
+ The entire method is documented and the application software available
+ for standard Linux.
+ Results are displayed real-time with pitch statistics in pictorial format
+ from an umpire's viewpoint.
+ A record-playback mode is available for complete visual record.
+ The system is run from a GTK+ graphical user interface.
+ Up to 8 times improvement is foreseen with already available hardware in
+ the form of IIDC-compliant camera.
+\layout Section
+
+
+\begin_inset LatexCommand \label{tag_Introduction}
+
+\end_inset 
+
+Introduction
+\layout Standard
+
+Ever-increasing computing power and new algorithms are progressing towards
+ real-time filtering of image data on the desktop.
+ Simple camera hardware is available.
+ Programs exist, particularly for Linux, which provide easy access for a
+ programmer to the image data stream.
+ There is opportunity now for useful image application filters.
+\layout Standard
+
+The potential payoff of vision detection systems is high.
+ Presently, the Questec Corporation fields a proprietary device that segments
+ image motion to track baseball pitches.
+ At least two Major League Baseball clubs have contracted - for amounts
+ in excessive of a star player's salary - to install and operate their proprieta
+ry system in ballparks.
+ Umpires use it for training.
+ Teams may use it for coaching.
+ The Questec system tracks a ball for its entire trajectory.
+\layout Standard
+
+This project's goal is to determine the method for calling a baseball pitch
+ - strike or ball - from camera images.
+ Users will want to know velocity as well.
+ The specific tasks are to place a pair of cameras, sample their image streams,
+ correct for camera distortion, segment the ball objects, triangulate ball
+ position, develop a trajectory history, and determine where the ball passes
+ through the strike zone.
+ Users will want near real-time performance.
+ For most of these tasks, the literature provides a starting point for efficient
+ calculation.
+ For the rest, new methods described herein are required.
+\layout Standard
+
+The task of selecting cameras and placing them is not well documented in
+ prior writing.
+ Sections 
+\begin_inset LatexCommand \ref{tag_Practical_Considerations}
+
+\end_inset 
+
+, 
+\begin_inset LatexCommand \ref{tag_Sizing_a_Vision_System}
+
+\end_inset 
+
+, and 
+\begin_inset LatexCommand \ref{tag_Prototype_Sizing}
+
+\end_inset 
+
+ present solutions.
+\layout Standard
+
+The task of sampling the image stream is a well understood computer system
+ task.
+ Linux is particularly easy to program the application using asynchronous
+ communication and concurrent methods 
+\begin_inset LatexCommand \cite{Robbins}
+
+\end_inset 
+
+
+\begin_inset LatexCommand \cite{Stevens}
+
+\end_inset 
+
+.
+ Section 
+\begin_inset LatexCommand \ref{tag_Prototype_Vision_System}
+
+\end_inset 
+
+ develops a prototype application from scratch.
+\layout Standard
+
+The task of correcting for image distortion is a common need for inexpensive
+ cameras.
+ Several investigators have dealt with it and provide solutions 
+\begin_inset LatexCommand \cite{Tsai:1986}
+
+\end_inset 
+
+
+\begin_inset LatexCommand \cite{Tsai:1987}
+
+\end_inset 
+
+
+\begin_inset LatexCommand \cite{JWalton:1995}
+
+\end_inset 
+
+.
+ Section 
+\begin_inset LatexCommand \ref{tag_device_calibration}
+
+\end_inset 
+
+ improves upon one of the published methods.
+ 
+\layout Standard
+
+The task of identifying the ball objects is most difficult and has a strong
+ effect on accuracy and throughput.
+ Within this task there are two main subtasks: 
+\begin_inset Quotes eld
+\end_inset 
+
+segmenting
+\begin_inset Quotes erd
+\end_inset 
+
+ to identify moving objects and 
+\begin_inset Quotes eld
+\end_inset 
+
+grouping
+\begin_inset Quotes erd
+\end_inset 
+
+ to identify the balls.
+ 
+\layout Standard
+
+Shi and Malik 
+\begin_inset LatexCommand \cite{Shi_Malik_Norm_Cuts:1997}
+
+\end_inset 
+
+ provide a broad strategy overview of segmentation.
+ In particular, they suggest approaching the detail tasks of segmentation
+ by considering the high level goal.
+ The goal for this work, to identify a moving object, simplifies detail
+ tasks.
+ Baseballs are white, round, and move rapidly.
+ Therefore, the pixels containing pertinent information about the ball will
+ be changing rapidly from a dark background state to a light color from
+ one frame to the next.
+ A simple pre-filtering detects motion, reduces noise, and reduces significantly
+ the number of pixels to be handled; see Section 
+\begin_inset LatexCommand \ref{tag_Pixelmap_Pre-Filter}
+
+\end_inset 
+
+.
+ 
+\layout Standard
+
+The next identification steps involve organizing the changed pixels into
+ candidate object clusters.
+ This work calculates the affinity of all the pixels to each other using
+ a Gaussian weighting function 
+\begin_inset LatexCommand \cite{Shi_Malik_Norm_Cuts:1997}
+
+\end_inset 
+
+.
+ Then the work applies a normalized spectral cut technique popularized by
+ Pothen et al.
+ 
+\begin_inset LatexCommand \cite{pothen90partitioning}
+
+\end_inset 
+
+ to segment the image.
+  Suppose the matrix of edge weights describing the weight of each pixel
+ with respect to others is given by 
+\begin_inset Formula $W$
+\end_inset 
+
+.
+ Also suppose that the total weight of all edges of each pixel are given
+ by diagonal matrix 
+\begin_inset Formula $D$
+\end_inset 
+
+ with 
+\begin_inset Formula $D_{i,j}=\Sigma_{j}W_{i,j}$
+\end_inset 
+
+.
+ An Eigenvalue problem arises whose solution is the second smallest Eigenvalue
+ 
+\begin_inset Formula $\lambda_{2}$
+\end_inset 
+
+, called the Fiedler value, and whose Eigenvector 
+\begin_inset Formula $y_{2}$
+\end_inset 
+
+ defines the minimum cut.
+ The implication of an Eigenvalue problem is one of frequencies, hence the
+ term 
+\begin_inset Quotes eld
+\end_inset 
+
+spectral
+\begin_inset Quotes erd
+\end_inset 
+
+ segmentation.
+ The general Eigenvalue system is
+\begin_inset Formula \begin{equation}
+(D-W)y=\lambda Dy.\label{eq_{e}igenvalue_{p}roblem}\end{equation}
+
+\end_inset 
+
+This can be transformed into
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+D^{-\frac{1}{2}}(D-W)D^{-\frac{1}{2}}z=\lambda z\label{eq_{t}ransformed_{e}igenvalue_{p}roblem}\end{equation}
+
+\end_inset 
+
+where 
+\begin_inset Formula $z=D^{-\frac{1}{2}}y$
+\end_inset 
+
+, a transformed candidate cut.
+ The matrix 
+\begin_inset Formula $D^{-\frac{1}{2}}(D-W)D^{-\frac{1}{2}}$
+\end_inset 
+
+is symmetric semi-positive definite, since 
+\begin_inset Formula $(D-W)$
+\end_inset 
+
+ is known to be semi-positive definite.
+ The lowest Eigenvalue has value 
+\begin_inset Formula $e_{1}=0$
+\end_inset 
+
+ and associated Eigenvector 
+\begin_inset Formula $z_{1}=D^{\frac{1}{2}}\tilde{1}$
+\end_inset 
+
+.
+ After solving for the lowest, it is possible to reduce the order and solve
+ for the second smallest.
+ Then the resultant cut is transformed back to units of 
+\begin_inset Formula $y$
+\end_inset 
+
+.
+\layout Standard
+
+Many methods are available to solve for the second Eigenvector.
+ Demmel 
+\begin_inset LatexCommand \cite{Demmel_Lecture:1999}
+
+\end_inset 
+
+ reports that Rayleigh iteration provides quick, sure cubic convergence.
+ Baker 
+\begin_inset LatexCommand \cite{Baker's_Book:1989}
+
+\end_inset 
+
+ provides a concise Rayleigh iteration algorithm.
+ Since the first and lowest Eigenvalue and vector are known a-priori, then
+ the matrix A reduces as follows to eliminate the lowest mode:
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+A_{i,j}=A_{i,j}-z_{1}*A_{N,j},\, i=1,N-1,\, and\, j=1,N-1,\label{eq_{r}educed_{o}rder_{m}atrix}\end{equation}
+
+\end_inset 
+
+ where 
+\begin_inset Formula $i,j$
+\end_inset 
+
+ are matrix element coordinates.
+ The next Eigenvalue and Eigenvector to be solved for will be the second
+ Eigenvector.
+ This reduced order matrix is not symmetric and is therefore not amenable
+ to symmetric solution techniques.
+ The initial guess of the second Eigenvector, 
+\begin_inset Formula $z_{2}$
+\end_inset 
+
+, usually a simplified zero vector with one arbitrary element set to 1,
+ may be converted to the coordinates of the reduced order system 
+\begin_inset Formula $y_{2}$
+\end_inset 
+
+ by
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+y_{2_{i}}=z_{1_{i}}-y_{1_{i}}*z_{1_{N-1}},\, i=1,N-1.\label{eq_{r}educed_{o}rder_{v}ector}\end{equation}
+
+\end_inset 
+
+ With a few Rayleigh iterations of the reduced order system the second Eigensolu
+tion solves efficiently.
+ The solution progresses with cubic convergence 
+\begin_inset LatexCommand \cite{Demmel_Lecture:1999}
+
+\end_inset 
+
+.
+ The result is a spectrally segmented edge graph.
+ The changed pixels are now in clusters.
+\layout Standard
+
+The spectral segmentation task is computationally intensive and, fortunately,
+ a simple approach is possible.
+ Several investigators 
+\begin_inset LatexCommand \cite{Demmel_Lecture:1999}
+
+\end_inset 
+
+
+\begin_inset LatexCommand \cite{Shi_Malik_Norm_Cuts:1997}
+
+\end_inset 
+
+
+\begin_inset LatexCommand \cite{Gdalyahu_Etal_Stochastic:1999}
+
+\end_inset 
+
+ discuss practical multi-level recursive algorithms that speed up the segmentati
+on.
+ Demmel summarizes many of the available methods, including Lanczos sparse
+ matrix operations applied to entire images and Rayleigh iteration 
+\begin_inset LatexCommand \cite{Demmel_Lecture:1999}
+
+\end_inset 
+
+.
+ Demmel suggests multi-level recursion as a way to accelerate any method.
+ In the situation of a moving baseball, the knowledge of the end goal allows
+ the number of candidate pixels to be small so multi-level approach was
+ unnecessary for this work.
+\layout Standard
+
+The second task of identifying the balls is perceptual 
+\begin_inset Quotes eld
+\end_inset 
+
+grouping
+\begin_inset Quotes erd
+\end_inset 
+
+ the segments.
+ There are various published methods to select clusters of pixels from the
+ segmentation result to identify candidate objects.
+ Section 
+\begin_inset LatexCommand \ref{tag_Eigenvector_Clustering}
+
+\end_inset 
+
+ describes a unique one-pass Eigenvector method.
+ 
+\layout Standard
+
+As a final step in determining balls, a high level algorithm recognizes
+ the signature shape of a moving white ball.
+ The task of correcting for camera distortion is best done around this point.
+ By applying corrections to only the pixels that form the ball, significant
+ computation savings are possible.
+\layout Standard
+
+There is a challenge to determine synchronous images from asynchronous frame-gra
+bbers.
+ Section 
+\begin_inset LatexCommand \ref{tag_Time_Sorting_Objects}
+
+\end_inset 
+
+ presents a simple time interpolation that brings one frame's images in
+ line with the other for triangulation.
+\layout Standard
+
+The project's final tasks of triangulating ball position, Section 
+\begin_inset LatexCommand \ref{tag_Method_of_Triangulating_Ball_Position}
+
+\end_inset 
+
+, and strike zone prediction, Section 
+\begin_inset LatexCommand \ref{tag_Method_of_Calculating_Trajectory_to_Strike_Zone}
+
+\end_inset 
+
+, use basic linear math.
+\layout Standard
+
+A prototype validates the methodology and uncovers potential problems.
+ Optimum camera placement and lens selection are issues and the prototype
+ work presents one solution.
+ Camera internal and external calibration are covered.
+ Implementing the algorithm uncovers other issues, especially timing.
+ The prototype work demonstrates accuracy and gives a sense of how practical
+ the full size system may be.
+\layout Section
+
+
+\begin_inset LatexCommand \label{tag_Method_of_One-pass_Segmentation}
+
+\end_inset 
+
+ Method of One-pass Segmentation
+\layout Standard
+
+The project emphasis is on accuracy and efficiency.
+ This is most important for the segmentation task.
+ Segmentation begins after pre-filtering reduces the number of pixels and
+ identifies the pixels changed by scene motion.
+ Following is a method that segments clusters from the small number of changed
+ pixels in just one pass.
+\layout Subsection
+
+
+\begin_inset LatexCommand \label{tag_Pixelmap_Pre-Filter}
+
+\end_inset 
+
+Pixelmap Pre-Filter
+\layout Standard
+
+First, the method applies a pre-filter consisting of image difference with
+ a threshold.
+ This has precedent in the methods of dynamic analysis.
+ The filter begins with the standard backward difference
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\Delta I_{i,j}(t)=I_{i,j}(t)-I_{i,j}(t-T)\label{eq_{d}elta_{i}mage}\end{equation}
+
+\end_inset 
+
+where 
+\shape italic 
+I
+\shape default 
+ is black-and-white pixel intensity usually between 0 and 255 inclusive;
+ 
+\begin_inset Formula $i,j$
+\end_inset 
+
+ are the pixel coordinates with origin in image top-left; and 
+\shape italic 
+t
+\shape default 
+ denotes time with 
+\shape italic 
+T
+\shape default 
+ the frame update time.
+ The image rate for selected light colored pixels is
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+R_{i,j}(t)=\left\{ \begin{array}{l}
+\Delta I_{i,j}(t),\, abs(\Delta I_{i,j}(t))>threshold\\
+0,\, otherwise\, not\, selected.\end{array}\right.\label{eq_{i}mage_{t}hreshold}\end{equation}
+
+\end_inset 
+
+The user determines 
+\shape italic 
+
+\begin_inset Formula $threshold$
+\end_inset 
+
+
+\shape default 
+ to just eliminate normal device noise from the image, typically 10% of
+ full scale.
+\layout Subsection
+
+
+\begin_inset LatexCommand \label{tag_Masks}
+
+\end_inset 
+
+Masks
+\layout Standard
+
+Masks are useful for reducing image clutter which in turn improves throughput.
+ After placing the cameras for optimal resolution there will be some portions
+ of the image that contain clutter such as players' feet, dirt pathways,
+ etc.
+ Also, the edge of the image sometimes has random noise.
+ It is appropriate and beneficial to use a trapezoidal shaped mask that
+ screens only the pixels along the flight path visible by each camera.
+ Throughput improves since the application performs less filtering.
+\layout Subsection
+
+
+\begin_inset LatexCommand \label{tag_Edges}
+
+\end_inset 
+
+Edges
+\layout Standard
+
+Next, the method calculates total edge weight between all the non-zero rate
+ pixels.
+ The method uses light hued pixels only, an approach that reduces pixel
+ number in half and image handling by four.
+ Out of the 
+\begin_inset Formula $n*m$
+\end_inset 
+
+ total image pixels there are 
+\begin_inset Formula $N_{e}$
+\end_inset 
+
+ of light-hued pixels with non-zero rate.
+ The total edge weight is the sum of the distance Gaussian and the brightness
+ Gaussian given by
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+E_{k,l}(t)=e^{-\left(\frac{\sqrt{(x_{k}-x_{l})^{2}+(y_{k}-y_{l})^{2}}}{a}\right)^{2}}*e^{-\left(\frac{\left(I_{k}-I_{l}\right)}{b}\right)^{2}}\label{eq_{e}dge}\end{equation}
+
+\end_inset 
+
+where now 
+\begin_inset Formula $k$
+\end_inset 
+
+ and 
+\begin_inset Formula $l$
+\end_inset 
+
+ are indices 
+\begin_inset Formula $k,l<N_{e}$
+\end_inset 
+
+ and 
+\begin_inset Formula $a$
+\end_inset 
+
+ and 
+\begin_inset Formula $b$
+\end_inset 
+
+ are weighting factors that the user determines from real-world tuning.
+ The method uses pixel value instead of rate in the edge weight of Equation
+ 
+\begin_inset LatexCommand \ref{eq_edge}
+
+\end_inset 
+
+.
+ This gives better identification of a ball since a ball intensity may have
+ uniform value while the background may be less uniform.
+ Using pixel value like this also reduces false effects of shadows.
+ This is further application of Shi and Malik's principle of high level
+ goal seeking applied to low level technique.
+\layout Subsection
+
+
+\begin_inset LatexCommand \label{tag_Segmentation}
+
+\end_inset 
+
+Segmentation
+\layout Standard
+
+>From previous work referenced in the Introduction of Section 
+\begin_inset LatexCommand \ref{tag_Introduction}
+
+\end_inset 
+
+, we know the first Eigenvalue and associated Eigenvector and can reduce
+ the system for easier solution of the second Eigenvector.
+ Previous work shows how to apply Rayleigh iteration to solve the second
+ Eigenvector.
+\layout Subsection
+
+
+\begin_inset LatexCommand \label{tag_Eigenvector_Clustering}
+
+\end_inset 
+
+Eigenvector Clustering
+\layout Standard
+
+Now with the second Eigenvector, the method groups it in one pass.
+ Consider that pixels of the same group will have a strong Gaussian weight
+ and will have similar Eigenvector value.
+ The strategy, therefore, is to sort the Eigenvector according to magnitude
+ then step through looking for magnitude to change from previous value by
+ a predetermined threshold.
+ When the value changes the method starts constructing a new group of pixels.
+\layout Standard
+
+How does the method handle the case of a single object? Since often one
+ ball is visible, then just one cluster may exist and would not properly
+ segregate.
+ To handle this case the method arbitrarily adds two edges to every segmented
+ image, making 
+\begin_inset Formula $N_{e}+2$
+\end_inset 
+
+ edges total.
+ The edges are made arbitrarily using two closely associated points in a
+ lower corner of the image and assigning zero affinity between each corner
+ pair and any other pixel.
+ The two extra clusters that result ensure a strong segregation of the Eigenvect
+or solution.
+ There are always at least two clusters.
+ When finished with lumping pixels, the method simply deletes clusters of
+ two or fewer pixels.
+ This approach, combined with a good selection of threshold, works satisfactoril
+y for several objects as well as robustly isolating a single object.
+\layout Standard
+
+The method completes segmentation by applying distortion corrections to
+ the pixel locations 
+\begin_inset Formula $i$
+\end_inset 
+
+ and 
+\begin_inset Formula $j$
+\end_inset 
+
+.
+ By correcting the grouped pixels after the rate and threshold calculations,
+ fewer operations are necessary.
+ The corrected locations are now floating point values denoted 
+\begin_inset Formula $x$
+\end_inset 
+
+ and 
+\begin_inset Formula $y$
+\end_inset 
+
+.
+ Section 
+\begin_inset LatexCommand \ref{tag_device_calibration}
+
+\end_inset 
+
+ details device internal calibration method and demonstrates improvement
+ over previous methods.
+\layout Section
+
+
+\begin_inset LatexCommand \label{tag_Higher_Level_Object_Identification}
+
+\end_inset 
+
+Higher Level Grouping
+\layout Standard
+
+The method uses four steps for one-pass grouping from the clusters as follows:
+\layout Enumerate
+
+Connect each pixel in a cluster to all other pixels with a line segment.
+ See the light, dotted lines in Figure 
+\begin_inset LatexCommand \ref{fig_perim}
+
+\end_inset 
+
+.
+ 
+\layout Enumerate
+
+Determine the perimeter using the outermost segments of the lines connecting
+ the pixels.
+ If one of the segmented pixels appears inside of the outermost line segment
+ then weight the perimeter toward that pixel by half.
+ The solid lines and dots of Figure 
+\begin_inset LatexCommand \ref{fig_perim}
+
+\end_inset 
+
+ illustrate the approach and show the resultant pseudo pixels that weight
+ the perimeter toward actual pixels.
+\layout Enumerate
+
+Determine properties of the cluster.
+ Calculate the centroid of the cluster by integrating the moments of slices
+ taken through the cluster.
+ Calculate value as the average gray-scale pixel value.
+ Calculate density by dividing the area by the number of segmented pixels.
+ Determine shape by the aspect ratio of the smallest rectangle that contains
+ the object.
+ Reject clusters with low density of undesirable shape.
+ Use the centroid for the object position.
+ 
+\layout Enumerate
+
+Join clusters that are close in centroid position.
+ 
+\layout Enumerate
+
+Join clusters that are close in perimeter.
+\layout Enumerate
+
+Reject clusters that touch image edges or mask edges.
+ It is assumed that part of the ball smear is obscured.
+\layout Standard
+
+The shape shown in Figure 
+\begin_inset LatexCommand \ref{fig_perim}
+
+\end_inset 
+
+ illustrates that the ball motion smears the captured image.
+ Advance knowledge of shape simplifies the grouping strategy.
+ For detecting a moving baseball, desirable objects have an oblong shape
+ with high density and light color.
+\layout Standard
+
+
+\begin_inset Float figure
+wide false
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename perim.ps
+	display color
+	width 297pt
+	height 224pt
+	keepAspectRatio
+	rotateAngle 270
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_perim}
+
+\end_inset 
+
+Method to determine object perimeter.
+\end_inset 
+
+
+\layout Section
+
+
+\begin_inset LatexCommand \label{tag_Time_Sorting_Objects}
+
+\end_inset 
+
+Time Sorting Objects
+\layout Standard
+
+The method uses three steps for one-pass selection of balls:
+\layout Enumerate
+
+Sort all objects in time order.
+ Using the most recent ball, the selection logic looks for an object in
+ the opposite camera.
+ Figure 
+\begin_inset LatexCommand \ref{fig_interp}
+
+\end_inset 
+
+ illustrates three cases that cover all possible combinations for interpolating
+ the right-hand camera images.
+\layout Enumerate
+
+Interpolate to estimate ball position assuming constant velocity between
+ frames.
+ Figure 
+\begin_inset LatexCommand \ref{fig_interp}
+
+\end_inset 
+
+ illustrates the interpolation result using the symbol 
+\begin_inset Formula $\Xi$
+\end_inset 
+
+.
+ The parameter 
+\begin_inset Formula $\delta$
+\end_inset 
+
+ denotes small time skew between right and left image sequence streams and
+ the parameter 
+\begin_inset Formula $\tau$
+\end_inset 
+
+ denotes nominal frame update time.
+\layout Enumerate
+
+The method rejects balls with large time difference.
+ This has the additional advantage of reducing effects of time slips in
+ frame-grabbing.
+\layout Standard
+
+This method shows how knowing in advance the approximate ball speed and
+ direction helps simplify the computations.
+ 
+\layout Standard
+
+
+\begin_inset Float figure
+wide false
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename interpOXX.ps
+	display color
+	width 238pt
+	height 193pt
+	keepAspectRatio
+	rotateAngle 270
+	subcaption
+	subcaptionText "One camera's objects trail the other's."
+
+\end_inset 
+
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename interpXOX.ps
+	display color
+	width 238pt
+	height 193pt
+	keepAspectRatio
+	rotateAngle 270
+	subcaption
+	subcaptionText "One camera's objects straddle the other's."
+
+\end_inset 
+
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename interpXXO.ps
+	display color
+	width 238pt
+	height 193pt
+	keepAspectRatio
+	rotateAngle 270
+	subcaption
+	subcaptionText "One camera's objects lead the other's."
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_interp}
+
+\end_inset 
+
+Interpolating time: the possible combinations.
+\end_inset 
+
+
+\layout Section
+
+
+\begin_inset LatexCommand \label{tag_Method_of_Triangulating_Ball_Position}
+
+\end_inset 
+
+Method of Triangulating Ball Position
+\layout Subsection
+
+
+\begin_inset LatexCommand \label{tag_Object_Triangulation}
+
+\end_inset 
+
+Object Triangulation
+\layout Standard
+
+The method uses a pinhole camera model to transform pixel coordinate to
+ a direction vector in world coordinates from the camera to the object.
+ Figure 
+\begin_inset LatexCommand \ref{fig_transformationCoordinates}
+
+\end_inset 
+
+ defines the three coordinate systems required.
+ Let the two-dimensional pixel coordinate system be 
+\begin_inset Formula $(\hat{i}_{p},\hat{j}_{p})$
+\end_inset 
+
+.
+ Its coordinate origin is at the top left corner of the image.
+ The viewpoint of the user is upside-down in the back of the dotted pixel
+ plan shown in Figure 
+\begin_inset LatexCommand \ref{fig_transformationCoordinates}
+
+\end_inset 
+
+.
+\begin_inset Float figure
+wide true
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename transform.ps
+	display color
+	width 595pt
+	height 425pt
+	keepAspectRatio
+	rotateAngle 270
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_transformationCoordinates}
+
+\end_inset 
+
+Definition of Coordinate Systems for Transformation.
+ The lens is treated as a pinhole.
+\end_inset 
+
+Let the lens be a pinhole that directs all light through the origin of the
+ second camera-centered coordinate system at 
+\begin_inset Formula $(\hat{i}_{c},\hat{j}_{c},\hat{k}_{c})$
+\end_inset 
+
+.
+ The camera coordinates are aligned with the image viewer's normal x-y coordinat
+e system view in the center of the image with the z axis coming out of the
+ image away from the object.
+ The lens is distance f from the image sensor exactly in the image center.
+ Units of 
+\begin_inset Formula $\tilde{f}_{p}$
+\end_inset 
+
+ are pixels.
+ 
+\layout Standard
+
+The goal is to transform the pixel coordinates to the world coordinates
+ 
+\begin_inset Formula $(\hat{i},\hat{j},\hat{k})$
+\end_inset 
+
+.
+ The first transformation from image coordinates to camera-centered coordinates
+ is 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\tilde{v}_{c}=(i_{p}-n/2)\hat{i}_{c}+(m/2-j_{p})\hat{j}_{c}+f_{p}\hat{k}_{c}.\label{eq_{i}mage_{t}o_{c}amera_{t}ransformation}\end{equation}
+
+\end_inset 
+
+ Note that the direction to the object from the camera-centered system is
+ now a rotation applied to 
+\begin_inset Formula $\tilde{v}_{c}$
+\end_inset 
+
+.
+ It is common to call the rotation the 
+\begin_inset Quotes eld
+\end_inset 
+
+direction cosine transformation,
+\begin_inset Quotes erd
+\end_inset 
+
+ which we denote here by matrix 
+\begin_inset Formula $ACPW$
+\end_inset 
+
+, so that
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\tilde{v}=ACPW\bullet\tilde{v}_{c}\label{eq_{c}amera_{t}o_{o}bject_{t}ransformation}\end{equation}
+
+\end_inset 
+
+ with direction 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\hat{v}=\frac{\tilde{v}}{|\tilde{v}|}\,,\label{eq_{c}amera_{t}o_{o}bject_{d}irection}\end{equation}
+
+\end_inset 
+
+a 1 by 3 column direction vector.
+\layout Standard
+
+The vectors to the object from each camera are 
+\begin_inset Formula $R\hat{v}_{R}$
+\end_inset 
+
+ and 
+\begin_inset Formula $L\hat{v}_{L}$
+\end_inset 
+
+, where 
+\begin_inset Formula $L$
+\end_inset 
+
+ and 
+\begin_inset Formula $R$
+\end_inset 
+
+ are magnitudes of left and right cameras respectively.
+ Combined with the cameras' world positions, 
+\begin_inset Formula $\tilde{P}_{R}$
+\end_inset 
+
+ and 
+\begin_inset Formula $\tilde{P}_{L}$
+\end_inset 
+
+, the resulting vector equations define the object location in world coordinates.
+ Figure 
+\begin_inset LatexCommand \ref{fig_triangulate}
+
+\end_inset 
+
+ illustrates these definitions.
+\layout Standard
+
+
+\begin_inset Float figure
+wide true
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename triangulate.ps
+	display color
+	width 297pt
+	height 217pt
+	keepAspectRatio
+	rotateAngle 270
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_triangulate}
+
+\end_inset 
+
+Coordinate Transformations
+\end_inset 
+
+The triangulation is over-specified such that each of three planar projections
+ produces two direction magnitudes thus six scalar results for a three dimension
+al object location.
+ But the vectors 
+\begin_inset Formula $R\hat{v}_{R}$
+\end_inset 
+
+ and 
+\begin_inset Formula $L\hat{v}_{L}$
+\end_inset 
+
+ from each camera rarely intersect at a point therefore the extra information
+ may be used to improve the accuracy and predict an error bounds.
+ The goal is to solve the system
+\layout Standard
+
+
+\begin_inset Formula \[
+\left\{ \begin{array}{l}
+\tilde{P}_{L}+L\hat{v}_{L}=\tilde{O}\\
+\tilde{P}_{R}+R\hat{v}_{R}=\tilde{O}\end{array}\right\} \]
+
+\end_inset 
+
+which reduces to
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+[\hat{v}_{R}\,\,\,-\hat{v}_{L}]\left\{ \begin{array}{c}
+R\\
+L\end{array}\right\} =\tilde{P}_{L}-\tilde{P}_{R}.\label{eq_{t}riangulate}\end{equation}
+
+\end_inset 
+
+ Equation 
+\begin_inset LatexCommand \ref{eq_triangulate}
+
+\end_inset 
+
+ further reduces to three scalar equations with two scalar unknowns 
+\begin_inset Formula $R$
+\end_inset 
+
+ and 
+\begin_inset Formula $L$
+\end_inset 
+
+.
+ There are redundant solutions.
+ The average of the redundant solutions determines an estimate of 
+\begin_inset Formula $\tilde{O}$
+\end_inset 
+
+ and the difference determines an estimate of the error bounds.
+ 
+\layout Standard
+
+The solution is undefined whenever the matrix 
+\begin_inset Formula $[\hat{v}_{R}\,\,\,-\hat{v}_{L}]$
+\end_inset 
+
+ is singular, 
+\begin_inset Formula $det([\hat{v}_{R}\,\,\,-\hat{v}_{L}])=0$
+\end_inset 
+
+.
+ This is a mathematical statement of the situation where the two direction
+ vectors are parallel, pointed at each other.
+ This is not really possible with a practical camera setup because for optimum
+ field of view, discussed in Section 
+\begin_inset LatexCommand \ref{tag_Triangulation_Accuracy}
+
+\end_inset 
+
+, the cameras will have strongly oblique viewing angles and be invisible
+ to each other.
+\layout Subsection
+
+
+\begin_inset LatexCommand \label{tag_Triangulation_Accuracy}
+
+\end_inset 
+
+Triangulation Accuracy
+\layout Standard
+
+An analysis of accuracy yields an estimate of optimum camera position.
+ The preceding method of triangulating with intersecting rays inherently
+ produces a head-on accuracy of half the root-sum-square the variation of
+ two images.
+ If uncertainty in each image is equal then the total predicted uncertainty
+ of both combined is 
+\begin_inset Formula $\sqrt{2}/2$
+\end_inset 
+
+ times the uncertainty of one image.
+ The divisor two used is because the uncertainty of intersection and the
+ over-specification of the vector solution allows an average to be made
+ of the two solutions.
+ The root-sum-square factor arises from the statistical sum of two independent
+ image uncertainties.
+ 
+\layout Standard
+
+The triangulation process gives up some accuracy to camera orientation because
+ to get solid ray intersections in all directions the cameras need to be
+ obliquely placed.
+ The following analysis defines optimum camera angle ranges to minimize
+ errors from image uncertainty.
+\layout Standard
+
+As a practical consideration, recall that the cameras should not see each
+ other and thereby create a potential head-on vector intersection and consequent
+ zero determinant.
+\layout Standard
+
+Figure 
+\begin_inset LatexCommand \ref{fig_error}
+
+\end_inset 
+
+ illustrates planar views of image variation effect on triangulation results.
+ The dashed line represents the error of one image pixel projected into
+ the world space and shows the projected world errors 
+\begin_inset Formula $\Delta x$
+\end_inset 
+
+, 
+\begin_inset Formula $\Delta y$
+\end_inset 
+
+, and 
+\begin_inset Formula $\Delta z$
+\end_inset 
+
+.
+ The camera angles vary between a vertical angle of 
+\begin_inset Formula $\Phi$
+\end_inset 
+
+ and a horizontal swept back of 
+\begin_inset Formula $\Theta$
+\end_inset 
+
+.
+ It simplifies the analysis to assume that the cameras are symmetrically
+ placed and the object is midway between the cameras.
+ The resulting triangulation errors appear in Figures 
+\begin_inset LatexCommand \ref{fig_deltax}
+
+\end_inset 
+
+, 
+\begin_inset LatexCommand \ref{fig_deltay}
+
+\end_inset 
+
+, and 
+\begin_inset LatexCommand \ref{fig_deltaz}
+
+\end_inset 
+
+.
+ These resulted from using an 
+\shape italic 
+Octave
+\shape default 
+ sensitivity simulation perturbing 
+\begin_inset Formula $(i_{p,}j_{p})$
+\end_inset 
+
+ by 
+\begin_inset Formula $(1,0)$
+\end_inset 
+
+ in one camera.
+ The units are the fractional pixels the triangulated image would shift
+ for a one pixel shift in one of the camera images.
+\layout Standard
+
+
+\begin_inset Float figure
+wide true
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename error.ps
+	display color
+	width 297pt
+	height 227pt
+	keepAspectRatio
+	rotateAngle 270
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_error}
+
+\end_inset 
+
+Error Estimation
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Float figure
+wide false
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename xerror.ps
+	display color
+	width 297pt
+	height 208pt
+	keepAspectRatio
+	rotateAngle 270
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_deltax}
+
+\end_inset 
+
+Accuracy in x direction, pixels/pixel for one camera.
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Float figure
+wide false
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename yerror.ps
+	display color
+	width 297pt
+	height 208pt
+	keepAspectRatio
+	rotateAngle 270
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_deltay}
+
+\end_inset 
+
+Accuracy in Y direction, pixels/pixel for one camera.
+\end_inset 
+
+
+\begin_inset Float figure
+wide false
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename zerror.ps
+	display color
+	width 297pt
+	height 208pt
+	keepAspectRatio
+	rotateAngle 270
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_deltaz}
+
+\end_inset 
+
+Accuracy in Z direction, pixels/pixel for one camera.
+\end_inset 
+
+The resulting range of camera angles producing a simultaneously small percent
+ error in all directions is 40 to 60 degrees for sweep-back, 
+\begin_inset Formula $\Theta$
+\end_inset 
+
+, and 20 to 40 degrees for elevation, 
+\begin_inset Formula $\Phi$
+\end_inset 
+
+.
+ Some users may wish to emphasize a certain projection accuracy, for example
+ x more than z, and would use a larger 
+\begin_inset Formula $\Phi$
+\end_inset 
+
+ and/or smaller 
+\begin_inset Formula $\Theta$
+\end_inset 
+
+.
+ Table 
+\begin_inset LatexCommand \ref{tab_triangulation_accuracy}
+
+\end_inset 
+
+ is a prediction of overall accuracy of triangulated object location.
+ At 50 degrees forward pointing sweepback, 
+\begin_inset Formula $\Theta=50$
+\end_inset 
+
+, and 30 degrees downward pointing angle with horizontal, 
+\begin_inset Formula $\Phi=30$
+\end_inset 
+
+, the predicted uncertainty is uniformly 1 pixel in all orientations.
+\begin_inset Float table
+wide false
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset  Tabular
+<lyxtabular version="3" rows="5" columns="6">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Downward, deg.
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+20
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+20
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+40
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+40
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+30
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Forward, deg.
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+40
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+60
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+40
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+60
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+50
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+x
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.06
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.85
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.92
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.78
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.95
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+y
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.92
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.41
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.92
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.41
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.08
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+z
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.78
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.92
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.06
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.41
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.99
+\end_inset 
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{tab_triangulation_accuracy}
+
+\end_inset 
+
+Triangulation accuracy in fraction of pixels object uncertainty per pixel
+ of image uncertainty, two cameras root-sum-squared.
+\end_inset 
+
+ 
+\layout Section
+
+
+\begin_inset LatexCommand \label{tag_Method_of_Calculating_Trajectory_to_Strike_Zone}
+
+\end_inset 
+
+Method of Calculating Trajectory to Strike Zone
+\layout Standard
+
+The method of calculating trajectory is simply to keep a history of detected
+ balls and extrapolate to the strike zone.
+\layout Standard
+
+There are practical considerations that improve accuracy and repeatability.
+ For example, the method performs best predicting trajectory of balls viewed
+ for three frames just in front of the target and outside the range of other
+ motion.
+ Thus, a small field of view is preferred.
+ This is because the ball appears larger with more pixels and because there
+ are no other objects to interfere.
+ The drawback is loss of ability to observe the whole trajectory.
+ Section 
+\begin_inset LatexCommand \ref{tag_Sizing_a_Vision_System}
+
+\end_inset 
+
+ discusses this in more detail.
+ Also, averaging two past values reduces variation by half.
+ Horizontal flight curvature effects may be significant but were not studied.
+ And for the z-direction, a gravity acceleration adjustment to triangulated
+ velocity extrapolated to the target reduces z variation significantly.
+\layout Standard
+
+The final method to predict a strike is shown in Figure 
+\begin_inset LatexCommand \ref{fig_strike}
+
+\end_inset 
+
+.
+ The present object location 
+\begin_inset Formula $\tilde{P}(t)$
+\end_inset 
+
+ and velocity 
+\begin_inset Formula $\tilde{V}(t)$
+\end_inset 
+
+ are known from triangulation.
+ Let 
+\begin_inset Formula $S$
+\end_inset 
+
+ be an arbitrary scalar on the velocity required to produce an exact intersectio
+n of 
+\begin_inset Formula $S\tilde{V}(t)$
+\end_inset 
+
+ with the zone at estimated 
+\begin_inset Formula $\tilde{P}(t+T_{Z})$
+\end_inset 
+
+, where 
+\begin_inset Formula $T_{Z}$
+\end_inset 
+
+ is the time to zone.
+ The vector equation is 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\tilde{P}(t)+S\tilde{v}(t)=x_{s}\hat{i}+z_{s}\hat{k}\label{eq_{v}ector_{s}trike}\end{equation}
+
+\end_inset 
+
+with solutions 
+\begin_inset Formula $S=-P_{y}/v_{y}$
+\end_inset 
+
+ and  
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\left\{ \begin{array}{c}
+x_{s}=P_{x}-P_{y}v_{x}/v_{y}\\
+z_{s}=P_{z}-P_{x}v_{z}/v_{y}\end{array}\right\} .\label{eq_{s}trike_{c}oordinates_{s}olution}\end{equation}
+
+\end_inset 
+
+
+\begin_inset Float figure
+wide true
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename strike.ps
+	display color
+	width 297pt
+	height 217pt
+	keepAspectRatio
+	rotateAngle 270
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_strike}
+
+\end_inset 
+
+Strike Zone Calculation
+\end_inset 
+
+
+\layout Section
+
+
+\begin_inset LatexCommand \label{tag_External_Calibration}
+
+\end_inset 
+
+External Calibration
+\layout Standard
+
+Section 
+\begin_inset LatexCommand \ref{tag_Method_of_Triangulating_Ball_Position}
+
+\end_inset 
+
+ showed that the triangulation calculation requires a rotation matrix -
+ direction cosines - that transform camera pixel coordinates to world coordinate
+s.
+ In this method determining the rotation matrix, orienting the cameras in
+ space, is called external calibration to distinguish it from camera device
+ internal calibration.
+ It is required to know the cameras' world Cartesian coordinates a-priori,
+ through a plumb and tape measurement.
+ To determine the remaining three angles of rotation of each camera we need
+ to know the direction vectors to three known still target locations provide
+ directions for an inverse triangulation.
+ Three balls are required for three directions.
+ By using the same three balls for both cameras the method allows a triangulatio
+n check after zeroing in.
+ 
+\layout Standard
+
+It turns out that moving balls are no different than still balls for the
+ same light source so external calibration is complete after working with
+ just the still images.
+\layout Standard
+
+For external calibration we apply the assumption that direction vectors
+ from both cameras intersect exactly.
+ Each camera has three camera-coordinate direction measurements, 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\hat{v}_{c}=\left[\begin{array}{ccc}
+\hat{v}_{c1} & \hat{v}_{c2} & \hat{v}_{c3}\end{array}\right],\label{eq_{t}hree_{c}am_{m}eas}\end{equation}
+
+\end_inset 
+
+one for each object.
+ The objects are at
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\tilde{O}=\left[\begin{array}{ccc}
+\tilde{O}_{1} & \tilde{O}_{2} & \tilde{O}_{3}\end{array}\right].\label{eq_{t}hree_{o}bjects_{v}ec}\end{equation}
+
+\end_inset 
+
+ One must be careful to normalize the direction as well as the object position
+ column vectors individually to form the two three-by-three matrices
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\hat{O}=\left[\begin{array}{ccc}
+\hat{O}_{1} & \hat{O}_{2} & \hat{O}_{3}\end{array}\right].\label{eq_{t}hree_{o}bjects}\end{equation}
+
+\end_inset 
+
+ The rotation matrix is the solution to 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+ACPW\bullet\hat{v}=\hat{O}.\label{eq_{s}olve_{A}CPW}\end{equation}
+
+\end_inset 
+
+ Recall the general matrix property 
+\begin_inset Formula $A\bullet\tilde{x}=(\tilde{x}^{T}\bullet A^{T})^{T}$
+\end_inset 
+
+.
+ To find 
+\begin_inset Formula $ACPW$
+\end_inset 
+
+ the method solves for each column of 
+\begin_inset Formula $ACPW^{T}$
+\end_inset 
+
+ then transposes to determine 
+\begin_inset Formula $ACPW$
+\end_inset 
+
+.
+ The method then checks the result by calculating the error bounds and predicted
+ positions for the three fixed objects.
+ 
+\layout Standard
+
+The application program performs this portion of zeroing in by using as
+ input the world locations of the three objects, the world locations of
+ the two cameras, and the six pixel coordinates of the three objects for
+ both cameras.
+\layout Section
+
+
+\begin_inset LatexCommand \label{tag_device_calibration}
+
+\end_inset 
+
+Camera Device Internal Calibration
+\layout Standard
+
+Cameras introduce distortion through lens aberration and sensor imperfections.
+ To measure velocity accurately, exact internal calibration of the camera
+ device characteristics is important.
+ Both the camera and frame-grabber introduce distortion mostly at image
+ edges.
+ The three main effects addressed by this work are lens focal length calibration
+, sensor aspect ratio calibration, and device radial distortion.
+ A functional test of each camera is required because camera specifications
+ are approximate for general system sizing studies such as placing cameras
+ and selecting lenses.
+ Also, each camera has a unique variation from nominal on the order of 5%.
+ Interactive calibration corrections described below correlate the imperfectly
+ measured pixel coordinates with known world direction.
+ 
+\layout Subsection
+
+
+\begin_inset LatexCommand \label{tag_Focal_Length}
+
+\end_inset 
+
+Focal Length
+\layout Standard
+
+Focal length determines the image magnification.
+ Referring again to Figure 
+\begin_inset LatexCommand \ref{fig_transformationCoordinates}
+
+\end_inset 
+
+, the 
+\begin_inset Formula $\tilde{f}_{p}$
+\end_inset 
+
+ vector is the focal length applied to triangulation.
+ It is possible to estimate the actual focal length by taking several snapshots
+ of a gauge placed at various distances from the camera 
+\begin_inset LatexCommand \cite{JWalton:1995}
+
+\end_inset 
+
+.
+ Figure 
+\begin_inset LatexCommand \ref{fig_focal}
+
+\end_inset 
+
+ shows that by similar triangles 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\frac{f_{p}}{\Delta p_{i}}=\frac{D_{i}+\Delta d}{L}\label{eq_{s}imilar_{t}riangles}\end{equation}
+
+\end_inset 
+
+where 
+\begin_inset Formula $D_{i}$
+\end_inset 
+
+ is a position of the grid from an arbitrary datum on the camera, 
+\begin_inset Formula $\Delta d$
+\end_inset 
+
+ is the unknown uncertainty in lens position from the camera datum that
+ will fall out of regression, 
+\begin_inset Formula $L$
+\end_inset 
+
+ is the width of a grid square in units of 
+\begin_inset Formula $D$
+\end_inset 
+
+, 
+\begin_inset Formula $\Delta p_{i}$
+\end_inset 
+
+ is the measured pixel width of the grid square, and 
+\begin_inset Formula $f_{p}$
+\end_inset 
+
+ is the lens focal distance from the camera sensor in pixels.
+ Rearranging to isolate 
+\begin_inset Formula $f$
+\end_inset 
+
+ as an intercept yields
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+D_{i}\left(\frac{\Delta p_{i}}{L}\right)=-\Delta d\left(\frac{\Delta p_{i}}{L}\right)+f_{p}.\label{eq_{f}ocal_{r}egression}\end{equation}
+
+\end_inset 
+
+A first order regression with 
+\begin_inset Formula $\frac{\Delta p_{i}}{L}$
+\end_inset 
+
+ as the independent parameter and measurements of 
+\begin_inset Formula $\frac{\Delta p_{i}D_{i}}{L}$
+\end_inset 
+
+as the dependent parameter yields 
+\begin_inset Formula $f_{p}$
+\end_inset 
+
+ as the intercept and 
+\begin_inset Formula $-\Delta d$
+\end_inset 
+
+ as the slope.
+\layout Standard
+
+
+\begin_inset Float figure
+wide true
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename focal.ps
+	display color
+	width 297pt
+	height 222pt
+	keepAspectRatio
+	rotateAngle 270
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_focal}
+
+\end_inset 
+
+Focal Length Calibration Illustration
+\end_inset 
+
+
+\layout Standard
+
+The prototype system cameras exhibited differences from specification values
+ of 2.5% and 6.9%.
+\layout Subsection
+
+
+\begin_inset LatexCommand \label{tag_Sensor_Aspect_Ratio}
+
+\end_inset 
+
+Sensor Aspect Ratio
+\layout Standard
+
+Aspect ratio is the ratio of image width to height.
+ The camera sensor introduces this error by having a CCD element that is
+ not perfectly square.
+ Also, the specification values may be general definitions for a product
+ line and may not exactly match the camera used.
+ An aspect ratio calibration removes this source of error.
+\layout Standard
+
+Aspect ratio calibration falls out of the radial distortion calibration
+ described in Section 
+\begin_inset LatexCommand \ref{tag_Radial_Distortion}
+
+\end_inset 
+
+ that follows.
+ The prototype system exhibited differences from specification values of
+ 2.5%.
+\layout Subsection
+
+
+\begin_inset LatexCommand \label{tag_Radial_Distortion}
+
+\end_inset 
+
+Radial Distortion
+\layout Standard
+
+This is a two step process designed to accurately compensate for lens radial
+ distortion, sometimes called 
+\begin_inset Quotes eld
+\end_inset 
+
+barrel distortion.
+\begin_inset Quotes erd
+\end_inset 
+
+ It is the 
+\begin_inset Quotes eld
+\end_inset 
+
+fish-eye
+\begin_inset Quotes erd
+\end_inset 
+
+ effect of wide-angle lenses.
+ Sensor aspect ratio falls out of calibration for radial distortion.
+\layout Standard
+
+There is a widely used method published by Tsai in 
+\begin_inset LatexCommand \cite{Tsai:1986}
+
+\end_inset 
+
+ and 
+\begin_inset LatexCommand \cite{Tsai:1987}
+
+\end_inset 
+
+.
+ The Tsai regression approach determines effective image center, aspect
+ ratio, and aberration coefficient.
+ The method here is quite similar to the Tsai method with some important
+ differences in correcting for image center.
+ 
+\layout Standard
+
+Both the proposed and Tsai methods use the cubic distortion model
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+r=\rho+\alpha\rho^{3}\label{eq_{c}ubic_{d}istortion}\end{equation}
+
+\end_inset 
+
+where 
+\begin_inset Formula $r$
+\end_inset 
+
+ is undistorted image radius from center, 
+\begin_inset Formula $\rho$
+\end_inset 
+
+ is image radius from center, and 
+\begin_inset Formula $\alpha$
+\end_inset 
+
+ is a coefficient to be determined by calibration 
+\begin_inset LatexCommand \cite{JWalton:1995}
+
+\end_inset 
+
+.
+ The Tsai method typically biases the measured pixels 
+\begin_inset Formula $(i_{p},j_{p})$
+\end_inset 
+
+ to a virtual image center 
+\begin_inset Formula $(i_{m},j_{m})$
+\end_inset 
+
+ that is not at the physical center.
+ In other words, 
+\begin_inset Formula $i_{m}\neq\frac{n}{2}+1$
+\end_inset 
+
+ and 
+\begin_inset Formula $j_{m}\neq\frac{m}{2}+1$
+\end_inset 
+
+.
+ In this work, however, it was discovered that a linear correction for distance
+ from image center has a stronger effect.
+ The best accuracy results from using 
+\begin_inset Formula $i_{m}=\frac{n}{2}+1$
+\end_inset 
+
+ and 
+\begin_inset Formula $j_{m}=\frac{m}{2}+1$
+\end_inset 
+
+ in
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\frac{r}{\rho}=R_{0}+\alpha(\frac{\rho}{n})^{2}+B(\frac{i_{p}-i_{m}}{n})+C(\frac{(j_{m}-j_{p})(\frac{n}{m}\frac{1}{AR})}{n})\label{eq_{d}istortion}\end{equation}
+
+\end_inset 
+
+where 
+\begin_inset Formula $R_{0},\,\alpha,\, B,\, C$
+\end_inset 
+
+ are the four aberration coefficients needed and 
+\begin_inset Formula $AR$
+\end_inset 
+
+ is the sensor aspect ratio of 
+\begin_inset Formula $\frac{n}{m}$
+\end_inset 
+
+ pixels that produces a square image as determined initially by the focal
+ length measurement.
+ The sensor aspect ratio is fine-tuned with the regression for the four
+ aberration coefficients.
+ The primary difference with the Tsai technique is eliminating the variable
+ image center and using a linear image location scalar.
+ The four coefficients combine with focal length and aspect ratio to make
+ six total factors.
+ Note that 
+\begin_inset Formula $n$
+\end_inset 
+
+ is used to scale both 
+\begin_inset Formula $i,\, j$
+\end_inset 
+
+.
+ This has the simplifying effect of lumping all sensor aspect ratio effects
+ in the term 
+\begin_inset Formula $\frac{n}{m}\frac{1}{AR}$
+\end_inset 
+
+.
+\layout Standard
+
+The steps required to determine the coefficients necessary to use Equation
+ 
+\begin_inset LatexCommand \ref{eq_distortion}
+
+\end_inset 
+
+ are:
+\layout Enumerate
+
+Take a still shot of a grid placed distance 
+\begin_inset Formula $D$
+\end_inset 
+
+ from each camera.
+ At least an eleven by eleven grid is recommended.
+ It is useful to have a grid crossing near dead center in the image.
+ Record 
+\begin_inset Formula $(i_{p},j_{p})$
+\end_inset 
+
+ measured for each grid intersection.
+\layout Enumerate
+
+Calculate 
+\begin_inset Formula $(\frac{\rho}{n})^{2}$
+\end_inset 
+
+, 
+\begin_inset Formula $\frac{i_{p}-i_{m}}{n}$
+\end_inset 
+
+, and 
+\begin_inset Formula $\frac{(j_{m}-j_{p})(\frac{n}{m}\frac{1}{AR})}{n}$
+\end_inset 
+
+for each grid intersection.
+ 
+\layout Enumerate
+
+Calculate predicted 
+\begin_inset Formula $(i,j)$
+\end_inset 
+
+ for each grid intersection from the focal sensitivity.
+ 
+\layout Enumerate
+
+Make a scatter plot of 
+\begin_inset Formula $\frac{r}{n}$
+\end_inset 
+
+ as a function of 
+\begin_inset Formula $(\frac{\rho}{n})^{2}$
+\end_inset 
+
+.
+ Fit a first order regression to the data with R-squared correlation displayed.
+ Interactively adjust the sensor aspect ratio to maximize R-squared correlation
+ and collapse the scatter into tighter patterns.
+\layout Enumerate
+
+Perform a three-step regression of 
+\begin_inset Formula $R_{0},\,\alpha,\, B,\, C$
+\end_inset 
+
+ to Equation 
+\begin_inset LatexCommand \ref{eq_distortion}
+
+\end_inset 
+
+.
+ The 
+\begin_inset Formula $R_{0}$
+\end_inset 
+
+ and 
+\begin_inset Formula $\alpha$
+\end_inset 
+
+ result from a regression on 
+\begin_inset Formula $\frac{r}{\rho}$
+\end_inset 
+
+ versus 
+\begin_inset Formula $(\frac{\rho}{n})^{2}$
+\end_inset 
+
+.
+ Then 
+\begin_inset Formula $B$
+\end_inset 
+
+ results from a regression on the residual from the first regression versus
+ 
+\begin_inset Formula $\frac{i_{p}-i_{m}}{n}$
+\end_inset 
+
+ and 
+\begin_inset Formula $C$
+\end_inset 
+
+ results from a regression on the residual from the second regression versus
+ 
+\begin_inset Formula $\frac{(j_{m}-j_{p})(\frac{n}{m}\frac{1}{AR})}{n}$
+\end_inset 
+
+.
+\layout Standard
+
+If a regression tool is unavailable the user may set 
+\begin_inset Formula $R_{0}$
+\end_inset 
+
+ to 1.0, and B and C to 0.0 and perform a single regression for 
+\begin_inset Formula $\alpha$
+\end_inset 
+
+ and accept an accuracy loss.
+ At least the first regression provides markedly improved internal calibration.
+\layout Standard
+
+Alternatively the Tsai method is available in public domain.
+ One may adapt Tsai results by applying the relationships 
+\begin_inset Formula $i_{m}=Cx$
+\end_inset 
+
+ and 
+\begin_inset Formula $j_{m}=Cy\frac{dpy}{dyx}sx$
+\end_inset 
+
+ where 
+\begin_inset Formula $Cx,\, Cy,\, dpy,\, dpx,\, sx$
+\end_inset 
+
+ are standard Tsai program outputs and 
+\begin_inset Formula $\alpha$
+\end_inset 
+
+ and focal length have the same meaning in both methods.
+ 
+\layout Standard
+
+Section 
+\begin_inset LatexCommand \ref{tag_Prototype_Calibration}
+
+\end_inset 
+
+ demonstrate calibration results for a prototype.
+ Prototype accuracy (n=640) is 
+\begin_inset Formula $\pm3$
+\end_inset 
+
+ pixels with the improved method compared to 
+\begin_inset Formula $\pm15$
+\end_inset 
+
+ pixels for the Tsai method.
+ Without either correction, accuracy is 
+\begin_inset Formula $\pm30$
+\end_inset 
+
+ pixels, equivalent to 7.0 ball widths.
+ With improved method, accuracy of 3 pixels is approximately 0.7 ball widths.
+ 
+\layout Standard
+
+Aberration would manifest itself especially at the edges of the image where
+ the distance from image center is large and the radial distortion large.
+ There are some offsetting effects that reduce the effect on triangulation
+ accuracy, to be discussed later.
+ The aberration errors always affect velocity measurements, however.
+\layout Subsection
+
+
+\begin_inset LatexCommand \label{tag_Practical_Considerations}
+
+\end_inset 
+
+Practical Considerations
+\layout Standard
+
+As a practical matter it is helpful to orient the cameras for best accuracy.
+ In other words, let the objects pass through the least distorted portion
+ of the image of both cameras.
+ This means the path of the objects is through the image center and follows
+ a radial line from one image corner to the opposite corner.
+ This happens naturally using the optimum compound angle setup.
+ It is helpful also to point the camera so the object is in or just past
+ the center of the frame for the strike zone estimation.
+ This has the added benefit of reducing shadows.
+\layout Standard
+
+In summary, the process of internally calibrating the device is primarily
+ for a new or unknown camera and/or frame-grabber configuration.
+ Use a standard image width and height.
+ One would take still snapshots of a grid placed at various arbitrary distances
+ from the camera over the expected range of operation.
+ Needed next is a still snapshot of a large, screen-filling grid at least
+ eleven by eleven with a grid crossing near image center.
+ One measures the grid crossings and performs a multi-variable regression
+ for the coefficients of Equation 
+\begin_inset LatexCommand \ref{eq_distortion}
+
+\end_inset 
+
+.
+ 
+\layout Section
+
+
+\begin_inset LatexCommand \label{tag_Sizing_a_Vision_System}
+
+\end_inset 
+
+Sizing a Vision System
+\layout Standard
+
+
+\begin_inset Quotes eld
+\end_inset 
+
+Sizing
+\begin_inset Quotes erd
+\end_inset 
+
+ determines the optimum lens focal length for field of view and determines
+ image size setting for resolution.
+ A focal length too large will produce a small field of view and too few
+ balls for a trajectory calculation.
+ At least 4.5 balls are needed to predict trajectory.
+ This allows for smearing across the image and up to one ball asynchronicity
+ between cameras.
+ An image size too large will use too many machine cycles and make real
+ time processing impossible.
+ At least 3 pixels are needed to see the ball.
+ To make the optimization, start with defining the maximum object velocity,
+ 
+\begin_inset Formula $V_{max}$
+\end_inset 
+
+, the distance from the camera to the object, 
+\begin_inset Formula $D$
+\end_inset 
+
+, the frame update time, 
+\begin_inset Formula $\tau$
+\end_inset 
+
+, the camera sensor width, 
+\begin_inset Formula $\omega$
+\end_inset 
+
+, and the ball diameter, 
+\begin_inset Formula $B$
+\end_inset 
+
+.
+ Also, for sizing the cameras should already be in the optimal orientation
+ 
+\begin_inset Formula $\Phi$
+\end_inset 
+
+ angle above horizontal and 
+\begin_inset Formula $\Theta$
+\end_inset 
+
+ angle swept back.
+ 
+\layout Standard
+
+In addition, the frame-grabber throughput must be sufficient to capture
+ a complete image in each frame.
+\layout Standard
+
+Also, selecting CCD size is a high level economic decision.
+ One would iterate the methods described below to trade camera CCD size
+ (larger has better resolution) with cost.
+\layout Subsection
+
+Field of View
+\layout Standard
+
+The objective for field of view sizing is to determine the focal length,
+ 
+\begin_inset Formula $f$
+\end_inset 
+
+, to provide just enough field of view, 
+\begin_inset Formula $W$
+\end_inset 
+
+, to see four and one-half balls, 
+\begin_inset Formula $N_{b}=4.5$
+\end_inset 
+
+.
+ A distance / time calculation produces the relationship 
+\begin_inset Formula $W\geq(N_{b}-1)\tau V_{max}cos(\Theta)$
+\end_inset 
+
+.
+ The focal length relates to field of view according to 
+\begin_inset Formula $W=\omega M$
+\end_inset 
+
+, and 
+\begin_inset Formula $f=\frac{D}{M+2+\frac{1}{M}}\approx\frac{D}{M}$
+\end_inset 
+
+, where 
+\begin_inset Formula $M$
+\end_inset 
+
+ is the magnification factor.
+ Making the substitution and rearranging different ways gives
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+f\leq\frac{D\omega}{(N_{b}-1)\tau V_{max}cos(\theta)}\label{eq_{f}ov_{f}}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+which may be expressed another way as
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+D\geq\frac{(N_{b}-1)\tau V_{max}cos(\Theta)f}{\omega}.\label{eq_{f}ov_{d}}\end{equation}
+
+\end_inset 
+
+
+\layout Subsection
+
+Image Resolution
+\layout Standard
+
+The objective for resolution sizing is to determine image width in pixels,
+ 
+\begin_inset Formula $n$
+\end_inset 
+
+, to provide just enough pixels to see three pixels on the object, 
+\begin_inset Formula $\mu_{b}=3$
+\end_inset 
+
+.
+ Similar triangles give 
+\begin_inset Formula $\mu_{b}=\frac{B}{W}n$
+\end_inset 
+
+ and 
+\begin_inset Formula $W=\frac{\omega D}{f}$
+\end_inset 
+
+.
+ Making the substitution and rearranging different ways gives
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+f\geq\frac{\mu_{b}D\omega}{Bn},\label{eq_{r}es_{f}}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+D\leq\frac{nBf}{\mu_{b}\omega},\label{eq_{r}es_{d}}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+which may be expressed another way as
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+n\geq\frac{\mu_{b}D\omega}{Bf}.\label{eq_{r}es_{n}}\end{equation}
+
+\end_inset 
+
+The parameters 
+\begin_inset Formula $n,\,\mu_{b},\, N_{b}$
+\end_inset 
+
+ are unit-less.
+ 
+\layout Subsection
+
+Break-even Sizing
+\layout Standard
+
+The field of view and resolution sizing are opposing requirements.
+ The condition for equality in Equations 
+\begin_inset LatexCommand \ref{eq_fov_f}
+
+\end_inset 
+
+ and 
+\begin_inset LatexCommand \ref{eq_res_f}
+
+\end_inset 
+
+ is 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+n=\frac{\mu_{b}(N_{b}-1)\tau V_{max}cos(\Theta)}{B}.\label{eq_{b}reakeven}\end{equation}
+
+\end_inset 
+
+The goals for sizing are to determine this 
+\begin_inset Formula $n$
+\end_inset 
+
+ then 
+\begin_inset Formula $f$
+\end_inset 
+
+ and 
+\begin_inset Formula $D$
+\end_inset 
+
+.
+\layout Subsection
+
+Sizing Summary Example
+\layout Standard
+
+An example illustrates how to size the system.
+ Consider a practical 1/3-inch CCD camera.
+ Per typical specifications in Table 
+\begin_inset LatexCommand \ref{tab_ccd_sizes}
+
+\end_inset 
+
+ the sensor width is 
+\begin_inset Formula $\omega=4.8$
+\end_inset 
+
+ mm.
+ A 100-MPH fastball is 
+\begin_inset Formula $V_{max}\approx150$
+\end_inset 
+
+ fps.
+ Ball size is 
+\begin_inset Formula $B=2.75$
+\end_inset 
+
+ inches.
+ The frame-grabber rate is 30 frames per second for 
+\begin_inset Formula $\tau=0.0333$
+\end_inset 
+
+ seconds.
+ The calculation for break even image size with 
+\begin_inset Formula $\mu_{b}=3$
+\end_inset 
+
+ and 
+\begin_inset Formula $N_{b}=4.5$
+\end_inset 
+
+ is 147 pixels from Equation 
+\begin_inset LatexCommand \ref{eq_breakeven}
+
+\end_inset 
+
+.
+ A standard image size of 160 pixels therefore provides a nice image thumbnail
+ with good resolution so 
+\begin_inset Formula $n=160$
+\end_inset 
+
+ pixels is the choice with resolution better than needed.
+ Equations 
+\begin_inset LatexCommand \ref{eq_fov_f}
+
+\end_inset 
+
+ and 
+\begin_inset LatexCommand \ref{eq_res_f}
+
+\end_inset 
+
+ predict Table 
+\begin_inset LatexCommand \ref{tab_focal_sizing}
+
+\end_inset 
+
+ for a forward pointing angle 
+\begin_inset Formula $\theta=50$
+\end_inset 
+
+ degrees.
+ For example, the focal length for a 1/3-inch CCD camera placed at 100 feet
+ from the desired triangulation point would be 40 mm.
+ 
+\layout Standard
+
+Using a zoom lens is an impractical decision.
+ It is attractive to be able to move cameras between sites that have different
+ camera distances.
+ However a set of camera distortion factors need to be generated to cover
+ different ranges of focal length, because camera internal calibration changes
+ with focal length.
+ A zoom lens could be made to work with pre-generated set of factors.
+\layout Standard
+
+An auto-iris is a useful feature to cancel the very strong disturbances
+ in accuracy caused by light variation.
+\layout Standard
+
+
+\begin_inset Float table
+wide false
+collapsed false
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{tab_focal_sizing}
+
+\end_inset 
+
+Focal Length Sizing Example for 1/3-inch CCD, 
+\begin_inset Formula $\omega=4.8$
+\end_inset 
+
+ mm, 
+\begin_inset Formula $V_{max}\approx150$
+\end_inset 
+
+ fps, 
+\begin_inset Formula $n=160$
+\end_inset 
+
+, 
+\begin_inset Formula $\theta=50$
+\end_inset 
+
+, 
+\begin_inset Formula $B=2.75$
+\end_inset 
+
+, 
+\begin_inset Formula $\tau=0.0333$
+\end_inset 
+
+, 
+\begin_inset Formula $\mu_{b}=3$
+\end_inset 
+
+ and 
+\begin_inset Formula $N_{b}=4.5$
+\end_inset 
+
+.
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align center 
+
+\begin_inset  Tabular
+<lyxtabular version="3" rows="16" columns="3">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+D, feet
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+resolution f, mm
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+field of view f, mm
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+10
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+3.9
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+4.3
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+20
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+7.9
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+8.5
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+30
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+11.8
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+12.8
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+40
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+15.7
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+17.1
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+50
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+19.6
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+21.4
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+60
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+23.6
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+25.6
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+70
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+27.5
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+29.9
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+80
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+31.4
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+34.2
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+90
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+35.3
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+38.4
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+100
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+39.3
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+42.7
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+110
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+43.2
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+47.0
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+120
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+47.1
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+51.3
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+130
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+51.1
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+55.5
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+140
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+55.0
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+59.8
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+150
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+58.9
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+64.1
+\end_inset 
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset 
+
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Float table
+wide false
+collapsed false
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{tab_ccd_sizes}
+
+\end_inset 
+
+CCD Typical Specification Sizes.
+ Cost increases with size.
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align center 
+
+\begin_inset  Tabular
+<lyxtabular version="3" rows="6" columns="3">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+CCD Size Class
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+width w, mm
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+height h, mm
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1/4 inch
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+3.6
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+2.7
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1/3 inch
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+4.8
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+3.6
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1/2 inch
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+6.4
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+4.8
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+2/3 inch
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+8.8
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+6.6
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1 inch
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+12.8
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+9.6
+\end_inset 
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset 
+
+
+\end_inset 
+
+
+\layout Section
+
+
+\begin_inset LatexCommand \label{tag_Prototype_Vision_System}
+
+\end_inset 
+
+Prototype Vision System
+\layout Standard
+
+A scale model prototype is an effective demonstration of the method and
+ principals presented so far.
+ The sizing method Section 
+\begin_inset LatexCommand \ref{tag_Sizing_a_Vision_System}
+
+\end_inset 
+
+ provides an estimate of proper setup and orientation.
+ Developing a prototype also forces the application software to scale to
+ different image sizes and different cameras.
+ And accuracy performance can be checked.
+ It is reasonable to expect the results to scale to a larger system.
+\layout Subsection
+
+Prototype Description
+\layout Subsubsection
+
+Prototype Hardware
+\layout Standard
+
+Two off-the-shelf US Robotics 3Com Web Cam with Brooktree Bt848 video capture
+ cards are the prototype vision devices.
+ The application computer platform is standard Linux/i686 kernel 2.2.12-20
+ (Redhat 6.1) on a 350 MHz Pentium II with 100 MHz motherboard.
+ At least 128 MB is necessary to achieve near real-time performance with
+ 160x120 images in both cameras.
+\layout Standard
+
+Later, a better set of cameras and lenses repeats the experiment with a
+ larger prototype.
+\layout Subsubsection
+
+Application Software Modes
+\layout Standard
+
+The application program, 
+\shape italic 
+ump
+\shape default 
+, has two operating modes: record/playback and real-time.
+ The record mode runs off-line another application derived from the 
+\shape italic 
+xawtv streamer
+\shape default 
+ program, an interface to the video4linux
+\shape italic 
+ bttv
+\shape default 
+ utilities, to record a few seconds of images to a raw image file for each
+ cameras.
+ After recording, the 
+\shape italic 
+ump
+\shape default 
+ program automatically begins playback.
+ The user can also request the application to playback stored files.
+ For two image streams, up to 320x240 size the streamer program does not
+ slip using the Pentium II system with 256 MB memory.
+ This mode is RAM intensive and produces a result approximately the same
+ time after the event as the length of the event itself.
+ Analysis of a five second sequence would appear five seconds after the
+ completion of the pitch.
+\layout Standard
+
+The real-time mode enters playback immediately and reads synchronization
+ information from a file descriptor that is being filled by a forked 
+\shape italic 
+streamer
+\shape default 
+ process.
+ The 
+\shape italic 
+streamer
+\shape default 
+ program performs the image differentiating and maps the results in shared
+ interprocess communications (IPC) memory for the application to use 
+\begin_inset LatexCommand \cite{Stevens}
+
+\end_inset 
+
+.
+ This mode is CPU intensive and slips with a fully loaded 160x120 image
+ size but not 120x90 image size.
+ The full loading is equivalent to 1.5 balls visible continuously so there
+ is no slippage with 160x120 image size in practice with the Pentium II
+ platform.
+\layout Subsubsection
+
+Application Software Segmentation
+\layout Standard
+
+In playback mode the 
+\shape italic 
+ump
+\shape default 
+ program reads the two raw image files with associated time stamps and synchroni
+zes their usage with a threaded producer/consumer scheme 
+\begin_inset LatexCommand \cite{Stevens}
+
+\end_inset 
+
+ 
+\begin_inset LatexCommand \cite{Robbins}
+
+\end_inset 
+
+.
+ The threads differentiate each image from previous image storage following
+ Equation 
+\begin_inset LatexCommand \ref{eq_image_threshold}
+
+\end_inset 
+
+ with 
+\begin_inset Formula $threshold=30$
+\end_inset 
+
+, except for real-time mode, where it is done more efficiently by the 
+\shape italic 
+streamery
+\shape default 
+ application, and calculate graph edge weights using pixel spacing and pixel
+ brightness difference in a Gaussian weighting scheme following Equation
+ 
+\begin_inset LatexCommand \ref{eq_edge}
+
+\end_inset 
+
+with 
+\begin_inset Formula $a=4$
+\end_inset 
+
+ pixels for 
+\begin_inset Formula $n=160$
+\end_inset 
+
+ full scale and 
+\begin_inset Formula $b=30$
+\end_inset 
+
+ counts for 256 full-scale intensity.
+ A segmentation computation is next 
+\begin_inset LatexCommand \cite{Shi_Malik_Norm_Cuts:1997}
+
+\end_inset 
+
+, that calculates the second Eigenvector minimized cut using Rayleigh iteration
+ with floating point precision in 6-7 iterations.
+ A unique sorting algorithm described in Section 
+\begin_inset LatexCommand \ref{tag_Method_of_One-pass_Segmentation}
+
+\end_inset 
+
+ selects the minimum cut directly from the Eigensolution for efficient one-pass
+ performance.
+ Before determining shape the producer threads throw out the dark clumps,
+ determined best by average pixel value, not by average pixel rate, then
+ correct the image for aberration.
+ Aberration correction is done here after segmentation to minimize throughput.
+ Lines connect all the pixels in a candidate clump as shown in Figure 
+\begin_inset LatexCommand \ref{fig_perim}
+
+\end_inset 
+
+.
+ Proceeding left to right the bottom perimeter is figured as the minimum
+ line value.
+ So if there are no pixels in the column an interpolation is made.
+ However, if there is a pixel in the column the minimum line value is averaged
+ with the actual pixel location.
+ This is repeated in the opposite direction along the top until the clump
+ is encircled.
+ If there is just one pixel in a column the same pixel is used to average
+ both top and bottom perimeter values.
+ With potential objects identified, the segmentation threads perform some
+ higher-level sorting.
+ It is assumed that one ball is present and close clumps become one.
+ Finally, the thread pass the candidate objects onto to a consumer thread
+ which triangulates position.
+ Multiple balls will pass through and become rejected later in the consumer
+ thread.
+ Balls that contact the mask edge are expendable.
+\layout Subsubsection
+
+Application Software High-level Sorting
+\layout Standard
+
+The consumer thread sorts the candidate balls in time order.
+ Using the most recent ball, the consumer looks for an object in the opposite
+ camera.
+ Figure 
+\begin_inset LatexCommand \ref{fig_interp}
+
+\end_inset 
+
+ illustrates the selection.
+ The three cases shown in Figure 
+\begin_inset LatexCommand \ref{fig_interp}
+
+\end_inset 
+
+ cover all possible combinations for the right-hand camera.
+ The consumer thread interpolates camera-detected objects to produce the
+ latest predicted objects for both cameras simultaneously.
+ The consumer thread rejects interpolation required for more than two frames
+ in a camera.
+ Then with the latest predicted images of the same time stamp it triangulates
+ ball position.
+ It keeps track of previous positions so next it predicts ball velocity
+ and averages with previous ball velocity if available.
+ Finally, the consumer predicts the strike zone impact according to Figure
+ 
+\begin_inset LatexCommand \ref{fig_strike}
+
+\end_inset 
+
+.
+ The application assumes that just one ball is possible.
+\layout Standard
+
+
+\begin_inset Float figure
+wide true
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename im139+.ps
+	display color
+	width 297pt
+	height 222pt
+	keepAspectRatio
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_proto_photo_ump}
+
+\end_inset 
+
+Umpire view of scale model prototype.
+\end_inset 
+
+
+\layout Subsection
+
+
+\begin_inset LatexCommand \label{tag_Prototype_Sizing}
+
+\end_inset 
+
+Prototype Sizing
+\layout Standard
+
+It is impractical to make a new lens for the inexpensive 3Com web-cams so
+ the objective of sizing the prototype system is to determine the optimum
+ field of view dimensions.
+ The specification for the 3Com camera shows a 1/4-inch CCD and 
+\begin_inset Formula $f=3.8$
+\end_inset 
+
+ mm.
+ Per typical specifications the sensor width is 
+\begin_inset Formula $\omega=3.6$
+\end_inset 
+
+ mm.
+ The system frame rate is 30 frames per second for 
+\begin_inset Formula $\tau=0.0333$
+\end_inset 
+
+ seconds.
+ To strive for a true scale model the prototype uses the same image size
+ that the 1/3-inch camera example would use, 
+\begin_inset Formula $n=160$
+\end_inset 
+
+ pixels.
+ A readily available ball is a white steel marble, 
+\begin_inset Formula $B=0.5$
+\end_inset 
+
+ in, so the prototype incorporates this.
+ Using the same sizing criteria for the 1/4-inch CCD prototype as for a
+ potential 1/3-inch CCD, 
+\begin_inset Formula $N_{b}=4.5,\,\mu_{b}=3,\,\Theta=50\, deg$
+\end_inset 
+
+, the Equations 
+\begin_inset LatexCommand \ref{eq_fov_d}
+
+\end_inset 
+
+ and 
+\begin_inset LatexCommand \ref{eq_fov_f}
+
+\end_inset 
+
+ predict Table 
+\begin_inset LatexCommand \ref{tab_proto_sizing}
+
+\end_inset 
+
+.
+ According to Equation 
+\begin_inset LatexCommand \ref{eq_res_d}
+
+\end_inset 
+
+, the limit of 
+\begin_inset Formula $D$
+\end_inset 
+
+, distance of camera from objects, is limited to 27.9 inches to be able to
+ see the ball with sufficient resolution of 3 pixels.
+ As a result the cameras are about 27 inches from the shooter pipe shown
+ in Figure 
+\begin_inset LatexCommand \ref{fig_proto_photo_ump}
+
+\end_inset 
+
+.
+ The cameras point to a place approximately 18 inches in front of each camera.
+ Therefore from Table 
+\begin_inset LatexCommand \ref{tab_proto_sizing}
+
+\end_inset 
+
+ the maximum object speed is 230 inches/second for sufficient field of view
+ for four and one-half images.
+ The ball diameter ratio and the magnification ratio predict that the prototype
+ is a 1:5 scale model.
+ As it turns out, the shooter pipe is capable of shooting marbles at a maximum
+ speed of 170 inches/second and the pipe shoots slightly upwards so for
+ the scale model six frames in each camera are visible with balls of sufficient
+ resolution with each shot.
+ 
+\layout Standard
+
+
+\begin_inset Float table
+wide false
+collapsed false
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{tab_proto_sizing}
+
+\end_inset 
+
+Sizing Example for 1/4 inch 3-COM CCD.
+ 27.9 inches is the resolution limit for n=160 image width.
+\layout Standard
+\added_space_top 0.3cm \added_space_bottom 0.3cm \align center 
+
+\begin_inset  Tabular
+<lyxtabular version="3" rows="5" columns="2">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $D$
+\end_inset 
+
+, inches
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $V_{max}$
+\end_inset 
+
+, inches/second
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+12
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+153
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+18
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+230
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+24
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+306
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+27.9
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+356
+\end_inset 
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset 
+
+
+\end_inset 
+
+ Table 
+\begin_inset LatexCommand \ref{tab_similitude}
+
+\end_inset 
+
+ shows the sizing comparison with a full-scale system.
+ It is reasonable to expect the accuracies reported in Section 
+\begin_inset LatexCommand \ref{tag_Prototype_Test_Results}
+
+\end_inset 
+
+ to apply to the full-scale system sized like the 1/3-inch full-scale result
+ of Table 
+\begin_inset LatexCommand \ref{tab_similitude}
+
+\end_inset 
+
+.
+ Since the velocities do not scale exactly, there is risk that smearing
+ effects will be different in the full-scale than the 1:7 scale having slower
+ ball speeds.
+ Smearing effects may influence results.
+\layout Standard
+
+An easy way to summarize the similitude is that field of view should be
+ fifty ball diameters.
+ Practically speaking, two camera each with a 5-50 mm zoom could achieve
+ this easily with virtually any field configuration and camera placement.
+\layout Standard
+
+
+\begin_inset Float table
+wide true
+collapsed false
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{tab_similitude}
+
+\end_inset 
+
+Prototype Sizing Results and Similitude.
+ Neglect 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ .
+\layout Standard
+\align center 
+
+\begin_inset  Tabular
+<lyxtabular version="3" rows="15" columns="4">
+<features>
+<column alignment="left" valignment="top" leftline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Feature
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Prototype
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Full Size
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Scale
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Designation, nominal CCD size
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1/4
+\begin_inset Quotes erd
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1/3
+\begin_inset Quotes erd
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+--
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+CCD width, 
+\begin_inset Formula $\omega$
+\end_inset 
+
+ (mm)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+3.6
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+4.8
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.33
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Ball diameter, 
+\begin_inset Formula $B$
+\end_inset 
+
+ (in)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.5
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+2.75
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+5.5
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Image resolution, 
+\begin_inset Formula $n$
+\end_inset 
+
+ x 
+\begin_inset Formula $m$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+160x120
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+160x120
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+--
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Distance to balls, 
+\begin_inset Formula $D$
+\end_inset 
+
+ (ft)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.5
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+100
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+66.7
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Focal length, 
+\begin_inset Formula $f$
+\end_inset 
+
+ (mm)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+3.8
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+40
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+10.5
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Magnification, 
+\begin_inset Formula $M$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+120
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+760
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+6.4
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Forward point, 
+\begin_inset Formula $\theta$
+\end_inset 
+
+ (deg)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+50
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+50
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+--
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Frame rate, 
+\begin_inset Formula $\tau$
+\end_inset 
+
+ (sec)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.0333
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.0333
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+--
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Ball pixels, 
+\begin_inset Formula $\mu_{b}$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+3
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+3
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+--
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Number of balls, 
+\begin_inset Formula $N_{b}$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+4.5
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+4.5
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+--
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Ball speed, 
+\begin_inset Formula $V_{max}$
+\end_inset 
+
+ (ft/sec)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+19 (13 MPH)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+160 (110 MPH)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+8.4
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Sensitivity, (in/pixel)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.11
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.90
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+8.2
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Field of view, W (ft)
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.4
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+12
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+8.6
+\end_inset 
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset 
+
+
+\end_inset 
+
+
+\layout Subsection
+
+
+\begin_inset LatexCommand \label{tag_Prototype_Calibration}
+
+\end_inset 
+
+Prototype Internal Calibration
+\layout Standard
+
+Snapshots of cards with grids on them placed at various distances about
+ 18 inches from the prototype cameras produce the data needed to correct
+ the devices for focal length and aberration.
+ Figure 
+\begin_inset LatexCommand \ref{fig_focal_10a}
+
+\end_inset 
+
+ shows one snapshot for camera 
+\shape italic 
+/dev/video0
+\shape default 
+ with a 1-inch gridded card placed 10 inches away.
+ Another shot with a 1 inch aberration grid placed 18 inches away is shown
+ in Figure 
+\begin_inset LatexCommand \ref{fig_aberration_a}
+
+\end_inset 
+
+.
+ Here there are more grids shown than the recommended number of 11 for adequate
+ internal calibration.
+\begin_inset Float figure
+wide false
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename videoOneFa10+.ps
+	display color
+	scale 30
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_focal_10a}
+
+\end_inset 
+
+Focal length snapshot for 3Com camera at 10 inches.
+\end_inset 
+
+
+\begin_inset Float figure
+wide false
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename videoOneAa.ps
+	display color
+	width 297pt
+	height 222pt
+	keepAspectRatio
+	rotateAngle 270
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_aberration_a}
+
+\end_inset 
+
+Aberration grid snapshot for 3Com camera at 18 inches.
+ There are more lines than necessary.
+\end_inset 
+
+ 
+\layout Standard
+
+Results of the first attempt to internally calibrate using the method of
+ Tsai appear in Figure 
+\begin_inset LatexCommand \ref{fig_videoTRes}
+
+\end_inset 
+
+.
+ Prototype accuracy (n=640) is 
+\begin_inset Formula $\pm15$
+\end_inset 
+
+ pixels for the Tsai method.
+ The distribution contains some spreadsheet files to assist in this calibration.
+ Without correction, accuracy is 
+\begin_inset Formula $\pm30$
+\end_inset 
+
+ pixels.
+ The effect of 30 pixels is approximately 7 ball widths if gone uncorrected.
+ The aberration errors directly affect velocity measurements, and to a lesser
+ extent, triangulation accuracy.
+ 
+\layout Standard
+
+The large Tsai aberration error is corrected by the approach of Equation
+ 
+\begin_inset LatexCommand \ref{eq_distortion}
+
+\end_inset 
+
+.
+ Figure 
+\begin_inset LatexCommand \ref{fig_videoRes}
+
+\end_inset 
+
+ shows the result after applying Equation 
+\begin_inset LatexCommand \ref{eq_distortion}
+
+\end_inset 
+
+.
+ Accuracy is much improved to 
+\begin_inset Formula $\pm3$
+\end_inset 
+
+ pixels.
+\layout Standard
+
+
+\begin_inset Float figure
+wide false
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename video0TResM.ps
+	display monochrome
+	width 297pt
+	height 201pt
+	keepAspectRatio
+	rotateAngle 270
+	subcaption
+	subcaptionText "Video device /dev/video1 results."
+
+\end_inset 
+
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename video1TResM.ps
+	display monochrome
+	width 297pt
+	height 201pt
+	keepAspectRatio
+	rotateAngle 270
+	subcaption
+	subcaptionText "Video device /dev/video1 results."
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_videoTRes}
+
+\end_inset 
+
+Device Tsai Internal Calibration Residual
+\end_inset 
+
+
+\layout Standard
+
+A large number of pixels was used for the this initial calibration but may
+ not be necessary.
+\layout Standard
+
+
+\begin_inset Float figure
+wide false
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename video0ResM.ps
+	display monochrome
+	width 297pt
+	height 222pt
+	keepAspectRatio
+	rotateAngle 270
+	subcaption
+	subcaptionText "Video device /dev/video0 results."
+
+\end_inset 
+
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename video1ResM.ps
+	display color
+	width 297pt
+	height 201pt
+	keepAspectRatio
+	rotateAngle 270
+	subcaption
+	subcaptionText "Video device /dev/video1 results."
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_videoRes}
+
+\end_inset 
+
+Device Internal Calibration Residual
+\end_inset 
+
+
+\layout Subsection
+
+Prototype External Calibration
+\layout Standard
+
+The documentation with the distribution of the application explains the
+ steps required to shoot blank photos, weave them with still shots of stationary
+ balls with known position, and convert the data into the proper form to
+ transform pixel coordinates accurately to world object location.
+ This closely follows the steps described in Section 7.
+\layout Subsection
+
+Prototype Test Method
+\layout Standard
+
+The prototype used the application's record / replay mode of operation to
+ save files for pictures and replay.
+ To pitch a ball one rolls marbles down the conduit.
+ The ball strikes the Plexiglas zone plate that has a piece of carbon paper
+ and plane graph paper clipped to it.
+ The program takes a three second shot and stops recording.
+ Immediately, the program automatically replays and within two seconds calculate
+s the projected strike zone at each frame where a moving ball is visible.
+ A spreadsheet made an excellent way to compare the carbon paper measurements
+ with the application program video measurements.
+\layout Standard
+
+Figure 
+\begin_inset LatexCommand \ref{fig_photo_sequence}
+
+\end_inset 
+
+ shows the sequence of shots from one run.
+ Note that the ball is quite small, barely over 2 pixels width at the shooter
+ tube that is about 28 inches from the cameras.
+ At this moment the ball is moving slightly upward toward the camera.
+ As it moves along it creates longer smear marks in the frame capture time.
+\begin_inset Float figure
+wide false
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename tempRCx.ps
+	display color
+	width 225pt
+	height 450pt
+	keepAspectRatio
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_photo_sequence}
+
+\end_inset 
+
+Event sequence record, 160x120, 30 fps.
+ Ball is yellow.
+\end_inset 
+
+ 
+\layout Standard
+
+The study varied image size, light intensity, calibration methods, frame
+ rate, background color, computer RAM, image sub-sampling, number of averages,
+ effect of gravity on vertical strike zone prediction, and real-time sequencing
+ for real-time mode.
+\layout Subsection
+
+
+\begin_inset LatexCommand \label{tag_Prototype_Test_Results}
+
+\end_inset 
+
+Prototype Test Results
+\layout Standard
+
+Table 
+\begin_inset LatexCommand \ref{tab_proto_var}
+
+\end_inset 
+
+ shows measured variation versus image size.
+ The table is repeated three times in different units.
+ There are various effects to be gleaned from these results.
+ 
+\layout Standard
+
+It was unnecessary to center the strike measurements with a bias.
+ The position result X is within measurement accuracy.
+\layout Standard
+
+
+\begin_inset Float table
+wide true
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset  Tabular
+<lyxtabular version="3" rows="16" columns="6">
+<features>
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" width="0pt">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Configuration
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+|X|
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $3\sigma_{x}$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+|Z|
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $3\sigma_{z}$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Vy
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+inches
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+inches
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+inches
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+inches
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+inches/sec
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Baseline 160x120
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.06
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.23
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.59
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.54
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+-145
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+No Internal Calibration, 160x120
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.05
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.34
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.47
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.56
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+-149
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Baseline 320x240
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.06
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.09
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.49
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.23
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+2x Sub-sample 320x240
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.02
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.11
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.55
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.75
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+balls 
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+balls
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+balls
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+balls
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+balls/sec
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Baseline 160x120
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.12
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.46
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.18
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.08
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+-290
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+No Internal Calibration, 160x120
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.10
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.68
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.94
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.12
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+-298
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Baseline 320x240
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.12
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.18
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.98
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.46
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+2x Sub-sample 320x240
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.04
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.22
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.10
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.50
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+pixels
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+pixels
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+pixels
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+pixels
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+pixels/sec
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Baseline 160x120
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.5
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.9
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+4.9
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+4.5
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+-1208
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+No Internal Calibration, 160x120
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.4
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+2.8
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+3.9
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+4.7
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+-1242
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Baseline 320x240
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.0
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.5
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+8.2
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+3.8
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+2x Sub-sample 320x240
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+0.3
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+1.8
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+9.2
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+12.5
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{tab_proto_var}
+
+\end_inset 
+
+ Prototype variation results, 0.5 inch ball, sample size N=9.
+ Sensitivity is 0.11 inches/pixel at 18 inches for 160x120 image and 0.06
+ inches/pixel at 18 inches for 320x240 image.
+ Normal mode of operation is 2x sub-sample 160x120.
+\end_inset 
+
+
+\layout Standard
+
+Internal device calibration has a smaller than expected effect on variation.
+ This seems to be due to care taken to pass the object diagonally across
+ the image and go through the center at the point of strike zone prediction
+ to minimize aberration effects.
+ 
+\layout Standard
+
+The horizontal direction X strike predictions vary within 1/2-ball width
+ for the 160x120 configuration.
+ This means that 99.9% of the time the call will be accurate to 1/2-ball.
+ Observe that the variation in pixels is approximately constant with configurati
+on, implying that a resolution effect drives the X direction variation.
+ It should be reported, too, that averaging more samples of balls appeared
+ to improve variation, but most of the benefit was realized by averaging
+ two balls.
+\layout Standard
+
+The vertical direction Z strike predictions vary significantly.
+ This result appears to be a truly random effect, as evidenced by a normality
+ test for various effects such as velocity, position at instant of calling
+ strike, and number of averages used.
+ The cause is not really known, though it is probably not related to image
+ resolution considering the effect noticed for the X direction.
+ 
+\layout Standard
+
+Note that Z direction performance is less important for an umpire because
+ batter knee height varies.
+ It may not be practical to call vertical strike distance without additional
+ technology to provide batter knee height.
+ These considerations discouraged further effort to understand Z variations.
+\layout Standard
+
+Though internal calibration mildly affects variation it is unimportant for
+ a good velocity measurement.
+ This is believed to be due carefully centering the ball motion in the image
+ where there is minimum aberration.
+\layout Standard
+
+The results show that a larger image improves accuracy.
+ This is despite 
+\begin_inset Quotes eld
+\end_inset 
+
+smearing
+\begin_inset Quotes erd
+\end_inset 
+
+ of the ball as the frame-grabber takes longer to sample the image.
+ At the limits of throughput, approximately 320x240 for the prototype, the
+ ball smears nearly the entire distance spanned between frames.
+ It would seem that knowing the edges of the ball more accurately improves
+ overall centroid prediction despite the longer smear.
+ 
+\layout Standard
+
+Results also show that sub-sampling does not degrade accuracy.
+ This refers to a simple technique of using every other pixel value for
+ segmentation.
+ This is an important practical result, allowing significant increase in
+ program throughput.
+\layout Standard
+
+The prototype functions as a pure real-time system.
+ A new computer is capable of better.
+ The process is CPU intensive and runs fully loaded only up to 
+\begin_inset Formula $n=120$
+\end_inset 
+
+ as shown in 
+\begin_inset LatexCommand \ref{fig_realtime_summary}
+
+\end_inset 
+
+.
+ The number of pixels changed in proportion to image width squared.
+ Up to a point, 
+\begin_inset Formula $n=120$
+\end_inset 
+
+ in Figure 
+\begin_inset LatexCommand \ref{fig_realtime_summary}
+
+\end_inset 
+
+, the CPU can handle the increased pixels.
+ But even then the real-time operation experiences dropouts as shown in
+ Figure 
+\begin_inset LatexCommand \ref{fig_realtime_120x90S2}
+
+\end_inset 
+
+ due to normal asynchronous process scheduling.
+ Additional experiments showed that the frame-grabber drops images.
+ Further, it does not improve with buffering.
+ Approximately three times per second the frame-grabber drops three frames.
+ This is one-quarter the total number of frames.
+ Fortunately, full loading does not occur in practice - it represents a
+ stress test.
+ The prototype works at 
+\begin_inset Formula $n=160$
+\end_inset 
+
+.
+\layout Standard
+
+The real-time system cannot record the entire image as it goes but will
+ save and plot crude cartoon plots.
+ The workaround to recording, should they be needed, is the record / playback
+ mode.
+ The mode queries the operator when a pitch is about to begin.
+ When the operator replies, the prototype begins to grab.
+ When it is finished the prototype immediately segments the images and calls
+ the pitch.
+ A five second capture will be available five seconds after the pitch.
+ A large image sequence file is saved.
+ The saved file contains the full base image for future reference.
+ Then the prototype waits for the next request.
+\layout Standard
+
+
+\begin_inset Float figure
+wide false
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename realsum.ps
+	display color
+	width 297pt
+	height 224pt
+	keepAspectRatio
+	rotateAngle 270
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_realtime_summary}
+
+\end_inset 
+
+Prototype real time frame time average - maximally loaded frame in two devices
+ simultaneously.
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Float figure
+wide false
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename realvid0.ps
+	display color
+	width 297pt
+	height 224pt
+	keepAspectRatio
+	rotateAngle 270
+	subcaption
+	subcaptionText "/dev/video0"
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_realtime_120x90S2}
+
+\end_inset 
+
+Real time performance 120x90 image with 2x sub-sampling - maximally loaded
+ frame in two devices simultaneously.
+\end_inset 
+
+
+\layout Standard
+
+There were further results gleaned from the prototype.
+ External calibration method was found to be unimportant.
+ Three still balls placed flat over the playing field gave the same accuracy
+ as three still balls placed on sticks through the flight path.
+\layout Standard
+
+Light intensity was very important.
+ Dim light resulted in many skipped images.
+ Background consistency was important.
+ There needs to be contrast between the ball and the background so light
+ dirt or reflections causes skipped images if they adjoined a ball smear.
+ The best situation was a dark green background with a five hundred Watt
+ work floodlight five feet above the ball path.
+ An auto-iris lens is recommended for a full size system.
+\layout Standard
+
+After external calibration the prototype did not require any fine-tuning
+ test shots.
+ A moving ball is detected in a different place than a standing ball, one
+ would expect.
+ But mean accuracy was within measurement error.
+\layout Standard
+
+The prototype program successfully self-adjusted segmentation constants
+ and internal calibration constants for different image sizes.
+\layout Standard
+
+A sample screen shot, Figure 
+\begin_inset LatexCommand \ref{fig_scrnshot}
+
+\end_inset 
+
+, demonstrates the application's interface.
+ The recent result for record/playback is shown and the application is waiting
+ for command perform the next capture.
+ In real-time mode, the next detected ball will refresh the result.
+\layout Standard
+
+
+\begin_inset Float figure
+wide true
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset Graphics
+	filename scrnshot.ps
+	display monochrome
+	width 297pt
+	height 218pt
+	keepAspectRatio
+	rotateAngle 270
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_scrnshot}
+
+\end_inset 
+
+Screen shot of 
+\shape italic 
+ump
+\shape default 
+ application interface.
+\end_inset 
+
+
+\layout Section
+
+Risk Mitigation
+\layout Standard
+
+The prototype work reveals several sources of variation in the approximate
+ order of importance shown in Table 
+\begin_inset LatexCommand \ref{tab_proven_risks}
+
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Float table
+wide true
+collapsed false
+
+\layout Standard
+\align center 
+
+\begin_inset  Tabular
+<lyxtabular version="3" rows="13" columns="2">
+<features>
+<column alignment="left" valignment="top" leftline="true" width="0pt">
+<column alignment="left" valignment="top" leftline="true" rightline="true" width="0pt">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Risk
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Mitigation (
+\shape italic 
+italics - tried on prototype
+\shape default 
+)
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+light intensity too low
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+daylight, 
+\shape italic 
+auxiliary lighting
+\shape default 
+, measure lumens,
+\end_inset 
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+low-lux camera
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+light intensity variable
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+automatic iris
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+back-lit ball or dirty ball
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\shape italic 
+grass field, narrow focus in front of players
+\shape default 
+,
+\end_inset 
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+color Gaussian
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+shadows
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\shape italic 
+oblique camera orientation, use pixel hue in edge weight
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+extraneous motion
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\shape italic 
+narrow focus in front of players
+\shape default 
+, color Gaussian
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+throughput forces
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\shape italic 
+image sub-sampling
+\shape default 
+, faster computer
+\end_inset 
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+low image resolution
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+real time synchronization
+\end_inset 
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+threaded frame-grabbing, real-time OS,
+\end_inset 
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+dropouts
+\end_inset 
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\shape italic 
+record / playback
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+CCD tolerances
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\shape italic 
+internal calibration
+\end_inset 
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{tab_proven_risks}
+
+\end_inset 
+
+Proven risk factors and mitigation - the prototype demonstrated mitigation
+ in italics.
+\end_inset 
+
+
+\layout Section
+
+Larger Scale Model Prototype Test
+\layout Standard
+
+The small webcam cameras were swapped out for two Sony SPT-M124 1/3 inch
+ CCD black and white cameras running at 30 frames per second and having
+ 380 lines horizontal resolution.
+ They were run with 320x240 resolution.
+ To mitigate light exposure risk, dc-driven auto iris CS-mount F1.4 lenses
+ made by Tamron, 13VG550T, were mounted to the cameras.
+ The lenses were 5-50mm zoom to allow proper field of view no matter the
+ camera placement.
+\layout Standard
+
+A 1-inch diameter ball was used and lenses were zoomed appropriately for
+ approximately 50 ball diameters field of view (equivalent to 12 feet for
+ standard baseball size).
+\layout Standard
+
+After setup and calibration three simple tests were made to measure performance
+ diagnostically.
+ First, repeated still shots of a ball in a known spot were made.
+ Second, repeated motion shots of a ball sliding down a wire in a known
+ position to a target of known position were made.
+ Finally, repeated pitches were made and measured.
+\layout Subsection
+
+Internal Calibration
+\layout Standard
+
+Using these more standard multi-element lenses it was found that internal
+ calibration is more simply corrected than for the fisheye web cam lens
+ discussed earlier.
+ In fact, the need for improved methods goes away.
+ Good results were achieved by taking a shot square on to a 1-inch pegboard,
+ being very careful to align it absolutely square to the camera, using the
+ exact same resolution and lens to be used for measuring pitches, and correcting
+ simply for aspect ratio.
+ The method of Tsai would work fine.
+\layout Subsection
+
+Still Shots
+\layout Standard
+
+Twenty repeated shots of the 1-inch ball were made with the ball in an exact
+ location.
+ Each 
+\begin_inset Quotes eld
+\end_inset 
+
+shot
+\begin_inset Quotes erd
+\end_inset 
+
+ consisted of about 25 images bursts with a white ball then a black ball.
+ The image bursts were shuffled digitally to produce pseudo motion and run
+ through the detection software.
+ Under these heavily controlled conditions the accuracy is +/-0.1 inches
+ (0.1 ball diameters) as shown in 
+\begin_inset LatexCommand \ref{fig_StillShot}
+
+\end_inset 
+
+.
+ This is equivalent to +/-1 pixel of image shift.
+\layout Standard
+
+
+\begin_inset Float figure
+wide true
+collapsed false
+
+\layout Standard
+
+
+\begin_inset Graphics
+	filename stillBoxPlots.png
+	lyxscale 75
+	display monochrome
+	width 297pt
+	height 224pt
+	keepAspectRatio
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_StillShot}
+
+\end_inset 
+
+
+\end_inset 
+
+
+\layout Subsection
+
+Wire Shots
+\layout Standard
+
+About twenty repeated wire runs of the 1-inch ball were made.
+ This was done by constructing a very tight wire and measuring its exact
+ location.
+ A hole was drilled through one white ball and it ran exactly along x=0
+ line downward sloping in z as shown in the two right side projections of
+ 
+\begin_inset LatexCommand \ref{fig_wireShot}
+
+\end_inset 
+
+.
+ It was expected that this would reveal motion induced sources of error
+ and it showed that uncertainty of the ball detections was within +/-0.40
+ inches (0.40 ball diameters) as illustrated in the upper left plot of
+\begin_inset LatexCommand \ref{fig_wireShot}
+
+\end_inset 
+
+, where 0.34 and 0.21 have been combined into an overall 0.40 result.
+ This is approximately four times larger than the still shot uncertainty,
+ some accounted for by wire location uncertainty and other by measurement
+ uncertainty of various sources.
+ This is still small as will be made clear by the next measurement.
+\layout Standard
+
+The final measurement is shown in the lower left plot of 
+\begin_inset LatexCommand \ref{fig_wireShot}
+
+\end_inset 
+
+.
+ Here it is seen that uncertainties in ball detections combined with extrapolati
+ons a long distanct to the target have leveraged into a large overall target
+ strike predictions of +/-2.8 inches (2.8 ball diameters).
+ These errors are accurately confirmed by simple linear extrapolation of
+ the data and amount to the biggest single shortcoming of this system.
+\layout Standard
+
+Carrying the linear extrapolation point a little further, it would predict
+ that proportional improvement could be achieved by proportional improvements
+ to the components.
+ For example, a four times faster camera frame rate would reduce the errors
+ four times.
+ Such a camera is available using IIDC-compliant devices.
+ Also, a two times denser resolution would reduce the errors two times.
+ A faster computer would achieve this.
+ And a 1/2 inch CCD would improve resolution too.
+\layout Standard
+
+
+\begin_inset Float figure
+wide true
+collapsed false
+
+\layout Standard
+
+
+\begin_inset Graphics
+	filename scatterWire.png
+	lyxscale 75
+	width 297pt
+	height 224pt
+	keepAspectRatio
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_wireShot}
+
+\end_inset 
+
+
+\end_inset 
+
+
+\layout Subsection
+
+Pitches
+\layout Standard
+
+Finally, thirty-two pitches were made.
+ The cameras, lenses, frame-grabbers, and segmentation all worked as desired
+ and identified several balls per pitch as expected.
+ The single pixel image uncertainty combined with large extrapolation errors
+ resulted in an accuracy of +/-2.5 inches (2.5 ball diameters) on a 3-sigma
+ basis, summarized in 
+\begin_inset LatexCommand \ref{fig_pitches}
+
+\end_inset 
+
+, in exact agreement with the previous section of more controlled conditions.
+\layout Standard
+
+
+\begin_inset Float figure
+wide true
+collapsed false
+
+\layout Standard
+
+
+\begin_inset Graphics
+	filename pitchBoxplots.png
+	display monochrome
+	width 297pt
+	height 224pt
+	keepAspectRatio
+	clip
+
+\end_inset 
+
+
+\layout Caption
+
+
+\begin_inset LatexCommand \label{fig_pitches}
+
+\end_inset 
+
+
+\end_inset 
+
+
+\layout Section
+
+Conclusions and Recommendations
+\layout Standard
+
+The method presented here efficiently detects and selects single moving
+ baseballs that are sufficiently lit and have good contrast with the background.
+ The system requires careful setup and zeroing in which result in excellent
+ accuracy within a half ball's width three standard deviations accuracy.
+ Extrapolation from detected ball positions to a distant plate is expectedly
+ poor at about 3 ball width's three standard deviations accuracy.
+ The Pentium II prototype works real-time.
+ For stored images, a practical record-playback loop was demonstrated.
+ This mode saves the original image sequence for later analysis.
+ The method performs best with the cameras focused on the field area between
+ pitcher and batter to mask unnecessary player motion.
+ This should be possible given the field of view produced.
+ Accuracy can be improved further using faster computers with larger images
+ and faster frame rates.
+ Camera internal device calibration is unimportant for strike calling accuracy
+ if camera setup is done carefully.
+ The applications and instructions are available for Linux.
+\layout Standard
+
+It will become necessary at some point to upgrade the program to new interface
+ hardware.
+ Other devices will supersede PCI frame-grabber cards eventually and provide
+ improved resolution.
+ By combining a four times frame rate with two times resolution it should
+ be possible to reduce 3 ball width's error down to 3/8 ball width error.
+\layout Standard
+
+And finally, it is inevitable to use the method with a 1/2-inch CCD camera
+ in an outdoor setting.
+ There are real lighting issues to be solved - an auto-iris worked well
+ for the prototype.
+ Nighttime lighting effects need to be studied.
+ Also there needs to be a clever way to position the cameras in a weatherproof
+ case at the right height with a rigid mast.
+ Plus, the setup must contend with long wire runs.
+ Given the ease with which the camera and computer equipment produces accurate
+ results, it seems likely that such a prototype will appear at a Little
+ League game near you.
+\layout Standard
+
+
+\begin_inset LatexCommand \BibTeX[plain]{vision}
+
+\end_inset 
+
+
+\the_end

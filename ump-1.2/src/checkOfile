@@ -1,0 +1,116 @@
+#!/bin/sh
+# test installation of ump application program.  Run in record/playback mode
+# and check that files are created ok.
+
+DATA=$srcdir/../data/X
+
+# Fix distcheck
+chmod -R a+w $srcdir/../data/X 2>/dev/null
+
+
+if ( test "$srcdir " == " " )
+    then
+    srcdir=$srcdir
+    buildsrcdir=$srcdir
+else
+    buildsrcdir=$PWD
+    cd $srcdir
+    srcdir=$PWD
+    cd $buildsrcdir
+fi
+if ( test "$srcdir " == ". " )
+    then
+    srcdir=$PWD
+    buildsrcdir=$srcdir
+fi
+srcdirpath="$srcdir/"
+buildsrcdirpath="$buildsrcdir/"
+export PATH="$buildsrcdir/realstream:$PATH"
+
+
+cd $DATA
+if ( test $? -ne 0 )
+    then
+    echo "Run from ump package src directory or define 'srcdir'"
+    exit 1
+fi
+
+# Check operation with pre-recorded data files.
+if (    test -s video0.cal.L \
+    && test -s video1.cal.L )
+    then
+    echo ""
+    echo "$0: running $buildsrcdirpath""ump in record/playback mode..."
+    trap '"$srcdirpath"killUmp >/dev/null; "$srcdirpath"killSty >/dev/null; rm -f temp xa.??? xb.???;' 0
+
+   # dual
+    if   ( test -c /dev/video0     \
+	&& test -r /dev/video0     \
+	&& test -c /dev/video1     \
+	&& test -r /dev/video1     )
+	then
+	cp -f video0.cal.L video0.cal
+	cp -f video1.cal.L video1.cal
+	rm -f temp xa.??? xb.???
+	echo ""
+	printf "$0:  performing dual write test..."
+	sleep 3
+	>temp "$buildsrcdirpath"ump -oxa.raw -oxb.raw 2>&1
+	if (    test $? -ne 0  \
+	    || test -z xa.raw \
+	    || test -z xa.set \
+	    || test -z xa.tim \
+	    || test -z xb.raw \
+	    || test -z xb.set \
+	    || test -z xb.tim )
+	    then
+	    printf "\nERROR($0):  ump record/playback failed.  Files not made.\n"
+	    echo "Are the video cards installed and cameras turned on?"
+	    echo "FAILURE."
+	    sleep 5
+	    exit 77
+	else
+	    echo "SUCCESS."
+	fi
+
+   # single
+    elif (   test -c /dev/video0     \
+	&&   test -r /dev/video0     \
+	|| ( test -c /dev/video1     \
+	&&   test -r /dev/video1     ) )
+	then
+	cp -f video0.cal.L video0.cal
+	rm -f temp xa.???
+	echo ""
+	printf "$0:  performing single write test..."
+	sleep 3
+	>temp "$buildsrcdirpath"ump -oxa.raw 2>&1
+	if (    test $? -ne 0  \
+	    || test -z xa.raw \
+	    || test -z xa.set \
+	    || test -z xa.tim )
+	    then
+	    printf "\nERROR($0):  ump record/playback failed.  File not made.\n"
+	    echo "Is the video card installed and camera turned on?"
+	    echo "FAILURE."
+	    sleep 5
+	    exit 77
+	else
+	    echo "SUCCESS."
+	fi
+   # none
+    else
+	echo "MESSAGE($0):  /dev/video0 and /dev/video1 not found."
+	sleep 5
+	exit 77
+    fi
+else
+    echo "$0:  missing video0.cal.L and video1.cal.L in ump/data/X to run test."
+    sleep 5
+    exit 1
+fi
+
+echo ""
+echo "$0: SUCCESS."
+sleep 2
+exit 0

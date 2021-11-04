@@ -1,0 +1,83 @@
+#!/bin/sh
+# Annotate and montage ppm files
+# D. Gutz 7/14/02
+# D. Gutz 2/12/05  Add getopt
+# D. Gutz 1/10/10  mac port
+
+# Initialize
+rownum=0
+help=0
+version=0
+# getopt  from /usr/lib/getopt/parse.bash
+TEMP=`getopt -o hr:V --long help,rows:,version \
+     -n 'showppms' -- "$@"`
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$TEMP"
+while true ; do
+	case "$1" in
+	        -h|--help)    help=1 ;     break ;;
+		-r|--rows)    rowing=1; rownum="$2"; shift 2 ;;
+	        -V|--version) version=1 ;  break ;;
+		--) shift ; break ;;
+		*) echo "Internal error!" ; exit 1 ;;
+	esac
+done
+if ( test $help -eq "1" )
+then
+    echo "Annotate and montage ppm files.  If -r used then a contact"
+    echo "sheet display is made."
+    echo "USAGE: showppms [-r|--rows  -h|--help] "
+    echo "    -r|--rows <number>  number of rows, left to right, top to bottom."
+    echo "    -h|--help           help and quit"
+    echo "    -V|--version        print version and quit"
+    exit 0
+fi
+if ( test $version -eq "1" )
+then
+   echo '$Id: showppms,v 1.2 2010/01/23 20:52:24 davegutz Exp $'
+   echo "Written by Dave Gutz, Copyright (C) 2005"
+   exit 0;
+fi
+
+
+# Rate montage
+if ( test `which montage  2>/dev/null | wc -l` -eq 1 &&
+	test `which convert 2>/dev/null | wc -l` -eq 1 )
+then
+    if ( test "`2>/dev/null ls tempRC0???.ppm|wc -l` " != "0 " )
+	then
+	for i in tempRC0???.ppm
+	  do
+	  root=`echo $i | sed 's/.ppm$//g'`
+	  label=`cat $root.lbl`
+	  #convert -font helvetica -fill orange -draw "text 2,12 '$label'" $i $i
+	  convert -font Courier-Regular -fill orange -draw "text 2,12 '$label'" $i $i
+	done
+	animate tempRC0???.ppm&
+	if ( test $rownum -gt 0 )
+	    then
+	    montage -geometry "+2+2" -tile "$rownum"x100 tempRC0???.ppm tempRC0.ppm
+	    display tempRC0.ppm&
+	fi
+    fi
+    if ( test "`2>/dev/null ls tempRC1???.ppm|wc -l` " != "0 " )
+	then
+	for i in tempRC1???.ppm
+	  do
+	  root=`echo $i | sed 's/.ppm$//g'`
+	  label=`cat $root.lbl`
+	  #convert -font helvetica -fill orange -draw "text 2,12 '$label'" $i $i
+	  convert -font Courier-Regular -fill orange -draw "text 2,12 '$label'" $i $i
+	done
+	animate tempRC1???.ppm&
+	if ( test $rownum -gt 0 )
+	    then
+	    montage -geometry "+2+2" -tile "$rownum"x100 tempRC1???.ppm tempRC1.ppm
+	    display tempRC1.ppm&
+	fi
+    fi
+else
+    echo "WARNING($0):  skipping convert and montage because those programs not installed"
+fi
+
+

@@ -1,0 +1,45 @@
+#!/bin/sh
+# Save ppm files
+# D. Gutz 2/18/05 
+
+# Initialize
+help=0
+version=0
+# getopt  from /usr/lib/getopt/parse.bash
+TEMP=`getopt -o hV --long help,version \
+     -n 'saveppms' -- "$@"`
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$TEMP"
+while true ; do
+	case "$1" in
+	        -h|--help) help=1 ;        break ;;
+	        -V|--version) version=1 ;  break ;;
+		--) shift ; break ;;
+		*) echo "Internal error!" ; exit 1 ;;
+	esac
+done
+if ( test $help -eq "1" )
+then
+    echo "Save ppm files"
+    echo "USAGE: saveppms [ -h|--help] "
+    echo "    -h|--help           help"
+    exit 0
+fi
+if ( test $version -eq "1" )
+then
+   echo '$Id: saveppms,v 1.1 2006/08/16 22:42:17 davegutz Exp $'
+   echo "Written by Dave Gutz, Copyright (C) 2005"
+   exit 0;
+fi
+
+# get the time
+DATE=`date -Iseconds`
+mkdir $DATE
+list="video?.cal video?.tune zone.tune video?.mask temp tempRC* x?.???"
+cp $list $DATE
+chmod -w $DATE/x?.???
+echo "ppms stored in $DATE"
+
+
+
+

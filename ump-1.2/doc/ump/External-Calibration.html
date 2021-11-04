@@ -1,0 +1,246 @@
+<html lang="en">
+<head>
+<title>External Calibration - Umpire Practical Ball Vision Device</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Umpire Practical Ball Vision Device">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="Streamer-Functions.html#Streamer-Functions" title="Streamer Functions">
+<link rel="next" href="Samples.html#Samples" title="Samples">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="External-Calibration"></a>Next:&nbsp;<a rel="next" accesskey="n" href="Samples.html#Samples">Samples</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Streamer-Functions.html#Streamer-Functions">Streamer Functions</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr><br>
+</div>
+
+<!-- node-name,            next,    previous,                  up -->
+<h2 class="chapter">9 External Calibration</h2>
+
+<p><a name="index-External-Calibration-301"></a><a name="index-calibration-302"></a><a name="index-pointing-cameras-303"></a><a name="index-Tsai-format-304"></a><a name="index-world_002edat-file-305"></a>
+The external calibration method determines the rotation matrix - direction cosines - that transform camera pixel coordinates to world coordinates. In other words, external calibration orients the cameras in space. We know the cameras' world positions a-priori, through a plumb and tape measurement. To solve for the remaining three angles of rotation of each camera the direction vectors to three known still target locations provide directions for an inverse triangulation. We use the same three balls for each camera to allow a triangulation check after external calibration.
+
+   <p>Utility programs <code>extCal</code> and <code>convertTsai</code> will perform this task.  If Tsai internal aberration calibration is available simply run <code>convertTsai</code> with image size as input and skip the following.  Next are instructions for <code>extCal</code>.  You are advised to use the script <code>checkSetup -i</code> to be guided through the process.
+
+<h3 class="section">9.1 Files for <code>extCal</code> application.</h3>
+
+<p>Input Files:<br>
+   <pre class="sp">
+
+</pre>
+     <dl>
+<dt><code>world.dat</code><dd>      File containing:
+
+          <ol type=1 start=1>
+                   <li>camera positions Pl and Pr in world space
+                   <li>still object positions OA, OB and OC in world space.  Caution:  the objects centerlines sit off the hard surface.
+          </ol>
+<a name="index-videoX_002ecam-files-306"></a><a name="index-videoX_002edat-files-307"></a><a name="index-aberration-308"></a><a name="index-imWidth-309"></a><a name="index-imHeight-310"></a><a name="index-focal-311"></a><a name="index-AbConstant-312"></a><a name="index-Abrqw2-313"></a><a name="index-AbipimR-314"></a><a name="index-AbjpjmR-315"></a><a name="index-ARC-316"></a><br><dt><code>video0.cam</code><dd>       File containing for camera and capture card combination:
+
+          <ol type=1 start=1>
+                   <li>imWidthCalEx, calibration width,   pixels
+                   <li>imHeightCalEx, calibration height,  pixels
+                   <li>focalCalEx, camera focal length, pixels equivalent to imWidthCalEx.  Camera focal length in pixels (for 1/4" CCD, f=3.8 mm, w=3.63 mm so if image width in pixels is 160 the focal_length=3.8/3.63*160=167.5 pix. 
+                   <li>AbConstant, aberration intercept
+                   <li>Abrqw2, aberration radial distortion
+                   <li>AbipimR, aberration x linear correction
+                   <li>AbjpjmR, aberration y linear correction
+                   <li>ARC, image aspect ratio
+                   <li>RgSir, image x-direction off-register scalar
+                   <li>RgSiri, image x-direction off-register error adder
+                   <li>RgSjr, image y-direction off-register scalar
+                   <li>RgSjrj, image y-direction off-register adder
+          </ol>
+        Unless over-ridden by ump -sSIZE, the size of the image sensed by ump will follow the imWidthCalEx and imHeightCalEx values above.
+
+     <br><dt><code>video0.dat</code><dd>        File containing for camera and capture card combination:
+
+          <ol type=1 start=1>
+                   <li>OAp, object pixel coordinates, raw
+                   <li>OBp, object pixel coordinates, raw
+                   <li>OCp, object pixel coordinates, raw
+          </ol>
+
+     <br><dt><code>video1.cam/dat</code><dd>        Same for second device
+</dl>
+
+   <pre class="sp">
+
+</pre>
+Output Files:<br>
+   <pre class="sp">
+
+</pre>
+     
+<a name="index-videoX_002ecal-files-317"></a>
+<dl>
+<dt><code>video0.cal</code><dd>       File used to contain all calibration information for ump and Pl  from world.dat
+
+     <br><dt><code>video1.cal</code><dd>       Same for second device but from video1.dat and Pr from world.dat
+
+   </dl>
+
+   <p><a name="index-sliceraw-318"></a><a name="index-checkSetup-319"></a><a name="index-Gimp-320"></a><a name="index-setting-up-masks-321"></a>
+
+<h3 class="section">9.2 Equipment needed:</h3>
+
+     <ul>
+<li>3 black balls
+<li>3 white balls
+<li>2 camera devices and frame-grabber, sized and setup with correct orientation
+<li>measurements of cameras in world coordinates
+<li>measurements of 3 ball locations in world coordinates
+</ul>
+
+<h3 class="section">9.3 Programs used:</h3>
+
+     <dl>
+<dt><code>checkSetup [-i|-l]</code><dd>      script to automate this external calibration process.  Use the interactive option <code>checkSetup -i</code> to be guided step by step.  Use the local option <code>checkSetup -l</code> to run it through without taking any data. 
+<br><dt><code>lptout</code><dd>      program to turn on lpt port pins.  Presently Ump turns on pins 2, 3, and 4 for BALL, STRIKE, and NO CALL respectively.  Pins 2-9 are controlled by values of 1, 2, 4, 8,...128. Pins 18 - 25 are grounds. Pins 1,14,16, &amp; 17 are 5 vdc sources. Use low current LEDs (2 mA) and drop a resistor so no more than 2.6 mA is drawn at 2.4 vdc total drop. 
+<br><dt><code>showppms</code><dd>      script to display the output of a file run
+<br><dt><code>sliceraw</code><dd>      slice and dice raw image files, with ump distribution
+<br><dt><code>tim2clk</code><dd>      utility to convert binary .tim files into ASCII .clk for viewing
+<br><dt><code>streamery</code><dd>      xawtv frame-grabbing program, with ump distribution
+<br><dt><code>The Gimp</code><dd>      gnu Image Manipulation Program (optional, some viewer is needed)
+<br><dt><code>ump</code><dd>      segmentation main program, with ump distribution
+<br><dt><code>xawtv</code><dd>      camera viewer (optional, some viewer is needed)
+<br><dt><code>makeUmpDist</code><dd>      script to automate generation of distribution rpms
+</dl>
+
+<h3 class="section">9.4 Example Run</h3>
+
+<p>Before you get too far, note that the script <code>checkSetup -i</code> will interactively guide you through the setup process and prompt you to make the necessary files.  Run with option <code>checkSetup -l</code> to run it all the way through without taking data.<br>
+   <pre class="sp">
+
+
+</pre>
+If you wish to see how it works or debug it follow these steps.  First setup working paths:
+
+<pre class="example">     export DATA=
+       # enter full path to data here
+     export CAL=$DATA/cal
+     export UMP=
+        # enter full path to the ump directory here,
+        # e.g. where you ran make install'
+     
+     # Start with sample files
+     cd $CAL
+     cp $UMP/data/X/cal/world.dat .
+     cp $UMP/data/X/cal/video?.dat .
+     cp $UMP/data/X/cal/video?.cam .
+     cp $UMP/data/X/cal/*.mask* .
+     cp $UMP/data/X/cal/video?.tune .
+     cp $UMP/data/X/cal/cal.xls .
+</pre>
+   <p>First mount the cameras and orient them as optimally as possible.  The paper describes the optimum lens focal length (depends on ball size and distance from balls), distance from balls, sweep back angle (~50 degrees from the line connecting the cameras), and look down angle (~30 degrees from horizontal).  The cameras do not have to be symmetrically located because the vector math will compensate by calibration.  The other camera must not be visible in either camera or the vector math will fail due to numerics of potential head-on sightings.
+
+   <p>Note that if making a scale size prototype, scale the distance <code>D</code> by the ratio of the ball size to CCD size <code>B/W</code>.  If you have a limited supply of lenses, as I do, and are stuck with the focal length you have, then adjust distance and ball size to achieve a working system per the equations in the paper that provide at least 4 images per run.
+
+   <p>To determine some distances easily use the following results:
+   <pre class="sp">
+
+</pre>
+     <dl>
+<dt><code>Prework</code><dd>Determine distance to balls, focal length, and ball size first using the project paper and some thought to make a good scale model.
+
+     <br><dt><code>Distance between cameras</code><dd>The optimum distance between cameras, R-L, is 2*D*cos(50 deg) = 1.29*D.
+
+     <br><dt><code>Height above ground</code><dd>The optimum height of cameras above ground, h, is D*tan(30 deg) = 0.577*D.
+
+     <br><dt><code>For B = 0.75 inches/ f= 4mm/ and w=1/3 inch:</code><dd>D = 36 inches, R-L = 47 inches, and h = 21 inches.
+
+   </dl>
+
+   <p>Note that the coordinate system for this project is hard-coded into the main program.  So you must use the following convention.  It helps to imagine from the point of view of a live umpire.  The origin is the front center of the plate, on the ground.  The x/i direction is to the right.  The y/j direction is toward the mound.  And the z/k direction is vertically upward.  This makes a canonical right-hand system.  Imaginary vectors are drawn to balls and cameras from this origin and entered into the files in vector form.
+
+   <p>Setup a working directory.  In there, create a <code>cal</code> directory for external calibration files.
+
+   <p>Descriptions of format for each of these file types appear elsewhere in the documentation.  You will need to edit them to match your configuration.  Now run cameras and setup focus for middle of image.  Check orientation so balls pass diagonally across image through center.  Check focus.  This is the final setting for the cameras so make sure they're right:
+
+<pre class="example">     xawtv -c/dev/video0&amp;
+     xawtv -c/dev/video1&amp;
+</pre>
+   <p># Take data on still calibration
+<pre class="example">     cd $CAL
+</pre>
+   <p><a name="index-snaps-322"></a><a name="index-single-snaps-323"></a><a name="index-snapshot-324"></a># Take single snaps, e.g. to check camera orientation.
+<pre class="example">     # Place three white balls.  Take snaps.  Verify balls visible.
+     # Verify balls pass diagonally across image through center.
+     OUTFA=snapA
+     streamer -q -c/dev/video0 -s480x360 -nNTSC -t2 -r1\
+            -iComposite1 -o"$OUTFA"0.pgm
+     gimp "$OUTFA"1.pgm&amp;
+     OUTFB=snapB
+     streamer -q -c/dev/video1 -s480x360 -nNTSC -t2 -r1\
+            -iComposite1 -o"$OUTFB"0.pgm
+     gimp "$OUTFB"1.pgm&amp;
+</pre>
+   <p>Using The Gimp, measure mask locations in pixels, convert to fraction, and enter into  video*.mask* files.  It is unnecessary to adjust for aberration because the masks work on raw images.  Designate a letter for each ball and be consistent between cameras for triangulation check later.  Use cal.xls as convenient way to convert ball measurements into mask. <br>
+   <pre class="sp">
+
+</pre>
+Take shots of black and white balls.  One camera at a time - memory. Ignore the error messages.  First with black balls in place:
+
+<pre class="example">     ump -s320x240 -oblanka.raw -t8
+     ump -s320x240 -c/dev/video1 -oblankb.raw -t8
+</pre>
+   <p># Then with white balls in place:
+
+<pre class="example">     ump -s320x240 -oballa.raw  -t8
+     ump -s320x240 -c/dev/video1 -oballb.raw  -t8
+</pre>
+   <p># Meld black and white balls to create pseudo-motion images cala.raw and calb.raw
+
+<pre class="example">     sliceraw -iblanka.raw -oblankas.raw -t1.5:2
+     sliceraw -iballa.raw  -oballas.raw  -t1.5:2
+     sliceraw -iballas.raw -iblankas.raw -ocala.raw
+     sliceraw -iblankb.raw -oblankbs.raw -t1.5:2
+     sliceraw -iballb.raw -oballbs.raw   -t1.5:2
+     sliceraw -iballbs.raw -iblankbs.raw -ocalb.raw
+     
+     # To troubleshoot these images (if needed later):
+     rm -f video0.mask
+     ump -v4 -C -icala.raw -w0
+     rm -f video1.mask
+     ump -v4 -C -icalb.raw -w0
+</pre>
+   <p>Get the centroids for balls.  Check images to check quality of mask. Best to pick out the highest density centroids.  Adjust mask as necessary.  Iteratively guess mask.  Look at tempR files using The Gimp.  Also try taking a single snap and look with The Gimp.  The centroid output of ump has been corrected for aberration.  Therefore, internally calibrate the device before external calibration, which would be the normal procedure anyway.  One would not want to externally calibrate every time the camera is moved.  The mask percentages are before correction for aberration and are meant to be used as approximate for trial and error determination of the best mask.  Enter the undistorted values for centroid into video*.dat. <br>
+
+   <p>The script checkSetup performs this interactively.  Change directory to where the data is.  Make sure video*.dat are writable.  Run:
+
+<pre class="example">     checkSetup -i
+     
+     # Setup data file
+     cd $DATA
+     ln -s $CAL/video0.cal .
+     ln -s $CAL/video1.cal .
+</pre>
+   <p>If this is the first time in $DATA, you may need to get the .tune file to start:
+
+<pre class="example">     cp $UMP/data/X/*.mask* .
+     chmod +w *.mask*
+     cp $UMP/data/X/video?.tune .
+     chmod +w video?.tune
+     cp $UMP/data/X/zone.tune .
+     chmod +w zone.tune
+</pre>
+   <p>Then start running:
+<pre class="example">     Ump -r
+</pre>
+   </body></html>
+

@@ -1,0 +1,160 @@
+#!/bin/sh
+# test installation of ump application program.  Run in playback mode
+# and compare images to stored images.
+
+echo ""
+
+DATA=$srcdir/../data/X
+REMEMORIZE=0 # Set this to 1 to resave comparison files
+
+# Fix distcheck
+chmod -R a+w $srcdir/../data/X 2>/dev/null
+
+if ( test "$srcdir " == " " )
+    then
+    srcdir=$srcdir
+    buildsrcdir=$srcdir
+else
+    buildsrcdir=$PWD
+    cd $srcdir
+    srcdir=$PWD
+    cd $buildsrcdir
+fi
+if ( test "$srcdir " == ". " )
+    then
+    srcdir=$PWD
+    buildsrcdir=$srcdir
+fi
+srcdirpath="$srcdir/"
+buildsrcdirpath="$buildsrcdir/"
+
+cd $DATA
+echo "cd $DATA"
+if ( test $? -ne 0 )
+    then
+    echo "Run from ump package src directory or define 'srcdir'"
+    sleep 5
+    exit 1
+fi
+teststat=0
+
+# Check operation with pre-recorded data files.
+if (    test -s xLas.raw    \
+    && test -s xLbs.raw    \
+    && test -s video0.cal.L\
+    && test -s video1.cal.L\
+    && test -s xLs_images/tempRC0.ppm \
+    && test -s xLs_images/tempRC1.ppm \
+    && test -s xLs_images/tempR0.ppm  \
+    && test -s xLs_images/tempR1.ppm  )
+    then
+    trap '"$srcdirpath"killUmp >/dev/null; rm -f temp' 0
+    echo "$0: running '$buildsrcdirpath""ump -w0 -ixLas.raw -ixLbs.raw -v5 >temp'"
+    cp -f video0.cal.L video0.cal
+    cp -f video1.cal.L video1.cal
+    "$buildsrcdirpath"ump -w0 -ixLas.raw -ixLbs.raw -v5 >temp
+    if ( test $? -ne 0 )
+	then
+	echo "ERROR($0):  ump failed..."
+	teststat=1
+	sleep 5
+    fi
+    cat temp | grep "BALL ZONE"
+    printf "complete\n\n"
+    echo "$0: expected result (often drop frames; asynchronous):"
+    if ( test "$REMEMORIZE " -eq "1 " )
+	then
+	echo "MESSAGE($0): rememorizing xL.dat for ump."
+	cp temp xL.dat
+	sleep 2
+    fi
+    cat xL.dat | grep "BALL ZONE"
+    if ( test `grep BALL temp | wc -l` -lt 3 )
+	then
+	echo "ERROR($0):  ump failed..."
+	teststat=1
+	sleep 5
+    else
+	echo ""
+	echo "SUCCESS..."
+	sleep 2
+    fi
+    sleep 2
+    printf "\n$0:  checking operation of utility program tim2clk...\n"
+    "$buildsrcdirpath"tim2clk xLas.tim
+    if ( test $? -ne 0 )
+	then
+	echo "ERROR($0):  tim2clk failed..."
+	teststat=1
+	sleep 5
+    fi
+    echo "$0:  tim2clk result sample first 5"
+    head -5 xLas.clk
+    echo ""
+    echo "$0: expected result sample first 5"
+    head -5 xLas.clk.L
+    if ( test "$REMEMORIZE " -eq "1 " )
+	then
+	echo "MESSAGE($0): rememorizing xLas.tim for ump."
+	cp temp2 xLas.tim.L
+	sleep 2
+    fi
+    if (  test `diff xLas.clk.L xLas.clk | wc -l` -gt 0 )
+	then
+	echo ""
+	echo "ERROR($0):  results not expected..."
+	teststat=1
+	sleep 5
+    else
+	echo ""
+	echo "SUCCESS..."
+	sleep 2
+    fi
+    printf "\n$0: displaying ppm results of run..."
+    "$srcdir"/../scripts/showppms
+    sleep 4
+    echo "complete"
+    printf "$0: displaying expected ppm results of run..."
+    if ( test `which magick 2>/dev/null | wc -l` -eq 1 )
+	then
+	magick xLs_images/tempRC0.ppm&
+	magick xLs_images/tempRC1.ppm&
+    elif ( test `which display  2>/dev/null | wc -l` -eq 1 )
+	then
+	display xLs_images/tempRC0.ppm&
+	display xLs_images/tempRC1.ppm&
+    else
+	echo "WARNING($0):  magick and display not installed...cannot display images..."
+    fi
+    echo "complete"
+    printf "\n$0: displaying expected mm results if real time capture -w\n"
+    printf "and use showmms instead of showppms..."
+    if ( test `which magick  2>/dev/null | wc -l` -eq 1 )
+	then
+	magick xLs_images/tempR0.ppm&
+	magick xLs_images/tempR1.ppm&
+    elif ( test `which display  2>/dev/null | wc -l` -eq 1 )
+	then
+	display xLs_images/tempR0.ppm&
+	display xLs_images/tempR1.ppm&
+    else
+	echo "WARNING($0):  magick and display not installed...cannot display images..."
+    fi
+    echo "complete"
+else
+    echo "$0:  get umpsamp.tar and 'tar xvf' in ump/data to run test."
+    sleep 3
+    exit 77
+fi
+
+if ( test "$teststat " -eq "0 " )
+    then
+    echo ""
+    echo "$0: SUCCESS."
+    sleep 1
+else
+    echo ""
+    echo "$0: FAILURE."
+    sleep 3
+fi
+exit $teststat

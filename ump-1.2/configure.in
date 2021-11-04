@@ -1,0 +1,63 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT([ump], [1.2], [davegutz@alum.mit.edu], [ump])
+AC_CONFIG_SRCDIR([src/main.cc])
+AC_CONFIG_AUX_DIR(config)
+AM_INIT_AUTOMAKE
+AM_MAINTAINER_MODE
+AM_CONFIG_HEADER(config.h)
+AC_DEFINE(UMP, , [Turns on/off some compiler things.])
+
+dnl Checks for programs.
+AC_PROG_AWK
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
+AC_PROG_CXX
+
+dnl Checks for libraries.
+ACX_PTHREAD
+AC_CXX_HAVE_STD
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_HEADER_SYS_WAIT
+AC_CHECK_HEADERS(fcntl.h limits.h malloc.h strings.h sys/ioctl.h sys/time.h syslog.h unistd.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+dnl Following breaks aCC compiler on HPUX
+dnl AC_C_INLINE
+AC_TYPE_MODE_T
+AC_TYPE_OFF_T
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+AC_HEADER_TIME
+AC_STRUCT_TM
+
+dnl Checks for library functions.
+AC_PROG_GCC_TRADITIONAL
+AC_FUNC_MMAP
+AC_TYPE_SIGNAL
+AC_FUNC_STRFTIME
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS(bzero memset gethostname gettimeofday select strdup strerror strspn strstr)
+AC_CXX_HAVE_NEW_HANDLER
+AC_CXX_HAVE_FMATH
+AC_HAVE_SBRK
+AC_HAVE_IOPERM
+AC_HAVE_ENDIAN
+adl_FUNC_GETOPT_LONG
+
+dnl look for GNOME
+GNOME_MODULES="libgnomeui-2.0 >= 2.0.0"
+PKG_CHECK_MODULES(GNOME, $GNOME_MODULES)
+AC_SUBST(GNOME_CFLAGS)
+AC_SUBST(GNOME_LIBS)
+
+dnl Output definition
+AC_OUTPUT(Makefile src/Makefile src/l/Makefile src/l/tnt/Makefile data/Makefile src/image_utils/Makefile scripts/Makefile doc/Makefile data/X/Makefile data/X/cal/Makefile src/realstream/Makefile src/glade/Makefile config/Makefile doc/ump/Makefile data/X/xLs_images/Makefile)
+
+
+

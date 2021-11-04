@@ -1,0 +1,27 @@
+% MESSAGE(CameraData): cal for device video1:
+imWidthCalEx =       480;
+imHeightCalEx=       360;
+focalCalEx   =     520.1;
+AbConstant   =         1;
+Abrqw2       =    0.1387;
+AbipimR      =         0;
+AbjpjmR      =         0;
+ARC          =    1.2845;
+RgSir        =         0;
+RgSiri       =         0;
+RgSjr        =         0;
+RgSjrj       =         0;
+P          = [   9.83041   -3.62608    19.4897  ];
+ACPW       = [   0.82633   -0.26473   -0.49709 
+                 0.56316    0.39755    0.72444 
+              -0.0058367    0.87856   -0.47759  ];
+colpGrid=[         0          0          0          0          0          0          0 
+                   0          0          0          0          0          0          0 
+                   0          0          0          0          0          0          0 
+                   0          0          0          0          0          0          0 
+                   0          0          0          0          0          0          0  ];
+rowpGrid=[         0          0          0          0          0          0          0 
+                   0          0          0          0          0          0          0 
+                   0          0          0          0          0          0          0 
+                   0          0          0          0          0          0          0 
+                   0          0          0          0          0          0          0  ];

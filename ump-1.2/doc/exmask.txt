@@ -1,0 +1,3 @@
+(Note:  if using info, go to the ump distribution directory 
+and open up file 'exmask.ps' or 'ump.html')
+

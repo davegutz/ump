@@ -1,0 +1,105 @@
+#!/bin/sh
+# Show ppm files output from writeraw
+# D. Gutz 2/12/05  Add getopt
+# D. Gutz 12/22/05 Add masking
+
+# Initialize
+rownum=0
+help=0
+version=0
+masking=1
+# getopt  from /usr/lib/getopt/parse.bash
+TEMP=`getopt -o hnr:V --long help,not,rows:,version \
+     -n 'showmms' -- "$@"`
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$TEMP"
+while true ;
+  do
+  case "$1" in
+      -h|--help)    help=1 ;                     break ;;
+      -r|--rows)    rowing=1; rownum="$2"; shift 2 ;;
+      -n|--not)     masking=0;                   break ;;
+      -V|--version) version=1 ;                  break ;;
+      --) shift ;                                break ;;
+      *) echo "Internal error!" ; exit 1 ;;
+  esac
+done
+if ( test $help -eq "1" )
+    then
+    echo "Show ppm files output from writeraw"
+    echo "USAGE: showmms [-r|--rows  -h|--help] "
+    echo "    -r|--rows <number>  number of rows, left to right, top to bottom."
+    echo "    -h|--help           help"
+    echo "    -n|--not            for no masking"
+    exit 0
+fi
+if ( test $version -eq "1" )
+    then
+    echo '$Id: showmms,v 1.1 2006/08/16 22:42:17 davegutz Exp $'
+    echo "Written by Dave Gutz, Copyright (C) 2005"
+    exit 0;
+fi
+
+# mm file montage
+if ( test "`ls tempR0???.mm|wc -l` " != "0 " )
+    then
+    for i in tempR0???.mm
+      do
+      if ( test -s video0.mask && test "$masking" -eq "1" )
+	  then
+	  mm2ppm -m video0.mask $i
+      else
+	  mm2ppm $i
+      fi
+      if(test $? -ne 0)
+	  then
+	  echo "mm2ppm failed.  Quitting..."
+	  exit 1
+      fi
+    done
+    for i in tempR0???.ppm
+      do
+      root=`echo $i | sed 's/.ppm$//g'`
+      label=`cat $root.lbl`
+      convert -font helvetica -fill orange -draw "text 2,12 '$label'" $i $i
+    done
+    animate tempR0???.ppm&
+    if ( test $rownum -gt 0 )
+	then
+	montage -geometry "+2+2" -tile "$rownum"x100 tempR0???.ppm tempR0.ppm
+	display tempR0.ppm&
+    fi
+fi
+
+# mm file montage
+if ( test "`ls tempR1???.mm|wc -l` " != "0 " )
+    then
+    for i in tempR1???.mm
+      do
+      if ( test -s video1.mask && test "$masking" -eq "1" )
+	  then
+	  mm2ppm -m video1.mask $i
+      else
+	  mm2ppm $i
+      fi
+      if(test $? -ne 0)
+	  then
+	  echo "mm2ppm failed.  Quitting..."
+	  exit 1
+      fi
+    done
+    for i in tempR1???.ppm
+      do
+      root=`echo $i | sed 's/.ppm$//g'`
+      label=`cat $root.lbl`
+      convert -font helvetica -fill orange -draw "text 2,12 '$label'" $i $i
+    done
+    animate tempR1???.ppm&
+    if ( test $rownum -gt 0 )
+	then
+	montage -geometry "+2+2" -tile "$rownum"x100 tempR1???.ppm tempR1.ppm
+	display tempR1.ppm&
+    fi
+fi
+
+

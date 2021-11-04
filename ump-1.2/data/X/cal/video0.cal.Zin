@@ -1,0 +1,49 @@
+% MESSAGE(CameraData): cal for device video0.cam:
+imWidthCalEx =       320;
+imHeightCalEx=       240;
+focalCalEx   =       358;
+AbConstant   =    0.9931;
+Abrqw2       =    0.3349;
+AbipimR      =  -0.02083;
+AbjpjmR      =  0.004861;
+ARC          =    1.3675;
+RgSir        =         0;
+RgSiri       =         0;
+RgSjr        =         0;
+RgSjrj       =         0;
+P          = [     -10.5       -4.5      17.75  ];
+ACPW       = [   0.43569    0.24636    0.30057 
+                -0.39124    0.21303    0.36471 
+               -0.056474    0.47934   -0.30776  ];
+colpGrid=[         0          0          0          0          0          0          0 
+                   0          0          0          0          0          0          0 
+                   0          0          0          0          0          0          0 
+                   0          0          0          0          0          0          0 
+                   0          0          0          0          0          0          0  ];
+rowpGrid=[         0          0          0          0          0          0          0 
+                   0          0          0          0          0          0          0 
+                   0          0          0          0          0          0          0 
+                   0          0          0          0          0          0          0 
+                   0          0          0          0          0          0          0  ];
+
+
+%MESSAGE(CameraData): data from video0.dat:
+% First  ball is OAp (mask A)         
+% Second ball is OBp (mask B)         
+% Third  ball is OCp (mask C)         
+OApo=  [    169.6     205.8 ];
+OBpo=  [     21.7     147.4 ];
+OCpo=  [    104.9     102.5 ];
+OAp =  [ 0.027828  -0.23201 ];
+OBp =  [ -0.37892 -0.074711 ];
+OCp =  [ -0.15181  0.046091 ];
+
+
+
+% MESSAGE(World): cal for device world.dat:
+Pl=   [    -10.5      -4.5     17.75 ];
+Pr=   [       10    -3.875        18 ];
+OA=   [        0         8      0.25 ];
+OB=   [       -5        23      0.25 ];
+OC=   [        5        23      0.25 ];
+

@@ -1,0 +1,86 @@
+#!/bin/sh
+# test installation of  application program.
+# kill streamery processes
+# exit with number of processes killed.  -number if failed while doing it.
+
+# Initialize
+help=0
+version=0
+
+# getopt  from /usr/lib/getopt/parse.bash
+TEMP=`getopt -o hV --long help,version \
+     -n 'killSty' -- "$@"`
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$TEMP"
+while true ; do
+	case "$1" in
+	        -h|--help)        help=1;           shift ;;
+	        -V|--version)     version=1;        shift ;;
+		--) shift ; break ;;
+		*) echo "Internal error!" ; exit 1 ;;
+	esac
+done
+
+if ( test $help -eq "1" )
+then
+   echo "usage"
+   echo "  $0 [options]"
+   echo "  options:"
+   echo " -h,  --help         this screen"
+   echo " -V,  --version      print version"
+   echo "  Kill streamery processes.  Exit with number of processes"
+   echo "  killed.  -number if failed while doing it."
+  exit 0;
+fi
+
+if ( test $version -eq "1" )
+then
+   echo '$Id: killSty,v 1.2 2005/10/10 02:27:30 davegutz Exp $'
+   echo "Written by Dave Gutz, Copyright (C) 2005"
+   exit 0;
+fi
+
+
+# Check for UNIX
+if ( test `which gpl2M 2>/dev/null|wc -l` -gt 0 )
+then
+   psopt="-ef"
+else
+   psopt="ax"
+fi
+
+# Exit if none to kill
+numsty=`ps "$psopt" | grep "streamery" | sed '/grep/d' | wc -l`
+if ( test $numsty -eq 0 )
+then
+   echo "MESSAGE($0): There are no running streamery processes."
+   exit 0
+fi
+
+
+# Make a list of running umps
+umpsty=`ps "$psopt" | grep "streamery" | sed '/grep/d' | awk '{print $1}'`
+
+# Kill them all
+if ( test x"$umpsty" != x )
+then
+for i in $umpsty
+do
+   kill -s 9 $i
+done
+sleep 2
+echo "MESSAGE($0): be sure to run 'ipcs shm' then 'ipcrm shm <shmid>' as needed"
+fi
+numsty=`ps "$psopt" | grep "streamery" | sed '/grep/d' | wc -l`
+if ( test $numsty -gt 0 )
+then
+   echo "WARNING($0): still there are running streamery process."
+   numsty=`echo $numsty | awk '{printf"-%s",$1}'`
+else
+   echo "MESSAGE($0): stopped all running streamery process."
+fi
+exit $numsty
+
+
+
+

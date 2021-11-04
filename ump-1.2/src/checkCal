@@ -1,0 +1,146 @@
+#!/bin/sh
+# test installation of ump application program.  
+# Run calibration.
+
+DATA=$srcdir/../data/X/cal
+REMEMORIZE=0 # Set this to 1 to resave comparison files
+
+if ( test "$srcdir " == " " )
+    then
+    srcdir=$srcdir
+    buildsrcdir=$srcdir
+else
+    buildsrcdir=$PWD
+    cd $srcdir
+    srcdir=$PWD
+    cd $buildsrcdir
+fi
+if ( test "$srcdir " == ". " )
+    then
+    srcdir=$PWD
+    buildsrcdir=$srcdir
+fi
+srcdirpath="$srcdir/"
+buildsrcdirpath="$buildsrcdir/"
+
+cd $DATA
+echo ""
+echo "$0: Moving to directory $DATA..."
+if ( test $? -ne 0 )
+    then
+    echo "Run from ump package src directory or define 'srcdir'"
+    sleep 5
+    exit 1
+fi
+teststat=0
+
+# Check operation with pre-recorded data files.
+if (    test -s video0.dat     \
+    && test -s video1.dat     \
+    && test -s video0.cam     \
+    && test -s video1.cam     \
+    && test -s video0.tam     \
+    && test -s video1.tam     \
+    && test -s world.dat      \
+    && test -s video0.cal.Zin \
+    && test -s video1.cal.Zin )
+    then
+    mv video0.cal video0x.cal
+    mv video1.cal video1x.cal
+    trap 'mv video0x.cal video0.cal; mv video1x.cal video1.cal;' 0
+
+   # Check convertTsai
+    echo ""
+    echo "$0: running $buildsrcdirpath""convertTsai -s480x360 ..."
+    "$buildsrcdirpath"convertTsai -s480x360 
+    echo "convertTsai complete."
+    sleep 2
+    echo ""
+    echo "Results of convertTsai video0.cal:"
+    cat video0.cal
+    echo ""
+    echo "$0: expected result convertTsai 0:"
+    if ( test "$REMEMORIZE " -eq "1 " )
+	then
+	echo "MESSAGE($0): rememorizing video0.cal for convertTsai."
+	cp video0.cal video0.cal.Tsa
+	sleep 2
+    fi
+    cat video0.cal.Tsa
+    echo "Results of convertTsai video1.cal:"
+    cat video1.cal
+    echo ""
+    echo "$0: expected result convertTsai 1 :"
+    if ( test "$REMEMORIZE " -eq "1 " )
+	then
+	echo "MESSAGE($0): rememorizing video1.cal for convertTsai."
+	cp video1.cal video1.cal.Tsa
+	sleep 2
+    fi
+    cat video1.cal.Tsa
+    if (  test `diff video0.cal.Tsa video0.cal|wc -l` -gt 0 \
+	||test `diff video1.cal.Tsa video1.cal|wc -l` -gt 0 )
+	then
+	echo ""
+	echo "ERROR($0):  results not expected..."
+	sleep 3
+	teststat=1
+    fi
+
+   # Check extCal
+    echo ""
+    echo "$0: running $buildsrcdirpath""extCal..."
+    "$buildsrcdirpath"extCal -p"$buildsrcdirpath"
+    echo ""
+    echo "Results of extCal video0.cal:"
+    cat video0.cal
+    echo ""
+    echo "$0: expected result extCal 0 :"
+    if ( test "$REMEMORIZE " -eq "1 " )
+	then
+	echo "MESSAGE($0): rememorizing video0.cal for extCal"
+	cp video0.cal video0.cal.Zin
+	sleep 2
+    fi
+    cat video0.cal.Zin
+    echo "extCal for video0 complete."
+    sleep 2
+    echo ""
+    echo "Results of extCal video1.cal:"
+    if ( test "$REMEMORIZE " -eq "1 " )
+	then
+	echo "MESSAGE($0): rememorizing video1.cal for extCal"
+	cp video1.cal video1.cal.Zin
+	sleep 2
+    fi
+    cat video1.cal
+    echo ""
+    echo "$0: expected result extCal 1 :"
+    cat video1.cal.Zin
+    echo "extCal for video1 complete."
+    sleep 2
+    if (  test `diff video0.cal.Zin video0.cal|wc -l` -gt 0 \
+	||test `diff video1.cal.Zin video1.cal|wc -l` -gt 0 )
+	then
+	echo ""
+	echo "ERROR($0):  results not expected..."
+	teststat=1
+    fi
+else
+   # Files not available
+    echo "$0:  get umpsamp.tar and 'tar xvf' in ump/data to run test."
+    sleep 5
+    exit 77
+fi
+
+if ( test "$teststat " -eq "0 " )
+    then
+    echo ""
+    echo "$0: SUCCESS."
+    sleep 2
+else
+    echo ""
+    echo "$0: FAILURE."
+    sleep 5
+fi
+exit $teststat

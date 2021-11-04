@@ -1,0 +1,847 @@
+#!/bin/sh
+# test installation of ump application program.  
+# Run calibration.
+# This program will only work with bash(1)
+
+# Initialize
+all=0
+interactive=0
+help=0
+version=0
+editor=emacs
+local=0
+devices="0 1"
+balls="A B C"
+MINDETECT=5
+size="160x120"
+OUTFA=snapZero
+OUTFB=snapOne
+endend=0
+long=0
+
+# getopt  from /usr/lib/getopt/parse.bash
+TEMP=`getopt -o hilEe:s:V --long help,interactive,local,endend,editor:,size:,version \
+     -n 'checkSetup' -- "$@"`
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$TEMP"
+while true ; do
+    case "$1" in
+	-h|--help)        help=1;           shift ;;
+	-V|--version)     version=1;        shift ;;
+	-i|--interactive) interactive=1;    shift ;;
+	-l|--local)       local=1;srcdir=.; shift ;;
+	-E|--endend)      endend=1;         shift ;;
+	-e|--editor)      editor="\'$2'";   shift 2 ;;
+	-s|--size)        size="$2";        shift 2 ;;
+	--)  shift ; break ;;
+	*)   echo "Internal error!" ; exit 1 ;;
+    esac
+done
+
+if ( test $help -eq "1" )
+    then
+    echo "usage"
+    echo "  $0 [options]"
+    echo "  options:"
+    echo " -h,  --help         this screen"
+    echo " -V,  --version      print version"
+    echo " -i,  --interactive  setup cameras and calibrate interactively"
+    echo " -l,  --local        force a local setup in '.'"
+    echo " -E,  --endend       just calculate end-end results"
+    echo " -e,  --editor       specify editor type [$editor]"
+    echo " -s,  --size         specify desired image size [$size]"
+    exit 0;
+fi
+
+if ( test $version -eq "1" )
+    then
+    echo '$Id: checkSetup,v 1.2 2010/01/10 11:45:20 davegutz Exp $'
+    echo "Written by Dave Gutz, Copyright (C) 2005"
+    exit 0;
+fi
+
+if ( test "$srcdir " == " " )
+    then
+    srcdir=$srcdir
+    buildsrcdir=$srcdir
+else
+    buildsrcdir=$PWD
+    cd $srcdir
+    srcdir=$PWD
+    cd $buildsrcdir
+fi
+if ( test "$srcdir " == ". " )
+    then
+    srcdir=$PWD
+    buildsrcdir=$srcdir
+fi
+
+
+if ( test $interactive -eq "1" )
+    then
+    echo "Enter full path where calibration to be made.  Enter '.' to use PWD"
+    read ans
+    if ( test "$ans " = " " )
+	then
+	echo "You must input a path"
+	exit 1
+    else
+	DATA=$ans
+    fi
+    cd $DATA
+    if ( test $? -ne 0 )
+	then
+	echo "Make directory $DATA."
+	exit 1
+    fi
+    # All or individual
+    printf "\nEnter 'a' to use images taken for all three balls at once.  \nThis is dependent on fixture for calibration balls.  If have a fixture that allows\nall ball pictures to be taken at once, enter 'a' here.\n"
+    printf "\nEnter 'a' for all, else enter to use them taken individually > "
+    read ans
+    if ( test "$ans " = "a " )
+	then
+	all=1
+    fi
+else
+    # Fix distcheck
+    if ( test $local -eq "1" )
+	then
+	DATA=$srcdir
+    else
+	chmod -R a+w $srcdir/../data/X 2>/dev/null
+	DATA=$srcdir/../data/X/cal
+    fi
+    cd $DATA 2>/dev/null
+    if ( test $? -ne 0 )
+	then
+	echo "Run from ump package src directory or define 'srcdir'"
+	echo "by 'export srcdir=\".\"' or run 'checkSetup -l'"
+	exit 1
+    fi
+fi
+
+# At exit
+if ( test "$srcdir " = " " )
+    then
+    trap 'killUmp >/dev/null; rm -f temp; rm -f core; rm -f tempR*; rm -f *~' 0
+else
+    trap '$srcdir/killUmp >/dev/null; rm -f temp; rm -f core; rm -f tempR*; rm -f *~' 0
+fi
+
+# Calculations
+imWidthCalEx=`echo $size|cut -d"x" -f1`
+imHeightCalEx=`echo $size|cut -d"x" -f2`
+focalCalEx=`echo $imWidthCalEx  | awk '{print $1*179/160}'`
+if ( test "$imWidthCalEx" -gt "320" ) ; then long=1; fi  #for huge images
+
+if ( test $endend -eq "0" )
+    then
+
+    # Setup files
+    if ( test $interactive -eq "1" )
+	then
+        # Make .cal files
+	if (   test -s video0.cal   \
+	    && test -s video1.cal   )
+	    then
+	    echo "$0:  .cal files in place"
+	else
+	    if ( test -s video0.cal )
+		then
+		echo "$0:  video0.cal file in place"
+	    else
+		echo "$0:  auto-generating .cal files for first run."
+		printf "\
+# Auto-generated video0.cal file.  Check it: \n\
+imWidthCalEx  = $imWidthCalEx  # pixels image width, set by checkSetup \n\
+imHeightCalEx = $imHeightCalEx  # pixels image height, set by checkSetup \n\
+focalCalEx    = $focalCalEx  # =f/w*imWidthCalEx, pixels\n\
+#  where w is camera ccd width, mm, (=4.8 for 1/2 inch CCD format), \n\
+#  f is camera focal length, mm, read off the lens or better\n\
+#  from a test of the lens (see the report and use the .xls spreadsheet\n\
+#  supplied in the documentation.   \n\
+AbConstant = 1.  # internal calibration, see .xls spreadsheet.  1 is nominal\n\
+Abrqw2     = 0.  # internal calibration, see .xls spreadsheet.  0 is nominal\n\
+AbipimR    = 0.  # internal calibration, see .xls spreadsheet.  0 is nominal\n\
+AbjpjmR    = 0.  # internal calibration, see .xls spreadsheet.  0 is nominal\n\
+ARC        = 1.3333 # internal calibration, see .xls spreadsheet.  1.3333 is nominal\n\
+RgSir      = 0\n\
+RgSiri     = 0\n\
+RgSjr      = 0\n\
+RgSjrj     = 0\n\
+P          = [ -10.5  -4.5  17.75  ]  # placeholder.  Changed later\n\
+ACPW       = [ 0.772766 0.441691 0.5302      # placeholder.  Changed later\n\
+              -0.694888 0.384289 0.642752    \n\
+              -0.0990627 0.84505 -0.554444 ] \n
+" >video0.cal
+	    fi
+	    if ( test -s video1.cal )
+		then
+		echo "$0:  video1.cal file in place"
+	    else
+		printf "\
+# Auto-generated video1.cal file.  Check it: \n\
+imWidthCalEx  = $imWidthCalEx  # pixels image width, set by checkSetup \n\
+imHeightCalEx = $imHeightCalEx  # pixels image height, set by checkSetup \n\
+focalCalEx    = $focalCalEx  # =f/w*imWidthCalEx, pixels\n\
+#  where w is camera ccd width, mm, (=4.8 for 1/2 inch CCD format), \n\
+#  f is camera focal length, mm, read off the lens or better\n\
+#  from a test of the lens (see the report and use the .xls spreadsheet\n\
+#  supplied in the documentation.   \n\
+AbConstant = 1.  # internal calibration, see .xls spreadsheet.  1 is nominal\n\
+Abrqw2     = 0.  # internal calibration, see .xls spreadsheet.  0 is nominal\n\
+AbipimR    = 0.  # internal calibration, see .xls spreadsheet.  0 is nominal\n\
+AbjpjmR    = 0.  # internal calibration, see .xls spreadsheet.  0 is nominal\n\
+ARC        = 1.3333 # internal calibration, see .xls spreadsheet.  1.3333 is nominal\n\
+RgSir      = 0\n\
+RgSiri     = 0\n\
+RgSjr      = 0\n\
+RgSjrj     = 0\n\
+P          = [ -10.5  -4.5  17.75  ]  # placeholder.  Changed later\n\
+ACPW       = [ 0.772766 0.441691 0.5302      # placeholder.  Changed later\n\
+              -0.694888 0.384289 0.642752    \n\
+              -0.0990627 0.84505 -0.554444 ] \n
+" >video1.cal
+	    fi
+	fi
+	
+        # Make .cam files
+	if (   test -s video0.cam   \
+	    && test -s video1.cam   )
+	    then
+	    echo "$0:  .cam files in place"
+	else
+	    if ( test -s video0.cam )
+		then
+		echo "$0:  video0.cam file in place"
+	    else
+		printf "\nWARNING($0):  video0.cam file not found.\n"
+		echo "Installing a default.  Check it for accuracy."
+		>video0.cam printf "\
+# Auto-generated video0.cam file.  Check it.   \n\
+imWidthCalEx  = $imWidthCalEx  # pixels image width, set by checkSetup \n\
+imHeightCalEx = $imHeightCalEx  # pixels image height, set by checkSetup \n\
+focalCalEx    = $focalCalEx  # =f/w*imWidthCalEx, pixels\n\
+#  where w is camera ccd width, mm, (=4.8 for 1/2 inch CCD format), \n\
+#  f is camera focal length, mm, read off the lens or better\n\
+#  from a test of the lens (see the report and use the .xls spreadsheet\n\
+#  supplied in the documentation.   \n\
+AbConstant = 1.  # internal calibration, see .xls spreadsheet.  1 is nominal\n\
+Abrqw2     = 0.  # internal calibration, see .xls spreadsheet.  0 is nominal\n\
+AbipimR    = 0.  # internal calibration, see .xls spreadsheet.  0 is nominal\n\
+AbjpjmR    = 0.  # internal calibration, see .xls spreadsheet.  0 is nominal\n\
+ARC        = 1.3333 # internal calibration, see .xls spreadsheet.  1.3333 is nominal\n\
+RgSir      = 0\n\
+RgSiri     = 0\n\
+RgSjr      = 0\n\
+RgSjrj     = 0\n\
+"
+		printf "\nEnter 'e' to edit video0.cam.  Else enter to skip > "
+		read ans
+		if ( test "$ans " = "e " )
+		    then
+		    $editor video0.cam
+		fi
+	    fi  # test video0.cam
+	    if ( test -s video1.cam )
+		then
+		printf "\n$0:  video1.cam file in place\n"
+	    else
+		printf "\nWARNING($0):  video1.cam file not found.\n"
+		echo "Installing a default.  Check it for accuracy."
+		>video1.cam printf "\
+# Auto-generated video1.cam file.  Check it.   \n\
+imWidthCalEx  = $imWidthCalEx  # pixels image width, set by checkSetup \n\
+imHeightCalEx = $imHeightCalEx  # pixels image height, set by checkSetup \n\
+focalCalEx    = $focalCalEx  # =f/w*imWidthCalEx, pixels\n\
+#  where w is camera ccd width, mm, (=4.8 for 1/2 inch CCD format), \n\
+#  f is camera focal length, mm, read off the lens or better\n\
+#  from a test of the lens (see the report and use the .xls spreadsheet\n\
+#  supplied in the documentation.   \n\
+AbConstant = 1.  # internal calibration, see .xls spreadsheet.  1 is nominal\n\
+Abrqw2     = 0.  # internal calibration, see .xls spreadsheet.  0 is nominal\n\
+AbipimR    = 0.  # internal calibration, see .xls spreadsheet.  0 is nominal\n\
+AbjpjmR    = 0.  # internal calibration, see .xls spreadsheet.  0 is nominal\n\
+ARC        = 1.3333 # internal calibration, see .xls spreadsheet.  1.3333 is nominal\n\
+RgSir      = 0\n\
+RgSiri     = 0\n\
+RgSjr      = 0\n\
+RgSjrj     = 0\n\
+"
+		printf "\nEnter 'e' to edit video1.cam.  Else enter to skip > "
+		read ans
+		if ( test "$ans " = "e " )
+		    then
+		    $editor video1.cam
+		fi
+	    fi  # test video1.cam
+	fi  # test video0.cam && test video1.cam
+
+        # Make video?.tune files
+	if ( test -s video0.tune   \
+	    && test -s video1.tune   )
+	    then
+	    echo "$0:  .tune files in place"
+	else
+	    if ( test -s video0.tune )
+		then
+		echo "$0:  video0.tune file in place"
+	    else
+		printf "\nWARNING($0):  video0.tune file not found.\n"
+		echo "Installing a default.  Check it for accuracy."
+		>video0.tune printf "\
+# Auto-generated video0.tune file.  Check it.   \n\
+agaussScalar         = 1.0,                     \n\
+bgaussScalar         = 1.0,                     \n\
+minBallDensityScalar = 1.0,                     \n\
+minBallAreaScalar    = 1.0,                     \n\
+maxBallAreaScalar    = 1.0,                     \n\
+minBallRatioScalar   = 1.0,                     \n\
+maxBallRatioScalar   = 1.0,                     \n\
+minProxScalar        = 1.0,                     \n\
+"
+		printf "\nEnter 'e' to edit video0.tune.  Else enter to skip > "
+		read ans
+		if ( test "$ans " = "e " )
+		    then
+		    $editor video0.tune
+		fi
+	    fi  # test video0.tune
+	    if ( test -s video1.tune )
+		then
+		echo "$0:  video1.tune file in place"
+	    else
+		printf "\nWARNING($0):  video1.tune file not found.\n"
+		echo "Installing a default.  Check it for accuracy."
+		>video1.tune printf "\
+# Auto-generated video1.tune file.  Check it.   \n\
+agaussScalar         = 1.0,                     \n\
+bgaussScalar         = 1.0,                     \n\
+minBallDensityScalar = 1.0,                     \n\
+minBallAreaScalar    = 1.0,                     \n\
+maxBallAreaScalar    = 1.0,                     \n\
+minBallRatioScalar   = 1.0,                     \n\
+maxBallRatioScalar   = 1.0,                     \n\
+minProxScalar        = 1.0,                     \n\
+"
+		printf "\nEnter 'e' to edit video1.tune.  Else enter to skip > "
+		read ans
+		if ( test "$ans " = "e " )
+		    then
+		    $editor video1.tune
+		fi
+	    fi  # test video1.tune
+	fi
+
+        # Make world.tune file
+	if ( test -s zone.tune  )
+	    then
+	    echo "$0:  zone.tune file in place"
+	else
+	    printf "\nWARNING($0):  zone.tune file not found.\n"
+	    echo "Installing a default.  Check it for accuracy."
+	    >zone.tune printf "\
+#Default zone file format:    \n\
+dxZone    = 0.0    # reposition strike zone to the right, inches\n\
+dzZone    = 0.0    # reposition strike zone upwards, inches\n\
+gravity   = 386.0  # gravity constant, in/sec/sec. Set=0 for pendulum\n\
+velThresh = -400.  # ball motion detection, in/sec. Speed towards ump is < 0.\n\
+velMax    =-2290.  # ball motion maximum, in/sec. Speed towards ump is < 0.\n\
+left      = -9.0   # left   side of strike zone, inches\n\
+right     = +9.0   # right  side of strike zone, inches\n\
+top       = 48     # top height of strike zone, inches\n\
+bottom    = 18     # bottom height of strike zone, inches\n\
+ballDia   = 2.75   # baseball inches\n\
+triangulationScalar = 1   # number ball diameters parallax allowed\n\
+speedDisplayScalar = 17.6 # conversion from inches/sec to mph for display\n"
+	    printf "\nEnter 'e' to edit zone.tune.  Else enter to skip > "
+	    read ans
+	    if ( test "$ans " = "e " )
+		then
+		$editor zone.tune
+	    fi
+	    
+	fi
+
+        # Make world.dat
+	if ( test -s world.dat )
+	    then
+	    echo "$0:  world.dat file in place"
+	else
+	    printf "\nWARNING($0):  world.dat file not found.\n"
+	    echo "Installing a default.  Check it for accuracy."
+	    >world.dat printf "\
+#Auto-generated world.dat file, check it:    \n\
+# Coordinate origin is front center of plate, on ground.
+# X axis goes toward umpire right
+# Y axis goes toward pitcher.
+# Z axis goes upward.
+# Left camera is from umpires point of view.
+Pl  = [-10 -10 10] # 3D position left cam, inches      \n\
+Pr  = [ 10 -10 10] # 3D position right cam, inches     \n\
+# You should spread objects in a triangle.  A straight line will
+# create a numerical error.  
+OA  = [  0  10  1.375 ] # 3D position first  object A, inches  \n\
+OB  = [-10  20  1.375 ] # 3D position second object B, inches \n\
+OC  = [ 10  20  1.375 ] # 3D position third  object C, inches  \n\n\
+CAUTION*****  Balls centerlines are off the ground surface.\n\
+"
+	    printf "\nEnter 'e' to edit world.dat.  Else enter to skip > "
+	    read ans
+	    if ( test "$ans " = "e " )
+		then
+		$editor world.dat
+	    fi
+	fi
+
+
+        # Make .mask files
+	if (   test -s video0.maskA   \
+	    && test -s video0.maskB   \
+	    && test -s video0.maskC   \
+	    && test -s video1.maskA   \
+	    && test -s video1.maskB   \
+	    && test -s video1.maskC   )
+	    then
+	    echo "$0:  .mask files in place"
+	else
+	    printf "\n$0:  creating template .mask files.\n"
+	    echo "     You will edit them later in process."
+	    for DEV in $devices
+	      do
+	      for BALL in $balls
+		do
+		>video"$DEV".mask"$BALL" printf "\
+# Mask video$DEV.mask$BALL    \n\
+   0    0    1    1     0    0    0   \n\
+  Sx   Sy    Dx   Dy   DDx   DDy  1   \n\n\
+#  Explanation follows:               \n\
+#  First blank the screen             \n\
+#   0    0    1    1     0    0    0  \n\
+# Now replace the alpha characters with numbers.                   \n\
+# The top left corner of the visible area is (Sx*N, Sy*M), where   \n\
+# S is units of fraction of total NxM image size.                  \n\
+# The visible area is Dx*N wide by Dy*M tall.                      \n\
+# The lower right corner is skewed by DDx*N and DDy*M.             \n\
+#  Sx   Sy    Dx   Dy   DDx   DDy  1   \n\
+# See the info document or ump.html for description.\n\
+# Look at exmask.ps (included in doc) for a graphical example\n\
+# Get calculator to determine the fractions.  You will have chance to iterate.\n\
+# The left camera from umpire point of view is 0.  Right is 1.\n\
+# Convention for balls A, B, C:  start at ball near home, go clockwise.\n"
+	      done
+	    done
+	fi
+
+
+        # Take stills
+	if ( test "$all" -eq "1" )
+	    then
+	    printf "\nEnter 's' to take stills for mask setup.  Else enter to go on > "
+	    read ans
+	    if ( test "$ans " = "s " )
+		then
+		printf "\nPut three white balls in place. Enter when ready > "
+		read ans
+		streamer -q -c/dev/video0 -s"$size" \
+		    -nNTSC -t2 -r1 -iComposite1 -o"$OUTFA"\0.pgm
+		streamer -q -c/dev/video1 -s"$size" \
+		    -nNTSC -t2 -r1 -iComposite1 -o"$OUTFB"\0.pgm
+		sleep 2; rm -f "$OUTFA"0.pgm "$OUTFB"0.pgm
+	    fi
+	    printf "\nEnter 'g' to start The Gimp to measure balls.  Else enter to go on > "
+	    read ans
+	    if ( test "$ans " = "g " )
+		then
+		gimp  "$OUTFA"1.pgm  "$OUTFB"1.pgm  &
+		echo "Open "$OUTFA"1.pgm and "$OUTFB"1.pgm for video0 and 1 respectively"
+	    fi
+	    printf "\nEnter 'e' to edit masks.  Else enter to go on > "
+	    read ans
+	    if ( test "$ans " = "e " )
+		then
+		$editor video0.maskA
+		$editor video0.maskB
+		$editor video0.maskC
+		$editor video1.maskA
+		$editor video1.maskB
+		$editor video1.maskC
+	    fi
+	fi
+
+        # Make raw image files
+	printf "\nEnter 'r' to make raw image files for calibration.  "
+	printf "Else enter to go on > "
+	read ans
+	if ( test "$ans " = "r " )
+	    then
+            # Take all three balls at once
+	    if ( test $all -eq "1" )
+		then
+		printf "\nPut three white balls in place. Enter when ready > "
+		read ans
+		>temp ump -s"$size"               -oballZero.raw -t8 2>&1
+		>temp ump -s"$size" -c/dev/video1 -oballOne.raw  -t8 2>&1
+		printf "\nPut three black balls in place. Enter when ready > "
+		read ans
+		>temp ump -s"$size"               -oblankZero.raw -t8 2>&1
+		>temp ump -s"$size" -c/dev/video1 -oblankOne.raw  -t8 2>&1
+		echo "Slicing..."
+		sliceraw -iblankZero.raw -oblankZeros.raw -t1.5:2
+		sliceraw -iballZero.raw  -oballZeros.raw  -t1.5:2
+		sliceraw -iblankOne.raw  -oblankOnes.raw  -t1.5:2
+		sliceraw -iballOne.raw   -oballOnes.raw   -t1.5:2
+		echo "Shuffling..."
+		sliceraw -iballZeros.raw -iblankZeros.raw -ocala.raw
+		sliceraw -iballOnes.raw  -iblankOnes.raw  -ocalb.raw
+		mv cala.raw cal0.raw
+		mv cala.set cal0.set
+		mv cala.tim cal0.tim
+		mv calb.raw cal1.raw
+		mv calb.set cal1.set
+		mv calb.tim cal1.tim
+            # Take individual shots
+	    else
+		for BALL in $balls
+		  do
+		  printf "\nPut white ball in place $BALL. Enter when ready > "
+		  read ans
+		  >temp ump -s"$size"               -oballZero"$BALL".raw \
+		      -t8 2>&1
+		  >temp ump -s"$size" -c/dev/video1 -oballOne"$BALL".raw  \
+		      -t8 2>&1
+		  streamer -q -c/dev/video0 -s"$size" -nNTSC -t2 -r1 \
+		      -iComposite1 -osnapZero"$BALL"\0.pgm
+		  streamer -q -c/dev/video1 -s"$size" -nNTSC -t2 -r1 \
+		      -iComposite1 -osnapOne"$BALL"\0.pgm
+		  
+		  printf "\nPut black ball in place $BALL. Enter when ready > "
+		  read ans
+		  >temp ump -s"$size"               -oblankZero"$BALL".raw \
+		      -t8 2>&1
+		  >temp ump -s"$size" -c/dev/video1 -oblankOne"$BALL".raw  \
+		      -t8 2>&1
+
+		  printf "\nSlicing $BALL...\n"
+		  sliceraw -iblankZero"$BALL".raw -oblankZero"$BALL"s.raw \
+		      -t1.5:1.77
+		  sliceraw -iballZero"$BALL".raw  -oballZero"$BALL"s.raw  \
+		      -t1.5:1.77
+		  sliceraw -iballZero"$BALL"s.raw -iblankZero"$BALL"s.raw \
+		      -ocalZero"$BALL".raw
+		  sliceraw -iblankOne"$BALL".raw  -oblankOne"$BALL"s.raw \
+		      -t1.5:1.77
+		  sliceraw -iballOne"$BALL".raw   -oballOne"$BALL"s.raw  \
+		      -t1.5:1.77
+		  sliceraw -iballOne"$BALL"s.raw  -iblankOne"$BALL"s.raw \
+		      -ocalOne"$BALL".raw
+
+		  printf "\nEnter 'g' to start The Gimp to measure balls and modify mask.\n"
+		  printf "Enter 'g' for The Gimp.  Else enter to go on > "
+		  read ans
+		  if ( test "$ans " = "g " )
+		      then
+		      gimp snapZero1.pgm snapOne1.pgm &
+		      printf "\nOpen snapZero"$BALL"1.pgm and snapOne"$BALL"1.pgm for video0 and 1 respectively\n"
+		      $editor video0.mask"$BALL"
+		      $editor video1.mask"$BALL"
+		  fi
+		done
+
+		printf "\nShuffling...\n"
+		sliceraw -c -icalZeroA.raw  -icalZeroB.raw -ocalZeroAB.raw
+		sliceraw -c -icalZeroAB.raw -icalZeroC.raw -ocalZero.raw
+		mv calZero.raw cal0.raw
+		mv calZero.set cal0.set
+		mv calZero.tim cal0.tim
+		sliceraw -c -icalOneA.raw  -icalOneB.raw -ocalOneAB.raw
+		sliceraw -c -icalOneAB.raw -icalOneC.raw -ocalOne.raw
+		mv calOne.raw cal1.raw
+		mv calOne.set cal1.set
+		mv calOne.tim cal1.tim
+	    fi
+	fi
+	
+	printf "\nFiles ready for next step\n"
+        # interactive section end
+
+    else  # non-interactive
+	if ( test "$srcdir " = " " )
+	    then
+	    echo "$0:  run in src dir or 'export srcdir=.' or run 'checkSetup -l'"
+	    exit 77
+	fi
+	if ( test "$srcdir " = ". " )
+	    then
+	    echo "$0:  using local files"
+	else
+	    if (   test -s cal0.raw       \
+		&& test -s cal1.raw       \
+		&& test -s video0.maskA   \
+		&& test -s video0.maskB   \
+		&& test -s video0.maskC   \
+		&& test -s video1.maskA   \
+		&& test -s video1.maskB   \
+		&& test -s video1.maskC   \
+		&& test -s video0.cal.checkSetup \
+		&& test -s video1.cal.checkSetup \
+		&& test -s endendA.dat    \
+		&& test -s endendB.dat    \
+		&& test -s endendC.dat    )
+		then
+		cp -f video0.cal.checkSetup video0.cal
+		cp -f video1.cal.checkSetup video1.cal
+	    else
+		echo "$0:  Look in this script to see what files missing for"
+		echo "     non-interactive option."
+		exit 77
+	    fi
+	fi
+    fi
+
+    # Loop through cases
+    for DEV in $devices
+      do
+      for BALL in $balls
+	do
+	repeat=1
+	while ( test $repeat -eq 1 )
+	  do
+	  cp -f video"$DEV".mask"$BALL" video"$DEV".mask
+	  rm -f tempR*
+	  echo ""
+	  echo "$0: calculating results device $DEV, mask $BALL..."
+	  if ( test "$srcdir " = " " )
+	      then
+	      echo "$0(running):  >temp ump -v5 -C -ical"$DEV".raw -w0 2>&1"
+	      >temp ump -v5 -C -ical"$DEV".raw -w0 2>&1
+	  else
+	      echo "$0(running):  >temp $buildsrcdir/ump -v5 -C -ical"$DEV".raw -w0 2>&1"
+	      >temp "$buildsrcdir"/ump -v5 -C -ical"$DEV".raw -w0 2>&1
+	  fi
+	  cp temp temp"$BALL"
+	  if ( test $? -ne 0 )
+	      then
+	      grep ERROR temp
+	      echo "ERROR($0):  ump failed."
+	      exit 1
+	  fi
+	  numdet=`grep "L B F" temp | wc -l`
+	  if ( test $numdet -lt $MINDETECT )
+	      then
+	      if ( test $interactive -eq "1" )
+		  then
+		  printf "\nWARNING($0):$numdet detections; require $MINDETECT.\n"
+		  echo "Run plots and change mask.  If there were no detections,"
+		  echo "open snapZero1.pgm and snapOne1.pgm using gimp and"
+		  echo "calculate a better mask.  You will not get any plots."
+	      else
+		  printf "\nERROR($0):  $numdet detections; require $MINDETECT.\n"
+		  exit 1
+	      fi
+	  fi
+	  cat temp |grep "L B F"
+	  sleep 1
+	  if ( test $interactive -eq "1" )
+	      then
+	      printf "\nEnter 'p' for plots to check and edit mask this ball.\nIf there were no detections, you will get no plots but can still try a new edit.\n\nEnter 'p' for plots.  Else enter to go on > "
+	      read ans
+	      if ( test "$ans " = "p " )
+		  then
+		  printf "\nShowing plots.  Verify mask setup correctly.\n"
+		  showppms
+	      fi
+	      printf "\nEnter 'e' to edit mask and repeat calculation.  Else enter to go on > "
+	      read ans
+	      if ( test "$ans " = "e " )
+		  then
+		  $editor video"$DEV".mask"$BALL"
+	      else
+		  printf "\nUse the data with highest density (the solid balls), and add 'raw' \ndata displayed in parenthesis into the video$DEV.dat file. You may cut and \npaste comma-separated-values.  Note also that you may use a graphical editing \nprogram such as The Gimp to measure the pixels.  All programs are capable of \ndistortion compensation so enter raw pixels here.\n\nEnter 'e' to edit.  Else enter for next ball > "
+		  read ans
+		  if ( test "$ans " = "e " )
+		      then
+		      if ( test -s video"$DEV".dat )
+			  then
+			  $editor video"$DEV".dat
+		      else
+			  printf "\nMESSAGE($0): auto-gen template .dat file:\n"
+			  >video"$DEV".dat printf "\
+# video$DEV.dat:    \n\
+# Enter coordinates as detected by ump or read off\nof a screen shot of same resolution. \n\
+# First  ball is OAp (mask A)         \n\
+# Second ball is OBp (mask B)         \n\
+# Third  ball is OCp (mask C)         \n\
+OAp       = [  0      0   ];  \n\
+OBp       = [  0      0   ];  \n\
+OCp       = [  0      0   ];  \n\
+"
+			  $editor video"$DEV".dat
+		      fi
+		  fi
+		  printf "\nGoing to next ball/device.  Enter when ready to go on > "
+		  read ans
+		  break;
+	      fi 
+	  else
+	      repeat=0
+	  fi
+	done  #true
+      done  #BALL
+    done  #DEV
+    if ( test "$interactive " -eq "1 " )
+	then
+	printf "\n$0:  Done setting up.  Moving on to end-end check.\n"
+    fi
+    # Generate .cal files
+    if ( test $interactive -eq "1" )
+	then
+	printf "\nEnter 'z' to generate .cal files.   Else enter to go on > "
+	read ans
+	if ( test "$ans " = "z " )
+	    then
+	    extCal
+	    if ( test $? -ne 0 )
+		then
+		printf "\nERROR($0):  extCal failed.\n"
+		exit 1
+	    else
+		if ( test "$interactive " -eq "1 " )
+		    then
+		    printf "\n$0:  copy video?.cal and video?.tune to where needed.\n"
+		fi
+	    fi
+	fi
+    else
+	if ( test "$srcdir " = ". " )
+	    then
+	    extCal
+	    if ( test $? -ne 0 )
+		then
+		printf "\nERROR($0):  extCal failed.\n"
+		exit 1
+	    else
+		echo "$0:  copy video?.cal and video?.tune to where needed."
+	    fi
+	fi
+    fi
+fi #endend
+
+# Check end-end
+if ( test $endend -eq "1" || test $interactive -eq "1" )
+    then
+    cp -f cal0.tim cal1.tim  # synchronize time in data files
+    for BALL in $balls
+      do
+      sleep 2
+      repeat=1
+      while ( test $repeat -eq 1 )
+	do
+	echo ""
+	echo "$0:  Checking ball $BALL calibration end-to-end."
+	if ( test "$srcdir " = " " )
+	    then
+	    echo "$0:  Running '>temp ump -v5 -C -ical0.raw -ical1.raw -w0 2>&1 &'"
+	else
+	    echo "$0:  Running '>temp $srcdir/ump -v5 -C -ical0.raw -ical1.raw -w0 2>&1 &' "
+	fi
+	cp -f video0.mask"$BALL" video0.mask
+	cp -f video1.mask"$BALL" video1.mask
+	if ( test $interactive -eq "1" )
+	    then
+	    if ( test $long -eq "0" )
+		then
+		echo "Expect 10 seconds"
+		echo -ne "          ||\r"
+	    else
+		echo "Expect 30 seconds"
+		echo -ne "                          ||\r"
+	    fi
+	else
+	    echo "Expect 7 seconds"
+	    echo -ne "       ||\r"
+	fi
+	if ( test "$srcdir " = " " )
+	    then
+	    >temp         ump -v5 -C -ical0.raw -ical1.raw -w0 2>&1 &
+	else
+	    >temp $srcdir/ump -v5 -C -ical0.raw -ical1.raw -w0 2>&1 &
+	fi
+	job=$!
+        # Extra time for interactive in case lots of pixels.
+	if ( test $interactive -eq "1" )
+	    then
+	    if ( test $long -eq "0" )
+		then
+		sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+	    else
+		sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+		sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+		sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+		sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+		sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+		sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+		sleep 1;echo -n "."; sleep 1;echo -n ".";
+	    fi
+	fi
+	sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+	sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+	sleep 1;echo ".";
+	kill $job 2>/dev/null;success=$?
+	cp temp temp"$BALL"
+	if ( test $success -ne 1 )
+	    then
+	    cp temp temp"$BALL"
+	    echo "MESSAGE($0):  ump end-end failed for ball $BALL."
+	    echo "Continuing next ball."
+	    if ( test $interactive -eq 1 )
+		then
+		printf "\nPress Enter to rerun.  Enter 'd' to move on > "
+		read ans
+		if ( test "$ans " = "d " )
+		    then
+		    repeat=0
+		else
+		    repeat=1
+		fi
+	    else
+		repeat=0
+	    fi
+	else
+	    repeat=0
+	    echo ""
+	    echo "Results:"
+	    grep "BALL_POSI" temp
+	    grep "BALL_POSITION" temp | sed 's/BALL_POSI/BALL POSI/g' |
+	    sed 's/=/ /g' | cut -d" " -f3- |
+	    awk 'BEGIN{IFS=" "; xa=0; xb=0; xc=0; n=0;xax=-10000;xan=10000; \
+                     xbx=-10000;xbn=10000;xcx=-10000;xcn=10000;       }\
+       { xa=xa+$1; xb=xb+$2; xc=xc+$3; n=n+1;                         \
+         if ($1>xax) xax=$1; if ($1<xan) xan=$1;                      \
+         if ($2>xbx) xbx=$2; if ($2<xbn) xbn=$2;                      \
+         if ($3>xcx) xcx=$3; if ($3<xcn) xcn=$3;                      }\
+         END{printf "AVERAGE= (%s, %s, %s) N=%s, RANGE= (%s|%s|%s, %s|%s|%s, %s|%s|%s)\n",  \
+   xa/n, xb/n, xc/n, n, xan, xax,xax-xan, xbn, xbx, xbx-xbn, xcn, xcx, xcx-xcn}'
+	    grep O"$BALL" world.dat
+	    if ( test $interactive -eq 1 )
+		then
+		echo ""
+		echo "$0: expect the above to be close to O$BALL"
+	    else
+		echo ""
+		echo "$0: expected result, expect dropped images and roundoff errors:"
+		cat endend"$BALL".dat 2>/dev/null
+	    fi
+	fi
+      done #repeat
+    done  #BALL
+fi    #endend
+
+if ( test "$interactive " -eq "1 " )
+    then
+    echo "$0:  copy zone.tune, world.dat, and video?.cal to where needed."
+fi
+echo ""
+echo "$0: SUCCESS."
+sleep 2
+exit 0

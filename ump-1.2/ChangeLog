@@ -1,0 +1,161 @@
+Dave Gutz <davegutz@alum.mit.edu>  24 Jan 2010
+* Version 1.2-1
+* mac port fix font in showppms
+Dave Gutz <davegutz@alum.mit.edu>  10 Jan 2010
+* Version 1.2-0
+* mac port
+Dave Gutz <davegutz@alum.mit.edu>  18 Dec 2007
+* Version 1.1-1
+* RHEL5 clean compile except STRTAB initialization
+Dave Gutz <davegutz@alum.mit.edu>  16 Dec 2007
+* Version 1.1-0
+* RHEL5
+Dave Gutz <davegutz@alum.mit.edu>  16 Feb 2007
+* Version 1.0-6
+* style
+Dave Gutz <davegutz@alum.mit.edu>  11 Feb 2007
+* Version 1.0-5
+* style
+Dave Gutz <davegutz@alum.mit.edu>  26 Jan 2007
+* Version 1.0-4
+* leak blink
+Dave Gutz <davegutz@alum.mit.edu>  22 Jan 2007
+* Version 1.0-3
+* checkCal fix
+Dave Gutz <davegutz@alum.mit.edu>  15 Jan 2007
+* Version 1.0-2
+* Some leak fixes
+Dave Gutz <davegutz@alum.mit.edu>  22 Dec 2006
+* Version 1.0-1
+* revised lyx report
+Dave Gutz <davegutz@alum.mit.edu>  15 Sep 2006
+* Version 1.0-0
+* done?
+Dave Gutz <davegutz@alum.mit.edu>  23 Aug  2006
+* Version 0.15-4
+* debug
+Dave Gutz <davegutz@alum.mit.edu>   6 Aug  2006
+* Version 0.15-3
+* SY only
+Dave Gutz <davegutz@alum.mit.edu>  12 July  2006
+* Version 0.15-2
+* zap and LeakTracer
+Dave Gutz <davegutz@alum.mit.edu>  10 June  2006
+* Version 0.15-1
+* SY and centerpoint corrections to fix accuracy problems. (2 in --> 0.25 in)
+Dave Gutz <davegutz@alum.mit.edu>  27 May   2006
+* Version 0.14-2
+* some debug
+Dave Gutz <davegutz@alum.mit.edu>  20 May   2006
+* Version 0.14-1
+* initial release
+Dave Gutz <davegutz@alum.mit.edu>   7 May   2006
+* Version 0.13-16
+* progress on Blink
+Dave Gutz <davegutz@alum.mit.edu>   1 May   2006
+* Version 0.13-15
+* progress on Blink
+Dave Gutz <davegutz@alum.mit.edu>  29 April 2006
+* Version 0.13-14
+* progress on Blink
+Dave Gutz <davegutz@alum.mit.edu>  24 April 2006
+* Version 0.13-13
+* progress on Blink
+Dave Gutz <davegutz@alum.mit.edu>  18 April 2006
+* Version 0.13-12
+* progress on Blink
+Dave Gutz <davegutz@alum.mit.edu>  8 March 2006
+* Version 0.13-11
+* progress on Blink
+Dave Gutz <davegutz@alum.mit.edu> 20 February 2006
+* Version 0.13-10
+* progress on Blink
+Dave Gutz <davegutz@alum.mit.edu> 12 February 2006
+* Version 0.13-9
+* port to AMD
+Dave Gutz <davegutz@alum.mit.edu> 4 February 2006
+* Version 0.13-8
+* debug glade
+Dave Gutz <davegutz@alum.mit.edu> 14 January 2006
+* Version 0.13-7
+* debug glade
+Dave Gutz <davegutz@alum.mit.edu> 9 January 2006
+* Version 0.13-6
+* debug glade
+Dave Gutz <davegutz@alum.mit.edu> 8 January 2006
+* Version 0.13-5
+* glade
+Dave Gutz <davegutz@alum.mit.edu> 24 December 2005
+* Version 0.13-4
+* tim2clk
+Dave Gutz <davegutz@alum.mit.edu> 24 December 2005
+* Version 0.13-3
+* Cleanup TODO
+Dave Gutz <davegutz@alum.mit.edu> 17 December 2005
+* Version 0.13-2
+* Mask.h Mask.cc
+Dave Gutz <davegutz@alum.mit.edu> 17 December 2005
+* Version 0.13-1
+* Draw mask from mm files
+Dave Gutz <davegutz@alum.mit.edu> 17 December 2005
+* Version 0.12-7
+* Crunch pixmaps, debug triangulation, n & m from .cal
+Dave Gutz <davegutz@alum.mit.edu> 03 December 2005
+* Version 0.12-6
+* Negative dTball and isnan
+Dave Gutz <davegutz@alum.mit.edu> 01 December 2005
+* Version 0.12-5
+* checkSetup size option and register correction.
+Dave Gutz <davegutz@alum.mit.edu> 25 November 2005
+* Version 0.12-4
+* Initial version still taker
+Dave Gutz <davegutz@alum.mit.edu> 22 October 2005
+* Version 0.12-3
+* Time reject fixes
+Dave Gutz <davegutz@alum.mit.edu> 22 October 2005
+* Version 0.12-2
+* Port to RHEL4.
+Dave Gutz <davegutz@alum.mit.edu> 19 September 2005
+* Version 0.12
+* Port to RHEL4.
+Dave Gutz <davegutz@alum.mit.edu> 10 September 2005
+* Version 0.11
+* Tuning for driveway installation.  Mainly notes and clarifications except for new extCal method of calibration that is more direct.
+Dave Gutz <davegutz@alum.mit.edu> 09 January 2005
+* Version 0.10
+* Debug RHEL3 porting.  Add test images.
+Dave Gutz <davegutz@alum.mit.edu> 14 July 2002
+* Version 0.9
+* Debug RH7.3 porting
+Dave Gutz <davegutz@alum.mit.edu> 02 March 2002
+* Version 0.8
+* Debug UNIX porting
+Dave Gutz <davegutz@alum.mit.edu> 02 March 2002
+* Version 0.7
+* Status
+Dave Gutz <davegutz@alum.mit.edu> 02 March 2002
+* Version 0.6
+* Initial release, change zeroIn to extCal
+Dave Gutz <davegutz@alum.mit.edu> 23 November 2001
+* Version 0.5
+* Initial release, debug realTime signals.  Move pipeStreamerFork to realStream
+Dave Gutz <davegutz@alum.mit.edu> 23 November 2001
+* Version 0.4
+* Initial release, realimage && fix checkReal
+Dave Gutz <davegutz@alum.mit.edu> 23 November 2001
+* Version 0.3
+* Initial release, tests
+Dave Gutz <davegutz@alum.mit.edu> 14 October 2001
+* Version 0.1
+* Initial release
+* Add tune
+Dave Gutz <davegutz@alum.mit.edu> 14 October 2001
+* Version 0.9
+* Use raw pixels as input to calibrate.  Delete corners.  Fix aberration error.
+Dave Gutz <davegutz@alum.mit.edu> 14 October 2001
+* Version 0.8
+* TODO cleanup and optimized real-time throughput
+* Verbose option added
+Dave Gutz <davegutz@alum.mit.edu> 02 June 2001
+* Version 0.1
+* Initial release

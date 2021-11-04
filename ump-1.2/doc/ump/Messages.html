@@ -1,0 +1,151 @@
+<html lang="en">
+<head>
+<title>Messages - Umpire Practical Ball Vision Device</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Umpire Practical Ball Vision Device">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="Samples.html#Samples" title="Samples">
+<link rel="next" href="Tune.html#Tune" title="Tune">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Messages"></a>Next:&nbsp;<a rel="next" accesskey="n" href="Tune.html#Tune">Tune</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Samples.html#Samples">Samples</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr><br>
+</div>
+
+<!-- node-name,        next,  previous,        up -->
+<h2 class="chapter">11 Messages</h2>
+
+<p><a name="index-messages-338"></a><a name="index-verbose-output-339"></a><a name="index-ump-340"></a>
+The application can produce a lot of output, especially in <code>-v,--verbose</code> mode.
+
+     <dl>
+<dt><code>density too small: &lt;number&gt;</code><dd><a name="index-density-too-small-341"></a>        This means that the object pixel density is smaller than the tune file allows (tune with minBallDensityScalar).  An object that is clearly identified will have density near 1.0 while an object that is indistinct will have a density near 0.0.   Decrease the scalar to accept more low density objects.
+
+     <br><dt><code>ratio too large: &lt;number&gt;</code><dd>        This means that the object aspect ratio is larger than the tune file allows (tune with maxBallRatioScalar).  Increase to accept more. Try increasing until the number of BALL VELOCITY findings run using <code>-v2,--verbose2</code> mode is large.
+
+     <br><dt><code>POSSIBLY SWAPPED CAMERA WIRES</code><dd><a name="index-POSSIBLY-SWAPPED-CAMERA-WIRES-342"></a>        The camera wires are swapped as determined by a simple algorithm that looks for two consequetive balls to have positive velocity and uncertain triangulation.
+
+     <br><dt><code>BALL ZONE</code><dd><a name="index-BALL-ZONE-343"></a>
+     <pre class="example">                     time(s) zonex(in) zonez(in) err(in)
+          BALL ZONE= 2.52337 3.15469   5.83826   0.04354
+                     vx(in/s) vy(in/s) vz(in/s) y(in)
+                     21.0282 -143.117 -18.4117 14.217
+     </pre>
+     <br><dt><code>MESSAGE(Image): too many pixels changed: &lt;number&gt;</code><dd><a name="index-too-many-pixels-changed-344"></a>        The maximum number of pixels changed is usually 2x the ball shape.  This works out to be 200*(n/160)^2. This number is adjustable with -X option.  Beware that adjusting this affects throughput possible resulting in missed balls.  It might be advisable to move cameras further away or shorten focal length.  Consider using a mask to filter extraneous motion, See <a href="Input-Files.html#Input-Files">Input Files</a>.
+
+     <br><dt><code>Final dev[&lt;dev&gt;] number=&lt;number&gt;</code><dd><a name="index-Final-dev_005bX_005d-number_003d_002e_002e_002e-345"></a>        The number of pictures from device that had motion.  A tempR file has been saved when in record/playback mode.  When running calibration mode <code>-C</code> all images are saved.
+
+     <br><dt><code>MESSAGE(Image):  Cleaning up image files .mm, .lbl, and .ppm.</code><dd><a name="index-Cleaning-up-image-files_002e_002e_002e-346"></a>        When saving image files for viewing later using showppms, the application cleans up the old ones.  If the user wishes to save the old images they need to be copied elsewhere.  The script 'showppms' creates files tempRC0.ppm and tempRC1.ppm that are equivalent to contact strips for each device and contain every image with motion that was captured in a run.  These files are automatically cleaned up at the beginning of the next application run.  These files could be saved to another directory to save them for future use.  The <code>ump.x</code> or <code>showppms</code> or <code>showmms</code> scripts would be the best place to add such a feature.
+
+     <br><dt><code>MESSAGE(Image): mask for device 1:</code><dd><a name="index-mask-for-device_002e_002e_002e-347"></a>        This confirms the mask that the user entered, e.g.:
+     <pre class="example">          Start(6, 0) to (313, 224); Value=1
+     </pre>
+     <br><dt><code>MESSAGE(Image): calibration parameters for device 1:</code><dt><code>MESSAGE(Calibration): cal for device video1.cal:</code><dd><a name="index-calibration-parameters_002e_002e_002e-348"></a><a name="index-cal-for-device_002e_002e_002e-349"></a>        This confirms the .cal file inputs.  The aberration parameters are Abconstant, etc.  The application estimates the Tsai equivalent values for reference only. The user may input Tsai format.  For example:
+     <pre class="example">          imWidthCalEx  = 480, imHeightCalEx = 336
+          focalCalEx    = 515
+          imCalEx       = 240, jmCalEx = 175.503
+          ARC= 1.3675
+          Aberration= 0.983734 0.187962 0.062455 -0.031536
+          Register  = 0 0 0 0
+          P         = 3
+          10
+          -3.875
+          18
+          ACPW      = 3 3
+          0.789535 -0.327165 -0.527005
+          0.610783 0.399862 0.682072
+          0.000197127 0.872102 -0.50683
+          
+          Tsai Equivalent:
+          cx=   unknown
+          Nfx=   480 assumed
+          dx=    unknown
+          dy=    unknown
+          dpx=   unknown
+          dpy=   unknown
+          Cx=    240
+          Cy=    175.503
+          sx=    unknown
+          f=     unknown
+          kappa1=unknown
+          Tx=    -144.997
+          Ty=    272.168
+          Tz=    433.702
+          Rx=    2.21352
+          Ry=    0.554423
+          Rz=    -0.383916
+          p1=    unknown
+          p2=    unknown
+     </pre>
+     <br><dt><code>MESSAGE(Image): tuning parameters for device 1: agauss_=16 bgauss_=30 minBallDensity=0.05 minBallArea=40 maxBallArea=440 minBallRatio=0.05 maxBallRatio=1 minProx=8 maxEdgePix_=200</code><dd><a name="index-tuning-parameters_002e_002e_002e-350"></a>            This echoes the tuning parameters resulting from scaling by the *.tune file parameters.  When running calibrate mode, <code>-C</code>, the same .tune files will create different parameters because calibrate assumes the balls are still.
+
+     <br><dt><code>MESSAGE(Calibration): zone for device zone.tune:</code><dd>            See the <span class="samp">zone.tune</span> file, See <a href="Input-Files.html#Input-Files">Input Files</a>. 
+<a name="index-zone-for-device_002e_002e_002e-351"></a>
+
+     <br><dt><code>ratio too small: 0.0320502</code><dd><a name="index-ratio-too-small_002e_002e_002e-352"></a>        The smear aspect ratio is smaller than allowed.  Tune with <code>minBallRatio</code>;  decrease to accept more.  Try decreasing until the number of BALL VELOCITY findings run using -v2 is large.)
+
+     <br><dt><code>ratio too large: inf</code><dd><a name="index-ratio-too-large_002e_002e_002e-353"></a>        The smear aspect ratio is larger than allowed.  Tune with <code>maxBallRatio</code>;  increase to accept more.  Try increasing until the number of BALL VELOCITY findings run using -v2 is large.)
+
+     <br><dt><code>on Edge</code><dd><a name="index-item-on-Edge_002e_002e_002e-354"></a>        The smear contacts a mask or image edge.  There may be part of the smear obscured so using the smear would be inaccurate.  These smears are discarded.
+
+     <br><dt><code>on Corner</code><dd><a name="index-item-on-Corner-355"></a>        There are four corner points artificially added to get the segmentation results to cluster properly.  The application marks these and deletes any clusters containing them.   Usually, only the four corner points are part of those clusters.
+
+     <br><dt><code>Motion Detected /dev/video0 45/45 { 2936.2 skew=-54.897 / slips=0 } &lt;0/0/0/0/0/0.033356&gt;</code><dd><a name="index-Motion-Detected-_002fdev_002f_002e_002e_002e_002e-356"></a>        Each device producer thread puts this out anytime more than a few pixels are excited by motion.  The example shown means that device zero detected 45 pixels changed, all 45 segmented into a cluster (small clusters are discarded),
+the time was 2936.2 milliseconds since the start of the process, the image is 54.897 milliseconds behind the other device, there were no images discarded since the last video0 sampling (done intentionally to reduce skew) and this frame's minor frame time usage was 0 seconds to load the image, 0 seconds to calculate motion, 0 seconds to print the result, 0 seconds to reach the end, 0 seconds total image processing time and 0.033356 seconds since last image used.  These are normal times for record/playback mode.  Results would be different for real time operation.
+
+     <br><dt><code>1:  L B Found  2.94792 sec, val= 122, cnt=  4, area= 65, dens=0.06, cent= 74.8,149.1 undistorted</code><dd><a name="index-L-B-Found_002e_002e_002e-357"></a>      After determining that a cluster is a ball, each device prints this out.  In this case, the consumer detected 1 new light ball.  This is followed by the time since start, the average pixel intensity of all the excited pixels (not the others ), the count of the number of excited pixels in the cluster, the planar area on the image that the cluster covers, the fractional density of the area that has excited pixels, and finally the raw, uncorrected pixel location of the centroid.
+
+     <br><dt><code>1 NEW LIGHT BALLS:</code><dd><a name="index-_002e_002e_002eNEW-LIGHT-BALLS_003a_002e_002e_002e-358"></a>
+     <pre class="example">          1  1       2.947918 size= 65 dens=0.06 centroid= 74.8,149.1
+          0  1       2.769369 size=130 dens=0.95 centroid=107.6, 63.4
+          1  1       2.747714 size= 87 dens=0.97 centroid=250.2, 40.0
+     </pre>
+     <p>After finding light balls they are sorted by time and device.  This message is a summary of all the balls presently retained in memory to be used for triangulating position.  The first column is the device thread which produced the object.  Then is a 0 or 1 digit signifying whether the object is light or dark.  This should always be 1 for LIGHT BALLS.  This is followed by the time since start, the planar area on the image that the cluster covers, the fraction of the area that has excited pixels, and finally the undistorted, corrected pixel location of the centroid.
+
+     <br><dt><code>CHOSEN:</code><dd><a name="index-CHOSEN_003a_002e_002e_002e-359"></a>
+     <pre class="example">          1 2.747 size=87 dens=0.97 centroid=250,40 other=86.5,47.9
+          X O X previous is unique; interpolate others to previous
+     </pre>
+     <p>After sorting the balls the application makes its best attempt to determine the ball position.  Even if the sorting has produced a new object skewed backward in time there is still new information to be gleaned so the triangulation is repeated to produce the latest, best estimate of ball position.  This message identifies the 'L B Found' object that is used to interpolate the predicted ball position.  In this case the object associated with the past, previous time, from device 1, is between two objects detected on the other device 0.  Only one object from device 1 is used and is unique.  It is denoted as &ldquo;O&rdquo; in the pattern and the two from device 0 are denoted as &ldquo;X&rdquo; in the pattern.  The time of the &ldquo;O&rdquo; object falls between the &ldquo;X&rdquo; objects.  After interpolating the &ldquo;X&rdquo; positions to the &ldquo;O&rdquo; time the result is a predicted &ldquo;X&rdquo; position at the same time as &ldquo;O&rdquo;.  The result is the &ldquo;other&rdquo; position in the message.  There are three possible combinations for this message:  &ldquo;X O X&rdquo;, &ldquo;X X O&rdquo;, and &ldquo;O X X&rdquo;.  Sometimes device 0 will be &ldquo;X&rdquo; and sometime device 1 will be &ldquo;X&rdquo; depending on which one contains the unique, lone object.
+
+     <br><dt><code>uncertainty = 0.0696117 0 0</code><dd><a name="index-uncertainty_003d_002e_002e_002e-360"></a>      Triangulation is over-constrained such that three simultaneous equations predict two scalars on the camera direction vectors to produce a three-dimensional intersection.  The triangulation method finds the closest distance between the vectors and predicts the ball is midway between.  The uncertainty message is the (x, y, z) magnitudes of the uncertainty in the intersection.
+
+     <br><dt><code>BALL_POSITION(2.74771)1=-0.1422 20.0199 9.91169</code><dd><a name="index-BALL_005fPOSITION_002e_002e_002e-361"></a>       This is the triangulated ball location (x, y, z), inches (at time).
+
+     <br><dt><code>BALL TIME REJECT</code><dd><a name="index-BALL-TIME-REJECT_002e_002e_002e-362"></a>       Interpolation skips if the time between candidate balls is larger than an arbitrary time limit set to exceed two frames.
+
+     <br><dt><code>BALL TRIANGULATION REJECT</code><dd><a name="index-BALL-TRIANGULATION-REJECT-363"></a>       Triangulation errors in excess of one ball indicate a fractured image or shift in external calibration.  The threshold is not tunable at present.
+
+     <br><dt><code>BALL UNCERTAINTY(2.74771)=0.0696117</code><dd><a name="index-BALL-UNCERTAINTY_002e_002e_002e-364"></a>       See <code>uncertainty</code> above.
+
+     <br><dt><code>BALL VELOCITY         =0 0 0</code><dd><a name="index-BALL-VELOCITY_002e_002e_002e-365"></a>       Calculated three-dimensional ball velocity vector, inches/sec.
+
+     <br><dt><code>BALL PREV POSITION(2.74771)1=-0.137469 20.2696 10.0025</code><dd><a name="index-BALL-PREV-POSITION_002e_002e_002e-366"></a>       Like POSITION but at previously successful time.
+
+     <br><dt><code>BALL PREV VELOCITY=0 0 0</code><dd><a name="index-BALL-PREV-VELOCITY_002e_002e_002e-367"></a>       Like VELOCITY but at previously successful time.
+
+     <br><dt><code>area too small: 38</code><dd><a name="index-item-area-too-small_003a_002e_002e_002e-368"></a>       An image has been rejected because it covers too small an area on the pixel map.  Tune with minBallAreaScalar.
+
+     <br><dt><code>area too large: 200</code><dd><a name="index-item-area-too-large_003a_002e_002e_002e-369"></a>       An image has been rejected because it covers too large an area on the pixel map.  Tune with maxBallAreaScalar.  The cameras may be too close or focal length too long.
+
+   </dl>
+
+   </body></html>
+

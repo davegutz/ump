@@ -1,0 +1,7 @@
+> temp1 ump -R2 -l1 -v -t200 -s120x90 -S2 -w11 2>&1 
+cat temp1 | grep "load test motion" |
+   awk '{printf("video%s %s\n",$1,$6)}' | sort | uniq |
+   awk ' {delta=$2-past; printf("%s %7.4f\n",$0,delta); past=$2}' >temp
+fps=`grep "12\." temp | grep video0 | wc -l`
+#cat temp | grep "12\." | sort -k2
+echo "LOADED frames/second = $fps"

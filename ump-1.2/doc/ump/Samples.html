@@ -1,0 +1,104 @@
+<html lang="en">
+<head>
+<title>Samples - Umpire Practical Ball Vision Device</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Umpire Practical Ball Vision Device">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="External-Calibration.html#External-Calibration" title="External Calibration">
+<link rel="next" href="Messages.html#Messages" title="Messages">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Samples"></a>Next:&nbsp;<a rel="next" accesskey="n" href="Messages.html#Messages">Messages</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="External-Calibration.html#External-Calibration">External Calibration</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr><br>
+</div>
+
+<!-- node-name,         next,                    previous,         up -->
+<h2 class="chapter">10 Samples</h2>
+
+<p>There are two main modes of running the main application ump:  record/playback <code>-i, -o</code> and real time <code>-Rx</code>, where x is either <code>1</code> or <code>2</code> to denote how many cameras to use.
+
+   <p><a name="index-sample-runs-325"></a><a name="index-additional-download-326"></a>
+
+<h3 class="section">10.1 Record/Playback</h3>
+
+<p><code>make check</code> will generate samples if files available.  The files if not available may be downloaded as file umpsamp.tar and over-installed in ump-ver/data directory.<br>
+   <pre class="sp">
+
+</pre>
+Manual sample run.  Go to the directory where the data and tuning files are, usually <code>DATA=ump-ver/data/X</code>.  Run:
+
+<pre class="example">     cd $DATA
+     ump -w0 -ixLas.raw -ixLbs.raw
+     showppms    # to look at results in .ppm files
+</pre>
+   <p>There will be different results depending on asynchronous start of image pipeline.  The file xL0.dat contains an example run.  The file xL0v.dat contains an example run with -v5 verbose option.   Also examine some files previously made:
+
+<pre class="example">     cd $DATA/xLs_images
+     showppms
+</pre>
+   <p>There is a wrapper script to simplify running this mode.  It generates an xterm window that comes up in an endless loop driven by a menu.  Run <code>Ump</code> to go into this mode.  The <code>make check</code> feature, specifically script <code>checkUmp</code>, offers an example.
+
+<h3 class="section">10.2 Real Time</h3>
+
+<p><a name="index-real_002dtime-327"></a><a name="index-frame-slips-328"></a><a name="index-dropped-frames-329"></a><a name="index-throughput-330"></a><a name="index-pthread-331"></a><a name="index-threads-332"></a><a name="index-task-scheduling-333"></a>
+This is an automatic running mode.  It is an endless record/playback loop conducted by the main application.  The application uses higher level visual perception the filter out unwanted motion and identify only the balls so the mode, in theory, could run continuously.  Go to a directory where you normally keep data and where the calibration and tuning files are.  Run:
+
+<pre class="example">     cd $DATA
+     ump -R2
+</pre>
+   <p>There is a wrapper script to simplify running this mode.  It generates an xterm window that comes up in an endless loop driven by a menu.  Run <code>Ump -r</code> to go into this mode.  This gives the same look and feel as the record/playback mode.<br>
+   <pre class="sp">
+
+</pre>
+In practice, the real time mode slips.  The standard Linux operating system attempts to schedule tasks in a time sharing method.  No matter how hard the user tries to force total attention to the vision task, the operating system occasionally checks other tasks and therefore causes the <code>ump</code> application to drop a frame.  Additional work may improve this situation.  The record/playback mode does not drop frames because when capturing the images it is in a devoted, threaded application mode.  The real time mode is an attempt to run concurrently with this threaded application, called <code>streamery</code> that is derived from <span class="file">xawtv</span> application, and so uses fork-exec methods to generate the monitor processes.  Probably efforts to bring the <span class="file">streamery</span> code into the thread scheduler of the real time application will result in much better synchronization.<br>
+   <pre class="sp">
+
+</pre>
+The slips are not all that frequent.  It may be possible to run this way with one of the newer computers with minimal slippage.  The application can drop a frame every third or fourth time and still call balls and strikes.  But it sometimes has problems with three or four consecutive dropped frames out of twelve.  The experience is with a Pentium II 350 MHz computer with 128 MB ram and PCI Brooktree frame grabber cards.  A more capable computer will work better.
+
+<h3 class="section">10.3 Requirements for <code>streamery</code> Program</h3>
+
+<p><a name="index-streamery-334"></a><a name="index-streamery-requirements-335"></a>Following are the requirements used to extend the <code>xawtv</code> application to run concurrently with the <code>ump</code> application:
+
+   <blockquote>
+Coordinate (synchronize) through a pipe. May be stdio. Use shared memory, named after the device, e.g. /dev/video0. As soon as started and memory created send a ready signal to the exec. Get one start signal from the executive. Then load mask from shared memory. Do own buffering locally. Whenever a reading is available send its location in reading_t down the pipe. Add a header - and make sufficient space in memory - of the reading_t information for each reading for executive to check proper information. Send information to executive with non-blocking write and let executive empty the pipe. 
+</blockquote>
+
+   <p>As discussed in the previous section, this synchronization model does not work perfectly and possible solutions are discussed.
+
+<h3 class="section">10.4 load test</h3>
+
+<p><a name="index-load-test-336"></a><a name="index-checkRealAll-337"></a>The user may use the following component tests to verify synchronization against his own requirements.   The final validation is how well the application runs on its own.   Go to where you usually keep data files and the tuning files.  Run the installed script <code>checkRealAll</code> that cycles through a spectrum of loading configurations.  To change the conditions, make a local copy of the script, edit it, and re-run.
+
+<pre class="example">     cd $DATA
+     checkRealAll
+</pre>
+   <p>An empty file means unable to synchronize real time.  Try running again or delete that combination from checkRealAll. <br>
+   <pre class="sp">
+
+</pre>
+To analyze the results, import the .tim files into a spreadsheet program for analysis.  The first column is the device name, e.g. video0.  The second column is the time stamp of a successfully acquired image.  The final column is the time since the previous image.  A perfectly operating system will have all values in the final column, except the first row, by equal to 0.0333 seconds.<br>
+   <pre class="sp">
+
+</pre>
+Alternatively, look at the script checkReal which sorts out the data for just one second and counts the number of frames occurring.
+
+   </body></html>
+

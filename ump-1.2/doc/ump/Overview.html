@@ -1,0 +1,49 @@
+<html lang="en">
+<head>
+<title>Overview - Umpire Practical Ball Vision Device</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Umpire Practical Ball Vision Device">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="index.html#Top" title="Top">
+<link rel="next" href="Installation.html#Installation" title="Installation">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Overview"></a>Next:&nbsp;<a rel="next" accesskey="n" href="Installation.html#Installation">Installation</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="index.html#Top">Top</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr><br>
+</div>
+
+<!-- node-name,         next,    previous,      up -->
+<h2 class="chapter">1 Overview</h2>
+
+<p><a name="index-missing-images-1"></a><a name="index-perceptual-grouping-2"></a><a name="index-segmentation-3"></a><a name="index-spectral-4"></a><a name="index-triangulation-5"></a><a name="index-Blink-6"></a><a name="index-graphical-user-interface-7"></a><a name="index-command-line-interface-8"></a>
+Monitor dual video capture card, segment captured images to detect
+moving balls, and predict whether balls intersect strike zone.
+
+   <p>There are two main ways to run this application.  The original way it was developed was using a command line interface.  The principal commands are <code>ump</code> and <code>checkSetup -i</code> to run the application and the setup script respectively.   Much of the info documentation is focused on those applications and their various ingredients and accessories.   The latest way to run it is using a graphical user interface.   The principal command is <code>Blink</code> to conduct and coordinate all of the command line interface functions in a way that is intuitive and more error-proofed.
+
+   <p>The underlying technology is eigenvalue mathematics with perceptual grouping concepts.  See the project documentation <span class="file">cuts.ps</span> for more information and lots of discussion of mathematical segmentation and perceptual grouping.  There is a very useful discussion of accuracy in there.  Following is the abstract from the report:
+
+   <p>'With careful setup and the computational methods presented herein, a skilled consumer can use off-the-shelf frame-grabber equipment to accurately predict baseball strikes and speed. Using a 1:7 scale prototype, a moving baseball's impact is measured in real time within one-half ball width 3 standard deviations. Successful detection relies on optimum camera position, small field of view, good lighting, efficient spectral segmentation, efficient perceptual grouping, and a standard vector triangulation. The entire method is documented and the application software available for standard Linux. Results are displayed real-time with pitch statistics in pictorial format from an umpire's viewpoint. A record-playback mode is available for complete visual record.'
+
+   <p><a name="index-zone_002etune-9"></a><a name="index-gravity-10"></a><a name="index-units-11"></a><a name="index-SI-units-12"></a><a name="index-world_002edat-13"></a>
+Throughout, the default units used are inches.  Should the user wish to use other units I believe they only need to use the other units in the <span class="file">world.dat</span> file and the <code>gravity</code> constant in the <span class="file">zone.tune</span> file.  Of course, the zone in <span class="file">zone.tune</span> file needs to be in the new units.  As a caution, I cannot imagine using meters or centimeters.  New units introduce the potential for mixing up the results and making more problems than a human umpire.
+
+   </body></html>
+

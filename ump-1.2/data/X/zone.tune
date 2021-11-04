@@ -1,0 +1,13 @@
+dxZone    = 0.0
+dzZone    = 0.0
+gravity   = 386.0
+velThresh = -110.
+velMax    = -2290.
+left      = -3.0
+right     = +3.0
+top       = 11.06
+bottom    = 3.06
+ballDia   = 0.5
+triangulationScalar = 10
+speedDisplayScalar = 17.6
+

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE omf PUBLIC "//OM//DTD Scrollkeeper OMF Variant V1.0//EN"
+"http://scrollkeeper.sourceforge.net/dtds/scrollkeeper-omf-1.0/scrollkeeper-omf.dtd">
+<omf>
+   <resource>
+      <creator>
+         DaveGutz@alum.mit.edu (Dave Gutz)
+      </creator>
+      <maintainer>
+         DaveGutz@alum.mit.edu (Dave Gutz)
+      </maintainer>
+      <title>
+         ump Manual
+      </title>
+      <date>
+         2006-05-13
+      </date>
+      <subject category="GNOME|Applications|Sound and Video"/>
+      <format mime="text/xml"/>
+      <identifier url="file://usr/share/gnome/help/ump/C/ump.xml"/>
+      <language code="C"/>
+   </resource>
+</omf>

@@ -1,0 +1,490 @@
+MESSAGE(Image): mask for device 0:
+Start(3, 0) to (156, 112); Value=1
+WARNING(ump): Calibration.cc: 374:  assuming Tsai calibration was 480x336.
+If not, modify Nfx, n, or m
+MESSAGE(Image): calibration parameters for device 0:
+MESSAGE(Calibration): cal for device video0.cal:
+
+Tsai:
+       Ncx    =  480
+       Nfx    =  480 assumed
+       dx     =  0.0071
+       dy     =  0.0071
+       dpx    =  0.0071
+       dpy    =  0.0071
+       f      =  3.5397  [mm]
+       kappa1 =  0.035413  [1/mm^2]
+       Tx     =  137.579,  Ty = 251.701,  Tz = 465.604  [mm]
+       Rx     = 132.114,  Ry = -31.4361,  Rz = -28.427  [deg]
+       R=3 3
+0.750345 -0.659476 -0.045551 
+-0.406167 -0.405573 -0.818864 
+0.521547 0.632932 -0.572177 
+       sx = 1.02992
+       Cx = 246.162,  Cy = 189.52  [pixels]
+       Tz / f = 131.538
+
+Local Equivalent:
+assumed nCal = 480, assumed mCal= 336
+focalCal = 513.466
+imCal    = 246.162, jmCal = 195.19
+SXN       = 0.333333, SYM= 0.333333
+SY        = 1.02992, ARC= 1.38707
+Aberration= 1 0.387754 0 0
+P         = 3
+-9.59974 
+-4.01111 
+18.8498 
+
+ACPW      = 3 3
+0.750345 0.406167 0.521547 
+-0.659476 0.405573 0.632932 
+-0.045551 0.818864 -0.572177 
+MESSAGE(Image): tuning parameters for device 0:
+agauss_=8 bgauss_=30 minBallDensity=0.05 minBallArea=10 maxBallArea=110
+minBallRatio=0.05 maxBallRatio=1 minProx=4 maxEdgePix_=200
+MESSAGE(Image):  Cleaning up image files .mm, .lbl, and .ppm.
+MESSAGE(Image): mask for device 1:
+Start(3, 0) to (156, 112); Value=1
+WARNING(ump): Calibration.cc: 374:  assuming Tsai calibration was 480x336.
+If not, modify Nfx, n, or m
+MESSAGE(Image): calibration parameters for device 1:
+MESSAGE(Calibration): cal for device video1.cal:
+
+Tsai:
+       Ncx    =  480
+       Nfx    =  480 assumed
+       dx     =  0.0071
+       dy     =  0.0071
+       dpx    =  0.0071
+       dpy    =  0.0071
+       f      =  3.55719  [mm]
+       kappa1 =  0.0128636  [1/mm^2]
+       Tx     =  -151.57,  Ty = 332.207,  Tz = 427.267  [mm]
+       Rx     = 123.395,  Ry = 29.8077,  Rz = 17.7638  [deg]
+       R=3 3
+0.826329 0.563158 -0.00583671 
+0.26473 -0.397547 -0.878564 
+-0.49709 0.724437 -0.477589 
+       sx = 1.03801
+       Cx = 241.456,  Cy = 128.173  [pixels]
+       Tz / f = 120.113
+
+Local Equivalent:
+assumed nCal = 480, assumed mCal= 336
+focalCal = 520.056
+imCal    = 241.456, jmCal = 133.044
+SXN       = 0.333333, SYM= 0.333333
+SY        = 1.03801, ARC= 1.37626
+Aberration= 1 0.138662 0 0
+P         = 3
+9.83041 
+-3.62608 
+19.4897 
+
+ACPW      = 3 3
+0.826329 -0.26473 -0.49709 
+0.563158 0.397547 0.724437 
+-0.00583671 0.878564 -0.477589 
+MESSAGE(Image): tuning parameters for device 1:
+agauss_=8 bgauss_=30 minBallDensity=0.05 minBallArea=10 maxBallArea=110
+minBallRatio=0.05 maxBallRatio=1 minProx=4 maxEdgePix_=200
+MESSAGE(Image):  Cleaning up image files .mm, .lbl, and .ppm.
+MESSAGE(Image): too many pixels changed: 17250
+MESSAGE(Calibration): zone for device zone.tune:
+dxZone               = 0
+dzZone               = 0
+velThresh            = -110
+gravity              = 386
+on Corner
+ratio too large: 2
+on Corner
+Motion Detected /dev/video1 9/8 { 0 } <0/0/0/0/0/0.033362>
+WARNING(ump): memory usage increased by 65536
+area too small: 7
+on Corner
+area too small: 7
+on Corner
+Motion Detected /dev/video0 11/11 { 0 skew=10 / slips=0 } <0/0/0/0/0/0.033372>
+on Corner
+Motion Detected /dev/video1 25/18 { 0 skew=23.37 / slips=0 } <0/0/0/0/0/0.03337>
+1:  L B Found @ 0.924281 sec, val= 189, cnt= 14, area= 14, dens=1.00, cent=137.3, 10.1 undistorted
+1 NEW LIGHT BALLS:
+1  1       0.924281 size= 14 dens=1.00 centroid=137.3, 10.1
+on Corner
+on Corner
+Motion Detected /dev/video1 42/24 { 957.648 skew=56.737 / slips=0 } <0/0/0/0/0/0.033367>
+1:  L B Found @ 0.957648 sec, val= 207, cnt= 20, area= 26, dens=0.77, cent=130.3, 15.6 undistorted
+1 NEW LIGHT BALLS:
+1  1       0.957648 size= 26 dens=0.77 centroid=130.3, 15.6
+1  1       0.924281 size= 14 dens=1.00 centroid=137.3, 10.1
+on Corner
+on Corner
+Motion Detected /dev/video0 25/18 { 934.277 skew=-23.371 / slips=0 } <0/0/0/0/0/0.033366>
+0:  L B Found @ 0.934277 sec, val= 167, cnt= 14, area= 15, dens=0.93, cent= 33.4, 13.1 undistorted
+1 NEW LIGHT BALLS:
+1  1       0.957648 size= 26 dens=0.77 centroid=130.3, 15.6
+0  1       0.934277 size= 15 dens=0.93 centroid= 33.4, 13.1
+1  1       0.924281 size= 14 dens=1.00 centroid=137.3, 10.1
+X O X previous is unique; interplolate others to previous
+uncertainty = 0.263566 0 0
+CHOSEN:
+0       0.934277 size=  15 dens= 0.93 centroid=  33.4, 13.1 other= 135.2, 11.8
+BALL POSITION(0.934277)0=2.0538 22.027 10.659
+BALL UNCERTAINTY(0.934277)=0.263566
+BALL VELOCITY         =0 0 0
+BALL PREV POSITION(0)0=0 0 0
+BALL PREV VELOCITY=0 0 0
+ratio too large: inf
+area too small: 3
+ratio too large: inf
+on Corner
+area too small: 3
+ratio too large: inf
+Motion Detected /dev/video1 60/36 { 991.018 skew=56.741 / slips=0 } <0/0/0/0/0/0.03337>
+1:  L B Found @ 0.991018 sec, val= 214, cnt= 32, area= 34, dens=0.94, cent=117.3, 30.1 undistorted
+1 NEW LIGHT BALLS:
+1  1       0.991018 size= 34 dens=0.94 centroid=117.3, 30.1
+1  1       0.957648 size= 26 dens=0.77 centroid=130.3, 15.6
+0  1       0.934277 size= 15 dens=0.93 centroid= 33.4, 13.1
+1  1       0.924281 size= 14 dens=1.00 centroid=137.3, 10.1
+X X O two back is unique; extraplolate others back two
+uncertainty = 0.583495 0 0
+CHOSEN:
+0       0.934277 size=  15 dens= 0.93 centroid=  33.4, 13.1 other= 139.4,  5.4
+BALL POSITION(0.934277)0=2.03336 22.6813 10.9038
+BALL TIME REJECT
+BALL UNCERTAINTY(0.934277)=0.583495
+BALL VELOCITY         =0 0 0
+BALL PREV POSITION(0.934277)0=2.0538 22.027 10.659
+BALL PREV VELOCITY=0 0 0
+WARNING(ump): memory usage increased by 57344
+on Corner
+Motion Detected /dev/video0 41/27 { 967.643 skew=-23.375 / slips=0 } <0/0/0/0/0/0.033366>
+0:  L B Found @ 0.967643 sec, val= 156, cnt= 23, area= 26, dens=0.88, cent= 48.8, 20.0 undistorted
+1 NEW LIGHT BALLS:
+1  1       0.991018 size= 34 dens=0.94 centroid=117.3, 30.1
+0  1       0.967643 size= 26 dens=0.88 centroid= 48.8, 20.0
+1  1       0.957648 size= 26 dens=0.77 centroid=130.3, 15.6
+0  1       0.934277 size= 15 dens=0.93 centroid= 33.4, 13.1
+1  1       0.924281 size= 14 dens=1.00 centroid=137.3, 10.1
+X O X previous is unique; interplolate others to previous
+uncertainty = 0.324044 0 0
+CHOSEN:
+0       0.967643 size=  26 dens= 0.88 centroid=  48.8, 20.0 other= 126.4, 19.9
+BALL POSITION(0.967643)0=2.22557 17.838 10.5563
+BALL VELOCITY         =5.76053 -145.158 -10.4154
+BALL NUM AVG=1 BALL AVG             =5.76053 -145.158 -10.4154
+BALL timeToZone=0.122887
+BALL ZONE= 0.967643 2.93346 6.36184 0.324044 5.76053 -145.158 -10.4154 17.838
+BALL UNCERTAINTY(0.967643)=0.324044
+BALL VELOCITY         =5.76053 -145.158 -10.4154
+BALL PREV POSITION(0.934277)0=2.03336 22.6813 10.9038
+BALL PREV VELOCITY=0 0 0
+on Corner
+area too small: 3
+on Corner
+Motion Detected /dev/video0 59/34 { 1001.01 skew=9.993 / slips=0 } <0/0/0/0/0/0.033368>
+0:  L B Found @ 1.00101 sec, val= 155, cnt= 32, area= 37, dens=0.86, cent= 68.5, 31.8 undistorted
+1 NEW LIGHT BALLS:
+0  1       1.001011 size= 37 dens=0.86 centroid= 68.5, 31.8
+1  1       0.991018 size= 34 dens=0.94 centroid=117.3, 30.1
+0  1       0.967643 size= 26 dens=0.88 centroid= 48.8, 20.0
+1  1       0.957648 size= 26 dens=0.77 centroid=130.3, 15.6
+0  1       0.934277 size= 15 dens=0.93 centroid= 33.4, 13.1
+1  1       0.924281 size= 14 dens=1.00 centroid=137.3, 10.1
+X O X previous is unique; interplolate others to previous
+uncertainty = 0.349843 0 0
+CHOSEN:
+1       0.991018 size=  34 dens= 0.94 centroid= 117.3, 30.1 other=  62.6, 28.3
+BALL POSITION(0.991018)1=2.33195 14.6378 10.1959
+BALL VELOCITY         =4.55124 -136.908 -15.4167
+BALL NUM AVG=2 BALL AVG             =5.15589 -141.033 -8.40471
+BALL timeToZone=0.103789
+BALL ZONE= 0.991018 2.86708 7.24455 0.349843 5.15589 -141.033 -8.40471 14.6378
+BALL UNCERTAINTY(0.991018)=0.349843
+BALL VELOCITY         =4.55124 -136.908 -15.4167
+BALL PREV POSITION(0.967643)0=2.22557 17.838 10.5563
+BALL PREV VELOCITY=5.76053 -145.158 -10.4154
+area too small: 3
+Motion Detected /dev/video1 87/49 { 1024.39 skew=23.376 / slips=0 } <0/0/0/0/0/0.033369>
+1:  L B Found @ 1.02439 sec, val= 237, cnt= 46, area= 48, dens=0.96, cent=100.7, 51.5 undistorted
+1 NEW LIGHT BALLS:
+1  1       1.024387 size= 48 dens=0.96 centroid=100.7, 51.5
+0  1       1.001011 size= 37 dens=0.86 centroid= 68.5, 31.8
+1  1       0.991018 size= 34 dens=0.94 centroid=117.3, 30.1
+0  1       0.967643 size= 26 dens=0.88 centroid= 48.8, 20.0
+1  1       0.957648 size= 26 dens=0.77 centroid=130.3, 15.6
+0  1       0.934277 size= 15 dens=0.93 centroid= 33.4, 13.1
+1  1       0.924281 size= 14 dens=1.00 centroid=137.3, 10.1
+X O X previous is unique; interplolate others to previous
+uncertainty = 0.288897 0 0
+CHOSEN:
+0       1.001011 size=  37 dens= 0.86 centroid=  68.5, 31.8 other= 112.4, 36.5
+BALL POSITION(1.00101)0=2.3872 13.3189 9.99269
+BALL VELOCITY         =5.52812 -131.979 -20.3357
+BALL NUM AVG=2 BALL AVG             =5.03968 -134.444 -15.9476
+BALL timeToZone=0.0990667
+BALL ZONE= 1.00101 2.88646 6.51868 0.288897 5.03968 -134.444 -15.9476 13.3189
+BALL UNCERTAINTY(1.00101)=0.288897
+BALL VELOCITY         =5.52812 -131.979 -20.3357
+BALL PREV POSITION(0.991018)1=2.33195 14.6378 10.1959
+BALL PREV VELOCITY=4.55124 -136.908 -15.4167
+ratio too large: inf
+ratio too large: inf
+Motion Detected /dev/video0 79/43 { 1034.38 skew=9.991 / slips=0 } <0/0/0/0/0/0.033367>
+0:  L B Found @ 1.03438 sec, val= 191, cnt= 42, area= 45, dens=0.93, cent= 94.7, 50.5 undistorted
+1 NEW LIGHT BALLS:
+0  1       1.034378 size= 45 dens=0.93 centroid= 94.7, 50.5
+1  1       1.024387 size= 48 dens=0.96 centroid=100.7, 51.5
+0  1       1.001011 size= 37 dens=0.86 centroid= 68.5, 31.8
+1  1       0.991018 size= 34 dens=0.94 centroid=117.3, 30.1
+0  1       0.967643 size= 26 dens=0.88 centroid= 48.8, 20.0
+1  1       0.957648 size= 26 dens=0.77 centroid=130.3, 15.6
+0  1       0.934277 size= 15 dens=0.93 centroid= 33.4, 13.1
+1  1       0.924281 size= 14 dens=1.00 centroid=137.3, 10.1
+X O X previous is unique; interplolate others to previous
+uncertainty = 0.395365 0 0
+CHOSEN:
+1       1.024387 size=  48 dens= 0.96 centroid= 100.7, 51.5 other=  86.9, 44.9
+BALL POSITION(1.02439)1=2.54564 10.0472 9.35944
+BALL VELOCITY         =6.77817 -139.96 -27.0898
+BALL NUM AVG=2 BALL AVG             =6.15315 -135.97 -19.2012
+BALL timeToZone=0.073893
+BALL ZONE= 1.02439 3.00032 6.8868 0.395365 6.15315 -135.97 -19.2012 10.0472
+BALL UNCERTAINTY(1.02439)=0.395365
+BALL VELOCITY         =6.77817 -139.96 -27.0898
+BALL PREV POSITION(1.00101)0=2.3872 13.3189 9.99269
+BALL PREV VELOCITY=5.52812 -131.979 -20.3357
+WARNING(ump): memory usage increased by 147456
+Motion Detected /dev/video1 130/79 { 1057.76 skew=23.386 / slips=0 } <0/0/0/0/0/0.033377>
+1:  L B Found @ 1.05776 sec, val= 234, cnt= 79, area= 83, dens=0.95, cent= 77.3, 84.4 undistorted
+1 NEW LIGHT BALLS:
+1  1       1.057764 size= 83 dens=0.95 centroid= 77.3, 84.4
+0  1       1.034378 size= 45 dens=0.93 centroid= 94.7, 50.5
+1  1       1.024387 size= 48 dens=0.96 centroid=100.7, 51.5
+0  1       1.001011 size= 37 dens=0.86 centroid= 68.5, 31.8
+1  1       0.991018 size= 34 dens=0.94 centroid=117.3, 30.1
+0  1       0.967643 size= 26 dens=0.88 centroid= 48.8, 20.0
+1  1       0.957648 size= 26 dens=0.77 centroid=130.3, 15.6
+0  1       0.934277 size= 15 dens=0.93 centroid= 33.4, 13.1
+1  1       0.924281 size= 14 dens=1.00 centroid=137.3, 10.1
+X O X previous is unique; interplolate others to previous
+uncertainty = 0.33726 0 0
+CHOSEN:
+0       1.034378 size=  45 dens= 0.93 centroid=  94.7, 50.5 other=  93.7, 61.3
+BALL POSITION(1.03438)0=2.60372 8.66913 9.0389
+BALL VELOCITY         =5.8127 -137.93 -32.083
+BALL NUM AVG=2 BALL AVG             =6.29544 -138.945 -27.6581
+BALL timeToZone=0.0623925
+BALL ZONE= 1.03438 2.99651 6.56193 0.33726 6.29544 -138.945 -27.6581 8.66913
+BALL UNCERTAINTY(1.03438)=0.33726
+BALL VELOCITY         =5.8127 -137.93 -32.083
+BALL PREV POSITION(1.02439)1=2.54564 10.0472 9.35944
+BALL PREV VELOCITY=6.77817 -139.96 -27.0898
+Motion Detected /dev/video0 106/59 { 1067.76 skew=10 / slips=0 } <0/0/0/0/0/0.033386>
+0:  L B Found @ 1.06776 sec, val= 184, cnt= 59, area= 66, dens=0.89, cent=127.3, 76.7 undistorted
+1 NEW LIGHT BALLS:
+0  1       1.067764 size= 66 dens=0.89 centroid=127.3, 76.7
+1  1       1.057764 size= 83 dens=0.95 centroid= 77.3, 84.4
+0  1       1.034378 size= 45 dens=0.93 centroid= 94.7, 50.5
+1  1       1.024387 size= 48 dens=0.96 centroid=100.7, 51.5
+0  1       1.001011 size= 37 dens=0.86 centroid= 68.5, 31.8
+1  1       0.991018 size= 34 dens=0.94 centroid=117.3, 30.1
+0  1       0.967643 size= 26 dens=0.88 centroid= 48.8, 20.0
+1  1       0.957648 size= 26 dens=0.77 centroid=130.3, 15.6
+0  1       0.934277 size= 15 dens=0.93 centroid= 33.4, 13.1
+1  1       0.924281 size= 14 dens=1.00 centroid=137.3, 10.1
+X O X previous is unique; interplolate others to previous
+uncertainty = 0.490533 0 0
+CHOSEN:
+1       1.057764 size=  83 dens= 0.95 centroid=  77.3, 84.4 other= 117.5, 68.9
+BALL POSITION(1.05776)1=2.80433 5.39231 8.15166
+BALL VELOCITY         =8.57847 -140.119 -37.9391
+BALL NUM AVG=2 BALL AVG             =7.19559 -139.025 -30.4975
+BALL timeToZone=0.0387867
+BALL ZONE= 1.05776 3.08343 6.67841 0.490533 7.19559 -139.025 -30.4975 5.39231
+BALL UNCERTAINTY(1.05776)=0.490533
+BALL VELOCITY         =8.57847 -140.119 -37.9391
+BALL PREV POSITION(1.03438)0=2.60372 8.66913 9.0389
+BALL PREV VELOCITY=5.8127 -137.93 -32.083
+on Corner
+on Corner
+Motion Detected /dev/video0 72/10 { 1101.11 skew=43.349 / slips=0 } <0/0/0/0/0/0.033349>
+0:  L B Found @ 1.10111 sec, val= 106, cnt=  6, area= 23, dens=0.26, cent=141.5, 91.2 undistorted
+1 NEW LIGHT BALLS:
+0  1       1.101113 size= 23 dens=0.26 centroid=141.5, 91.2
+0  1       1.067764 size= 66 dens=0.89 centroid=127.3, 76.7
+1  1       1.057764 size= 83 dens=0.95 centroid= 77.3, 84.4
+0  1       1.034378 size= 45 dens=0.93 centroid= 94.7, 50.5
+1  1       1.024387 size= 48 dens=0.96 centroid=100.7, 51.5
+0  1       1.001011 size= 37 dens=0.86 centroid= 68.5, 31.8
+1  1       0.991018 size= 34 dens=0.94 centroid=117.3, 30.1
+0  1       0.967643 size= 26 dens=0.88 centroid= 48.8, 20.0
+1  1       0.957648 size= 26 dens=0.77 centroid=130.3, 15.6
+0  1       0.934277 size= 15 dens=0.93 centroid= 33.4, 13.1
+1  1       0.924281 size= 14 dens=1.00 centroid=137.3, 10.1
+X X O two back is unique; extraplolate others back two
+uncertainty = 0.693909 6.50256 -8.15477
+CHOSEN:
+1       1.057764 size=  83 dens= 0.95 centroid=  77.3, 84.4 other= 123.0, 72.4
+BALL POSITION(1.05776)1=2.97672 -1.62876 16.2597
+BALL TIME REJECT
+BALL UNCERTAINTY(1.05776)=10.453
+BALL VELOCITY         =0 0 0
+BALL PREV POSITION(1.05776)1=2.80433 5.39231 8.15166
+BALL PREV VELOCITY=8.57847 -140.119 -37.9391
+on Corner
+on Corner
+Motion Detected /dev/video0 18/9 { 1134.48 skew=76.715 / slips=0 } <0/0/0/0/0/0.033366>
+0:  L B Found @ 1.13448 sec, val= 142, cnt=  5, area= 10, dens=0.50, cent=138.4, 90.1 undistorted
+1 NEW LIGHT BALLS:
+0  1       1.134479 size= 10 dens=0.50 centroid=138.4, 90.1
+0  1       1.101113 size= 23 dens=0.26 centroid=141.5, 91.2
+0  1       1.067764 size= 66 dens=0.89 centroid=127.3, 76.7
+1  1       1.057764 size= 83 dens=0.95 centroid= 77.3, 84.4
+0  1       1.034378 size= 45 dens=0.93 centroid= 94.7, 50.5
+1  1       1.024387 size= 48 dens=0.96 centroid=100.7, 51.5
+0  1       1.001011 size= 37 dens=0.86 centroid= 68.5, 31.8
+1  1       0.991018 size= 34 dens=0.94 centroid=117.3, 30.1
+0  1       0.967643 size= 26 dens=0.88 centroid= 48.8, 20.0
+1  1       0.957648 size= 26 dens=0.77 centroid=130.3, 15.6
+0  1       0.934277 size= 15 dens=0.93 centroid= 33.4, 13.1
+1  1       0.924281 size= 14 dens=1.00 centroid=137.3, 10.1
+on Edge
+on Edge
+on Corner
+Motion Detected /dev/video0 9/9 { 1201.21 skew=143.449 / slips=0 } <0/0/0/0/0/0.033346>
+ratio too large: 1.1094
+ratio too large: 1.1094
+on Corner
+Motion Detected /dev/video0 21/20 { 1234.58 skew=176.815 / slips=0 } <0/0/0/0/0/0.033366>
+on Corner
+on Corner
+Motion Detected /dev/video0 41/19 { 1267.96 skew=210.2 / slips=0 } <0/0/0/0/0/0.033385>
+0:  L B Found @ 1.26796 sec, val= 198, cnt= 15, area= 32, dens=0.47, cent=126.5,101.8 undistorted
+1 NEW LIGHT BALLS:
+0  1       1.267964 size= 32 dens=0.47 centroid=126.5,101.8
+0  1       1.134479 size= 10 dens=0.50 centroid=138.4, 90.1
+0  1       1.101113 size= 23 dens=0.26 centroid=141.5, 91.2
+0  1       1.067764 size= 66 dens=0.89 centroid=127.3, 76.7
+1  1       1.057764 size= 83 dens=0.95 centroid= 77.3, 84.4
+0  1       1.034378 size= 45 dens=0.93 centroid= 94.7, 50.5
+1  1       1.024387 size= 48 dens=0.96 centroid=100.7, 51.5
+0  1       1.001011 size= 37 dens=0.86 centroid= 68.5, 31.8
+1  1       0.991018 size= 34 dens=0.94 centroid=117.3, 30.1
+0  1       0.967643 size= 26 dens=0.88 centroid= 48.8, 20.0
+1  1       0.957648 size= 26 dens=0.77 centroid=130.3, 15.6
+0  1       0.934277 size= 15 dens=0.93 centroid= 33.4, 13.1
+1  1       0.924281 size= 14 dens=1.00 centroid=137.3, 10.1
+on Corner
+on Corner
+Motion Detected /dev/video0 40/22 { 1301.31 skew=243.547 / slips=0 } <0/0/0/0/0/0.033347>
+0:  L B Found @ 1.30131 sec, val= 180, cnt= 18, area= 42, dens=0.43, cent=122.9,100.2 undistorted
+1 NEW LIGHT BALLS:
+0  1       1.301311 size= 42 dens=0.43 centroid=122.9,100.2
+0  1       1.267964 size= 32 dens=0.47 centroid=126.5,101.8
+0  1       1.134479 size= 10 dens=0.50 centroid=138.4, 90.1
+0  1       1.101113 size= 23 dens=0.26 centroid=141.5, 91.2
+0  1       1.067764 size= 66 dens=0.89 centroid=127.3, 76.7
+1  1       1.057764 size= 83 dens=0.95 centroid= 77.3, 84.4
+0  1       1.034378 size= 45 dens=0.93 centroid= 94.7, 50.5
+1  1       1.024387 size= 48 dens=0.96 centroid=100.7, 51.5
+0  1       1.001011 size= 37 dens=0.86 centroid= 68.5, 31.8
+1  1       0.991018 size= 34 dens=0.94 centroid=117.3, 30.1
+0  1       0.967643 size= 26 dens=0.88 centroid= 48.8, 20.0
+1  1       0.957648 size= 26 dens=0.77 centroid=130.3, 15.6
+0  1       0.934277 size= 15 dens=0.93 centroid= 33.4, 13.1
+1  1       0.924281 size= 14 dens=1.00 centroid=137.3, 10.1
+on Edge
+on Edge
+on Corner
+Motion Detected /dev/video1 22/16 { 1391.42 skew=90.112 / slips=0 } <0/0/0/0/0/0.033369>
+on Corner
+on Corner
+Motion Detected /dev/video0 36/19 { 1334.68 skew=-56.744 / slips=0 } <0/0/0/0/0/0.033368>
+0:  L B Found @ 1.33468 sec, val= 184, cnt= 15, area= 35, dens=0.43, cent=117.5, 97.9 undistorted
+1 NEW LIGHT BALLS:
+0  1       1.334679 size= 35 dens=0.43 centroid=117.5, 97.9
+0  1       1.301311 size= 42 dens=0.43 centroid=122.9,100.2
+0  1       1.267964 size= 32 dens=0.47 centroid=126.5,101.8
+0  1       1.134479 size= 10 dens=0.50 centroid=138.4, 90.1
+0  1       1.101113 size= 23 dens=0.26 centroid=141.5, 91.2
+0  1       1.067764 size= 66 dens=0.89 centroid=127.3, 76.7
+1  1       1.057764 size= 83 dens=0.95 centroid= 77.3, 84.4
+0  1       1.034378 size= 45 dens=0.93 centroid= 94.7, 50.5
+1  1       1.024387 size= 48 dens=0.96 centroid=100.7, 51.5
+0  1       1.001011 size= 37 dens=0.86 centroid= 68.5, 31.8
+1  1       0.991018 size= 34 dens=0.94 centroid=117.3, 30.1
+0  1       0.967643 size= 26 dens=0.88 centroid= 48.8, 20.0
+1  1       0.957648 size= 26 dens=0.77 centroid=130.3, 15.6
+0  1       0.934277 size= 15 dens=0.93 centroid= 33.4, 13.1
+1  1       0.924281 size= 14 dens=1.00 centroid=137.3, 10.1
+on Corner
+on Corner
+Motion Detected /dev/video1 38/19 { 1424.79 skew=90.106 / slips=0 } <0/0/0/0/0/0.033362>
+1:  L B Found @ 1.42479 sec, val= 220, cnt= 15, area= 22, dens=0.68, cent=109.2,114.1 undistorted
+1 NEW LIGHT BALLS:
+1  1       1.424785 size= 22 dens=0.68 centroid=109.2,114.1
+0  1       1.334679 size= 35 dens=0.43 centroid=117.5, 97.9
+0  1       1.301311 size= 42 dens=0.43 centroid=122.9,100.2
+0  1       1.267964 size= 32 dens=0.47 centroid=126.5,101.8
+0  1       1.134479 size= 10 dens=0.50 centroid=138.4, 90.1
+0  1       1.101113 size= 23 dens=0.26 centroid=141.5, 91.2
+0  1       1.067764 size= 66 dens=0.89 centroid=127.3, 76.7
+1  1       1.057764 size= 83 dens=0.95 centroid= 77.3, 84.4
+0  1       1.034378 size= 45 dens=0.93 centroid= 94.7, 50.5
+1  1       1.024387 size= 48 dens=0.96 centroid=100.7, 51.5
+0  1       1.001011 size= 37 dens=0.86 centroid= 68.5, 31.8
+1  1       0.991018 size= 34 dens=0.94 centroid=117.3, 30.1
+0  1       0.967643 size= 26 dens=0.88 centroid= 48.8, 20.0
+1  1       0.957648 size= 26 dens=0.77 centroid=130.3, 15.6
+0  1       0.934277 size= 15 dens=0.93 centroid= 33.4, 13.1
+1  1       0.924281 size= 14 dens=1.00 centroid=137.3, 10.1
+O X X latest is unique; extrapolate previous two to present
+uncertainty = 0.378346 9.60495 -13.3841
+CHOSEN:
+1       1.424785 size=  22 dens= 0.68 centroid= 109.2,114.1 other= 103.2, 91.7
+BALL POSITION(1.42479)1=4.61263 -0.680135 14.5246
+BALL TIME REJECT
+BALL UNCERTAINTY(1.42479)=16.4783
+BALL VELOCITY         =0 0 0
+BALL PREV POSITION(1.05776)1=2.97672 -1.62876 16.2597
+BALL PREV VELOCITY=0 0 0
+on Corner
+on Corner
+Motion Detected /dev/video0 38/22 { 1368.07 skew=-56.717 / slips=0 } <0/0/0/0/0/0.033389>
+0:  L B Found @ 1.36807 sec, val= 179, cnt= 18, area= 27, dens=0.67, cent=112.4, 94.3 undistorted
+1 NEW LIGHT BALLS:
+1  1       1.424785 size= 22 dens=0.68 centroid=109.2,114.1
+0  1       1.368068 size= 27 dens=0.67 centroid=112.4, 94.3
+0  1       1.334679 size= 35 dens=0.43 centroid=117.5, 97.9
+0  1       1.301311 size= 42 dens=0.43 centroid=122.9,100.2
+0  1       1.267964 size= 32 dens=0.47 centroid=126.5,101.8
+0  1       1.134479 size= 10 dens=0.50 centroid=138.4, 90.1
+0  1       1.101113 size= 23 dens=0.26 centroid=141.5, 91.2
+0  1       1.067764 size= 66 dens=0.89 centroid=127.3, 76.7
+1  1       1.057764 size= 83 dens=0.95 centroid= 77.3, 84.4
+0  1       1.034378 size= 45 dens=0.93 centroid= 94.7, 50.5
+1  1       1.024387 size= 48 dens=0.96 centroid=100.7, 51.5
+0  1       1.001011 size= 37 dens=0.86 centroid= 68.5, 31.8
+1  1       0.991018 size= 34 dens=0.94 centroid=117.3, 30.1
+0  1       0.967643 size= 26 dens=0.88 centroid= 48.8, 20.0
+1  1       0.957648 size= 26 dens=0.77 centroid=130.3, 15.6
+0  1       0.934277 size= 15 dens=0.93 centroid= 33.4, 13.1
+1  1       0.924281 size= 14 dens=1.00 centroid=137.3, 10.1
+O X X latest is unique; extrapolate previous two to present
+uncertainty = 0.310625 0 0
+CHOSEN:
+1       1.424785 size=  22 dens= 0.68 centroid= 109.2,114.1 other= 103.7, 88.3
+BALL POSITION(1.42479)1=4.70673 8.8564 1.67105
+BALL TIME REJECT
+BALL UNCERTAINTY(1.42479)=0.310625
+BALL VELOCITY         =0 0 0
+BALL PREV POSITION(1.42479)1=4.61263 -0.680135 14.5246
+BALL PREV VELOCITY=0 0 0
+EOF
+EOF
+Final dev[0] number=14
+Final dev[1] number=8
+MESSAGE(ump): memory usage increased by 3985408

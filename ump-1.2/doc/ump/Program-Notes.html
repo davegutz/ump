@@ -1,0 +1,67 @@
+<html lang="en">
+<head>
+<title>Program Notes - Umpire Practical Ball Vision Device</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Umpire Practical Ball Vision Device">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Main-Application.html#Main-Application" title="Main Application">
+<link rel="prev" href="Output-Files.html#Output-Files" title="Output Files">
+<link rel="next" href="When-Things-Go-Wrong.html#When-Things-Go-Wrong" title="When Things Go Wrong">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Program-Notes"></a>Next:&nbsp;<a rel="next" accesskey="n" href="When-Things-Go-Wrong.html#When-Things-Go-Wrong">When Things Go Wrong</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Output-Files.html#Output-Files">Output Files</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Main-Application.html#Main-Application">Main Application</a>
+<hr><br>
+</div>
+
+<!-- node-name,                 next,      previous,               up -->
+<h3 class="section">5.4 Program Notes</h3>
+
+<p><a name="index-program-notes-268"></a><a name="index-grab_002dv4l_002ec-269"></a><a name="index-grab_002dv4l2_002ec-270"></a>Programs streamer, capture and others part of the xawtv package (~/xawtvx/src/) are constructed to use global variables for sharing information between functions. The purpose is to pass information easier and to perform internal synchronization functions. These programs use a token passing scheme using fork combined with a mix of blocked and unblocked read/write calls. They appear to provide performance good enough for the image sizes being passed at 30 Hz rate.<br>
+   <pre class="sp">
+
+</pre>
+It is usually most effective to re-use whatever working code is available. So at first the stereo image tracking program is using an extension of the xawtv streamer program. Unfortunately the global variables make the functions non-reentrant and they can only be used by fork/pipe/exec techniques which are much less efficient than reentrant threading techniques because they involve kernel calls to spawn the separate process and protect the global variables. The first stereo image tracking programs reuse existing code in an inefficient manner.  This is the -M2 option of ump application.<br>
+   <pre class="sp">
+
+</pre>
+Additional work has eliminated some of the kernel processing steps by calling the xawtv functions from the realStream.c functions called by ump.  This required figuring out how xawtv handled the static variables and artificially bookkeeping them in realStream.  It still uses fork system calls.  Performance is somewhat better; real-time works with sufficient fidelity - barely.  PCs will only get faster and have more RAM.<br>
+   <pre class="sp">
+
+</pre>
+It is important to make a hack to the <code>grab-v4l.c</code> and <code>grab-v4l2.c grab_queue()</code> functions as follows (changed <code>#if 1</code> to <code>#if 0</code>):
+
+<pre class="example">     #if 0
+         /* might be useful for debugging driver problems */
+         memset(map + gb_buffers.offsets[frame],0,
+     	   gb_buffers.size/gb_buffers.frames);
+     #endif
+</pre>
+   <p>This memory clearing step uses a lot of CPU time and approximately halves the margin available to the ump application.<br>
+   <pre class="sp">
+
+</pre>
+At some time full threading techniques are recommended to get the most throughput from the system. The present program barely works real-time because of fork-exec structure. Slower frame rates do not help. Neither does buffering. The frame grabber seems to drop frames under any stress. A faster CPU and more memory would not help. The main program uses pthread with a producer/consumer mutex and works very well. When used with the off-line streamery functions (stream to file for post-processing) a perfect 30 frames per second (fps) fidelity is achieved with near real time response after the event.<br>
+   <pre class="sp">
+
+</pre>
+High fidelity image tracking requires calculating image changes at each frame. In other words, if a frame grabbing process is filling buffers with images the motion calculation should use the two most recent images. If you look in the extension of streamer that has function writer_shm you will see NONBLOCK attribute on the stdin read so that writer_shm does not wait on the calling executive but continues to update the image. Of course if the executive is inefficient and does not call every update then the program is wasting resources calculating information that will be discarded. At worst this technique can make a bad executive even worse. The more the executive slips the more the writer slips robbing yet more resources from the executive. In the end, the total pixel throughput usage must be reduced. Use smaller images or slower frame rate. Sub-sampling is just as effective without a penalty on accuracy.
+
+   </body></html>
+

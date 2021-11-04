@@ -1,0 +1,48 @@
+#!/bin/sh
+# Start info help for ump
+# D. Gutz 5/9/06
+
+# Initialize
+help=0
+version=0
+# getopt  from /usr/lib/getopt/parse.bash
+TEMP=`getopt -o hV --long help,version \
+     -n 'startUmpInfo' -- "$@"`
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$TEMP"
+while true ; do
+	case "$1" in
+	        -h|--help)    help=1 ;     break ;;
+	        -V|--version) version=1 ;  break ;;
+		--) shift ; break ;;
+		*) echo "Internal error!" ; exit 1 ;;
+	esac
+done
+if ( test $help -eq "1" )
+then
+    echo "Start \'info ump\' in a separate xterm"
+    echo "USAGE: startUmpInfo [-r|--rows  -h|--help] "
+    echo "    -r|--rows <number>  number of rows, left to right, top to bottom."
+    echo "    -h|--help           help and quit"
+    echo "    -V|--version        print version and quit"
+    exit 0
+fi
+if ( test $version -eq "1" )
+then
+   echo '$Id: startUmpInfo,v 1.1 2006/08/16 22:42:17 davegutz Exp $'
+   echo "Written by Dave Gutz, Copyright (C) 2006"
+   exit 0;
+fi
+
+xterm -fg wheat -bg darkSlateGray -title "Help Blink and ump" -geom 75x23-0+0 \
+      -fn "-adobe-courier-bold-r-normal--14-140-75-75-m-90-iso8859-1" \
+      -e info ump &
+
+if ( test $? )
+    then
+    exit 0;
+else
+    echo "command failed."
+    exit 1;
+fi
+

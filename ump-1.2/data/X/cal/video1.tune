@@ -1,0 +1,10 @@
+% baseline 10/28/01
+agaussScalar         =  1.0;
+bgaussScalar         =  1.0;
+minBallDensityScalar =  1.0;
+minBallAreaScalar    =  1.7;
+maxBallAreaScalar    =  2.5;
+minBallRatioScalar   =  1.0;
+maxBallRatioScalar   = 0.67;
+minProxScalar        =  1.0;
+

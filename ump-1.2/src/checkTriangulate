@@ -1,0 +1,90 @@
+#!/bin/sh
+# test triangulation utility
+
+DATA=$srcdir/../data/X/cal
+
+if ( test "$srcdir " == " " )
+    then
+    srcdir=$srcdir
+    buildsrcdir=$srcdir
+else
+    buildsrcdir=$PWD
+    cd $srcdir
+    srcdir=$PWD
+    cd $buildsrcdir
+fi
+if ( test "$srcdir " == ". " )
+    then
+    srcdir=$PWD
+    buildsrcdir=$srcdir
+fi
+srcdirpath="$srcdir/"
+buildsrcdirpath="$buildsrcdir/"
+
+# Fix distcheck
+chmod -R a+w $srcdir/../data/X 2>/dev/null
+cd $DATA
+
+if ( test $? -ne 0 )
+    then
+    echo "Run from ump package src directory or define 'srcdir'"
+    echo "$0: FAILURE."
+    sleep 5
+    exit 1
+fi
+
+# Check operation with pre-recorded data files.
+trap 'rm -f temp;' 0
+if (    test -s video0.cal.checkSetup     \
+    && test -s video1.cal.checkSetup     \
+    && test -s triangulate.dat          )
+    then
+    cp -f video0.cal.checkSetup video0.cal
+    cp -f video1.cal.checkSetup video1.cal
+
+    echo ""
+    echo "$0: running $buildsrcdirpath""triangulate at 80x60 ..."
+    >temp "$buildsrcdirpath"triangulate -s80x60 44 32 7 27
+    if ( test $? -ne 0 )
+	then
+	echo "ERROR($0):  triangulate failed."
+	rm -f temp
+	echo "$0: FAILURE."
+	sleep 5
+	exit 1
+    fi
+    echo "$0: running $buildsrcdirpath""triangulate at 80x60 ..."
+    >>temp "$buildsrcdirpath"triangulate -s80x60 -r 44 32 7 27
+    if ( test $? -ne 0 )
+	then
+	echo "ERROR($0):  triangulate failed."
+	rm -f temp
+	echo "$0: FAILURE."
+	sleep 5
+	exit 1
+    fi
+    cat temp
+    echo "complete."
+    echo ""
+    echo "$0: expected result :"
+#cp temp triangulate.dat
+    cat triangulate.dat
+    if ( test `diff triangulate.dat temp | sed '/UNCERTAINTY/d' | grep POSITION | wc -l` -gt 0 )
+	then
+	echo "ERROR($0):  failed comparison.  Result different than expected."
+	rm -f temp
+	echo "$0: FAILURE."
+	sleep 5
+	exit 1
+    fi
+else
+    echo "$0:  get umpsamp.tar and 'tar xvf' in ump/data to run test."
+    echo "$0: FAILURE."
+    sleep 5
+    exit 77
+fi
+
+echo ""
+echo "$0: SUCCESS."
+sleep 2
+exit 0

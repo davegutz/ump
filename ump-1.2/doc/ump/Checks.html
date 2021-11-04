@@ -1,0 +1,61 @@
+<html lang="en">
+<head>
+<title>Checks - Umpire Practical Ball Vision Device</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Umpire Practical Ball Vision Device">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Installation.html#Installation" title="Installation">
+<link rel="prev" href="What-Gets-Installed.html#What-Gets-Installed" title="What Gets Installed">
+<link rel="next" href="Dependencies.html#Dependencies" title="Dependencies">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Checks"></a>Next:&nbsp;<a rel="next" accesskey="n" href="Dependencies.html#Dependencies">Dependencies</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="What-Gets-Installed.html#What-Gets-Installed">What Gets Installed</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Installation.html#Installation">Installation</a>
+<hr><br>
+</div>
+
+<!-- node-name,         next,            previous,            up -->
+<h3 class="section">2.2 Checks</h3>
+
+<p><code>make check</code> runs the following automatic tests.  It will throw incomplete status, without failing though, if the large data files have not been downloaded.
+
+   <p><a name="index-make-check-68"></a>
+     <dl>
+<dt><code>checkKill</code><dd><a name="index-checkKill-69"></a>      Script that checks for hanging programs and IPC before running other checks.
+
+     <br><dt><code>checkSetup -i</code><dd><a name="index-checkSetup-70"></a><a name="index-camera-external-calibration-71"></a><a name="index-pointing-the-cameras-72"></a><a name="index-calibrating-73"></a>      Script that runs interactively to guide the user through the camera external calibration process.
+
+     <br><dt><code>checkTriangulate</code><dd><a name="index-checkTriangulate-74"></a>      Script that exercises the <code>triangulate</code> program.
+
+     <br><dt><code>checkCal</code><dd><a name="index-checkCal-75"></a>      Script that runs through various calibration methods as an exercise.  Compares results to stored files.
+
+     <br><dt><code>checkReal</code><dd><a name="index-checkReal-76"></a><a name="index-throughput-77"></a><a name="index-time-78"></a>      Script that runs a real-time invariant loading test.
+
+     <br><dt><code>checkFile</code><dd><a name="index-checkFile-79"></a>      Script that tests ability to re-open <code>.raw</code> file then re-process.
+
+     <br><dt><code>checkOfile</code><dd><a name="index-checkOfile-80"></a>      Script that tests ability to stream frame-grabber to file then re-process as in checkFile.
+
+     <br><dt><code>checkUmp</code><dd><a name="index-checkUmp-81"></a>      Script that demonstrates the wrapper script that is intended to be the interface to the application.
+
+     <br><dt><code>checkKillEnd</code><dd><a name="index-checkKillEnd-82"></a>      Script that checks for hanging programs and IPC after all tests have completed.
+
+   </dl>
+
+   </body></html>
+

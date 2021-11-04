@@ -1,0 +1,49 @@
+1.2-1: mac port fix
+1.2-0: mac port
+1.1-1: RHEL5 clean compile except STRTAB initialization
+1.1-0: RHEL5 port
+1.0-6: style
+1.0-5: style
+1.0-4: leak Blink
+1.0-3: checkCal
+1.0-2: Some leak fixes
+1.0-1: revised report
+1.0-0: done?
+0.15-4: debug
+0.15-3: SY only
+0.15-2: zap and LeakTracer
+0.15-1: SY and centerpoint corrections to fix accuracy problems. (2 in --> 0.25 in)
+0.14-2: some debug
+0.14-1: initial release
+0.13-16: progress on Blink
+0.13-15: progress on Blink
+0.13-14: progress on Blink
+0.13-13: progress on Blink
+0.13-12: progress on Blink
+0.13-11: progress on Blink
+0.13-10: progress on Blink
+0.13-9: port to AMD
+0.13-8: debug glade
+0.13-7: debug glade
+0.13-6: debug glade
+0.13-5: glade
+0.13-4: tim2clk
+0.13-3: Cleanup TODO
+0.13-2: Mask.cc Mask.h
+0.13-1: Draw mask from mm files
+0.12-7: Crunch pixmaps, debug triangulation, n & m from .cal
+0.12-6: Negative dTball and isnan
+0.12-5: Register correction and checkSetup size option
+0.12-4: Still taker
+0.12-3: Time reject fixes
+0.12-2: Debug in driveway
+0.12: Port to RHEL4.
+0.11: Install in driveway.  Minor tweaks.
+0.10: Debug RHEL3 port.  Add images.
+0.9: Debug RH7.3 port.
+0.8: Debug unix port.
+0.7: Added HPUX flag to InFile.  Deleted inline from configure.in.
+0.6: Changed zeroIn to extCal.
+0.5: Debugged realTime interrupts and signals.
+0.4: There is nothing new to report.
+

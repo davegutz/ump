@@ -1,0 +1,70 @@
+<html lang="en">
+<head>
+<title>When Things Go Wrong - Umpire Practical Ball Vision Device</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Umpire Practical Ball Vision Device">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="Program-Notes.html#Program-Notes" title="Program Notes">
+<link rel="next" href="Troubleshooting.html#Troubleshooting" title="Troubleshooting">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="When-Things-Go-Wrong"></a>Next:&nbsp;<a rel="next" accesskey="n" href="Troubleshooting.html#Troubleshooting">Troubleshooting</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Program-Notes.html#Program-Notes">Program Notes</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr><br>
+</div>
+
+<!-- node-name,            next,      previous,      up -->
+<h2 class="chapter">6 When Things Go Wrong</h2>
+
+<p><a name="index-lock_002dup-271"></a><a name="index-hung_002dup-272"></a><a name="index-hang_002dup-273"></a><a name="index-process-waiting-274"></a><a name="index-endless-loop-275"></a><a name="index-segmentation-faults-276"></a><a name="index-killing-process-277"></a><a name="index-asynchronous-behavior-278"></a><a name="index-shared-memory-considerations-279"></a>
+The application makes every reasonable attempt to catch, trap, and kill all erroneous operation.  The application is asynchronous, however, and sometimes but rarely falls into a race condition that cannot resolve and all threads go into a wait state.  This happens mostly when modifying the program as a developer.  Generally issuing a ctrl-C interrupt command at the prompt will be caught and if the user quits or answers <code>n</code> at this point the application cleans up everything.<br>
+   <pre class="sp">
+
+</pre>
+When that doesn't work, here is how to recover without re-booting the computer.<br>
+   <pre class="sp">
+
+</pre>
+     <ul>
+<li>Stop the processes. Run a script distributed and installed for that purpose:
+
+     <p><a name="index-killUmp-280"></a><a name="index-killSty-281"></a>
+     <pre class="example">          killUmp    # kills ump -R and ump -M processes
+          killSty    # kills streamery processes
+     </pre>
+     <li>If that doesn't work, do it manually:
+
+     <pre class="example">          ps -axm       # to see processes
+          
+          # Find the <code>ump</code> process with the lowest process id &lt;pid&gt;.
+          
+          kill &lt;pid&gt;   # to send quit signal to process and children.
+          ps -axm       # to verify killed.  Try kill -9 if failed.
+          
+          # Repeat <code>ps -axm</code> and <code>kill</code> until all the <code>ump</code> processes die.
+     </pre>
+     <li>Clear memory.  The program will not run again otherwise.
+
+     <pre class="example">          ipcs shm          # to see shared memory status and id, &lt;shmid&gt;
+          ipcrm shm &lt;shmid&gt; # to release the memory
+     </pre>
+     </ul>
+
+   </body></html>
+

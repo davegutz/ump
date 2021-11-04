@@ -1,0 +1,60 @@
+#!/bin/sh
+#overwrite:     Copy standard input to output after EOF.
+# D. Gutz       03-Mar-93       From Kernighan, B. W. & Pike, R.,
+#                               The UNIX Programming Environment, Bell
+#                               Labs, Murray Hill, NJ, 1984.
+# D. Gutz       13-May-06       Add getopt
+
+# Example:      $overwrite file cmd [args]
+
+# getopt  from /usr/lib/getopt/parse.bash
+help=0
+version=0
+TEMP=`getopt -o hr:V --long help,rows:,version \
+     -n 'overwrite' -- "$@"`
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$TEMP"
+while true ; do
+    case "$1" in
+	-h|--help)    help=1 ;     break ;;
+	-V|--version) version=1 ;  break ;;
+	--) shift ; break ;;
+	*) echo "Internal error!" ; exit 1 ;;
+    esac
+done
+if ( test $help -eq "1" )
+    then
+    echo "Run command and overwrite source file"
+    echo "USAGE: overwrite [-h|--help -V|--version] file cmd [cmd arguments]"
+    echo "    file                Source and target file"
+    echo "    cmd                 executable command"
+    echo "    [cmd arguments]     arguments needed by cmd"
+    echo "    -h|--help           help and quit"
+    echo "    -V|--version        print version and quit"
+    exit 0
+fi
+if ( test $version -eq "1" )
+    then
+    echo '$Id: overwrite,v 1.1 2006/08/16 22:42:17 davegutz Exp $'
+    echo "Written by Dave Gutz, Copyright (C) 2006"
+    exit 0;
+fi
+
+case $# in
+    0|1) echo 'Usage: overwrite file cmd [args]' 1>&2; exit 2
+esac
+
+file=$1; shift
+new=overwr1.$$; old=overwr2.$$
+trap 'rm -f $new $old; exit 1' 1 2 15   # cleanup files.
+
+if "$@" >$new               # collect input.
+    then
+    cp $file $old   # save original file.
+    trap '' 1 2 15  # we are committed; ignore signals.
+    cp $new $file
+else
+    echo "overwrite: $1 failed, $file unchanged" 1>&2
+    exit 1
+fi
+rm -f $new $old

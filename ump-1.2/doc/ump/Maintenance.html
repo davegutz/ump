@@ -1,0 +1,309 @@
+<html lang="en">
+<head>
+<title>Maintenance - Umpire Practical Ball Vision Device</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Umpire Practical Ball Vision Device">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="Tune.html#Tune" title="Tune">
+<link rel="next" href="Program-Index.html#Program-Index" title="Program Index">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Maintenance"></a>Next:&nbsp;<a rel="next" accesskey="n" href="Program-Index.html#Program-Index">Program Index</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Tune.html#Tune">Tune</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr><br>
+</div>
+
+<!-- node-name,          next,     previous,      up -->
+<h2 class="chapter">13 Maintenance</h2>
+
+<p>This chapter is primarily for the author's use but a developer might find it useful.
+
+<h3 class="section">13.1 Project data generation</h3>
+
+<p>Generate the results using the ump program as follows:
+
+<pre class="example">     cd /umpire/data/L
+     listl="A B C D E F G H"
+     lists="I J K L M N O P Q"
+     ln -sf cal/video?.cal .
+     for i in $lists
+     do
+        echo "$i"
+        &gt;temp ump -ix"$i"A.raw -ix"$i"B.raw -v2
+     done
+     for i in $listl
+     do
+        echo "$i"
+        &gt;temp ump -ix"$i"A.raw -ix"$i"B.raw -v2
+     done
+     grep mph &gt;xsum.dat
+</pre>
+   <h3 class="section">13.2 Report Graphics</h3>
+
+<p>Create box and line drawings using Powerpoint.  Select all and paste into Paint.  Save as a monochrome bitmap file.  Mail to Linux.  Open using The Gimp.  Save as .ps using default settings.
+
+<h3 class="section">13.3 Coding Standards Checklist</h3>
+
+<p>This was taken from GNU project web site:
+
+     <ul>
+<li>put start of function names in column 0
+<li>put open function braces in column 0
+<li>put a space before an open parenthesis
+<li>split lines before operators such as |*/+-&amp;&amp;
+<li>put a comment after #endif to identify the condition being ended
+<li>do not use the return value of sprintf call
+<li>avoid arbitrary length limits; use dynamic memory allocation when possible
+<li>use getopt_long instead of older getopt
+<li>abort programs on impossible situations
+<li>error message format
+  &lt;program&gt; : &lt;source file name&gt; : &lt;lineno&gt; : &lt;lower case message without .&gt;
+</ul>
+
+<h3 class="section">13.4 Portability Reminders</h3>
+
+     <ul>
+<li>use /bin/sh in scripts
+<li>put '-' arguments before stdio arguments in argument lists to programs used in scripts to avoid confusing getopt on some platforms
+<li>code such as <code>char sample[10] = "a string";</code> is deprecated and generates warnings
+<li><code>NAME_MAX</code> is too short for naming on many platforms.  Use <code>MAX_CANON</code> instead
+<li>byte order for multi-byte variables is different between platforms so <code>read</code> and <code>write</code> of binary data files will not work.  It is the binary data files that are not portable. 
+<li><code>fscanf(file, "%12c ...</code> does not always work.  Eliminate the characters or use a different method such as <code>cin</code> or <code>getline</code>. 
+</ul>
+
+<h3 class="section">13.5 Editing Files</h3>
+
+<p>After editing a source file or other perform the following in an xterm:
+
+<pre class="example">     VER=0.12
+     cd /usr/src/redhat/SOURCES/ump-$VER
+     make -s &amp;&amp; su -c"make -s install &amp;&amp; make -s installcheck"
+     make -s check
+     # ERROR(lptout): Couldn't get the port at 378
+     # is due to local copy of lptout run that cannot have root permissions
+     su -c"make -s install"
+     su -c"make -s uninstall"
+     hash -r  # to reset hash table and do a full path search
+</pre>
+   <h3 class="section">13.6 Running check scripts</h3>
+
+<pre class="example">     VER=0.12
+     cd /usr/src/redhat/SOURCES/ump-$VER/src
+     export srcdir="."
+     checkUmp
+     # ERROR(lptout): Couldn't get the port at 378
+     # is due to local copy of lptout run that cannot have root permissions
+</pre>
+<h3 class="section">13.7 Namespaces</h3>
+
+<p>The <span class="samp">tnt</span>, the <span class="samp">Template Numerical Toolkit</span> available at <a href="http://math.nist.gov/tnt">http://math.nist.gov/tnt</a> uses namespace std, i.e. <span class="samp">std::istream</span>.  This fails on systems without ISO C++.  The author hacked up the downloaded code in <span class="samp">tnt</span> directory for <span class="samp">HAVE_STD</span> conditional compilation.
+
+<h3 class="section">13.8 Install Distribution</h3>
+
+<p>Follow the instructions in the See <a href="Installation.html#Installation">Installation</a>.
+
+<h3 class="section">13.9 Create Distribution</h3>
+
+<p>Make a new release of ump as follows:
+
+<pre class="example">     OWNER=davegutz  # your user name here
+     OLDVER=0.12
+     NEWVER=0.12
+     NEWREL=7
+     makeUmpDist $OWNER $OLDVER $NEWVER $NEWREL
+</pre>
+   <p>The script, which you must run as root, will start two edit sessions automatically.  The first one opens three files:  <code>./configure.in</code>, <code>./ChangeLog</code>, and <code>./NEWS</code>.  Change revision numbers in those.  The <code>configure.in</code> file has only a version.
+
+<h3 class="section">13.10 Automake</h3>
+
+<p>To setup and periodically update the Automake setups (configure, Makefiles and so on):
+
+     <ul>
+<li>First time setup of automake <br>  autoscan             # creates configure.scan.
+
+     <li>Copy configure.scan and edit to make configure.in
+
+     <li>Create Makefile.am
+
+     <li>In top level Makefile.am add
+          <ul>
+     <code>SUBDIRS= src</code>
+     <code>EXTRA_DIST = @top_srcdir@/scripts/* @top_srcdir@/TODO</code>
+   </ul>
+
+     <li>Add Makefile.am to every subdirectory.
+
+     <li>Define makefiles in top level configure.in.
+          <ul>
+     <code> AC_OUTPUT(Makefile src/Makefile ...) </code>
+   </ul>
+
+     <li>If making ranlib:
+          <ul>
+      <code> AC_PROG_RANLIB </code> in top level configure.in. 
+   </ul>
+
+     <li>In Makefile.am of subdirectories containing source:
+     <pre class="example">              noinst_LIBRARIES=libfoo.a
+              libfoo_a_SOURCES= foo.h foo.cc ...
+              INCLUDE=-I@top_srcdir @/src/includes
+      </pre>
+     <li>In Makefile.am of higher directories
+          <ul>
+      <code> LDADD=foofiles/libfoo.a </code>
+   </ul>
+
+     <li>For non-executable subdirectories:
+          <ul>
+      In Makefile.am:
+      <code> EXTRA_DIST=foo.txt foo.dat </code>
+   </ul>
+
+     <li>Now run:
+     <pre class="example">          autoheader                         #creates config.h.in
+          touch NEWS README AUTHORS ChangeLog
+          touch stamp-h
+     </pre>
+     <li>There is a good documentation of automake, autoconf, and libtool at:
+          <ul>
+  <li><a href="http://sources.redhat.com/autobook/links.html">http://sources.redhat.com/autobook/links.html</a>
+   and locally at
+  <li><a href="/home/dgutz/autobook-1.3/autobook.html">/home/dgutz/autobook-1.3/autobook.html</a>. 
+ </ul>
+
+     <li># Redo loop.  Usually 'make' will initiate this:
+     <pre class="example">          # autogen.sh:  script to automake redo/remake
+          # contained in root of installation. Not installed.
+          #!/bin/sh
+          set -x
+          export CXX="g++"
+          # -O is for optimized code. (-O2 is default).
+          # No -O2 is for compilation speed and good symbolic debugger.
+          # Run the first way for good debugging
+          #export CFLAGS="-g -Wall"
+          #export CXXFLAGS="-g -Wall"
+          export CFLAGS="-g -O2 -Wall"
+          export CXXFLAGS="-g -O2 -Wall"
+          rm -f config.cache
+          aclocal -I config                                  &amp;&amp; \
+          autoheader                                         &amp;&amp; \
+          automake --gnits --add-missing --copy              &amp;&amp; \
+          autoconf                                           &amp;&amp; \
+          ./configure
+          set +x
+          
+          #!/bin/sh
+          set -x
+          aclocal -I config
+          autoheader
+          automake --gnits --add-missing --copy
+          autoconf
+          
+          # more automatic:
+          su -c"make -s uninstall"        # uninstall
+          ./autogen.sh &amp;&amp; make -s check  # create all and check
+          # ERROR(lptout): Couldn't get the port at 378
+          # is due to local copy of lptout run that cannot have
+          # root permissions
+          su -c"make -s install"     # do as root
+     </pre>
+     </ul>
+
+<h3 class="section">13.11 Make umpsamp</h3>
+
+<pre class="example">     cd $DATA/cal
+     rm -f tempR* core *~
+     cd ..
+     rm -f tempR* core *~
+     cd ..
+     tar cvf umpsamp.tar X
+     gzip umpsamp.tar
+     mv umpsamp.tar.gz umpsamp.tgz
+</pre>
+<h3 class="section">13.12 Copy to Floppy</h3>
+
+<pre class="example">     #fdformat -n /dev/fd0H1440
+     #/sbin/mkfs -t msdos /dev/fd0 1440
+     su
+     umount /mnt/floppy
+     mount /dev/fd0 /mnt/floppy
+     ls -l /mnt/floppy
+     cp $FILE /mnt/floppy
+     ls -l /mnt/floppy
+     umount /mnt/floppy
+     cp $FILE /mnt/C/linux
+</pre>
+<h3 class="section">13.13 Create TODO file</h3>
+
+<pre class="example">     cd ~/ump
+     date &gt; TODO
+     grep TODO */*.h */*.cc */*/*.h */*/*.cc */*/*.c */*.texi src/check* |
+     sed '/ump-/d' | sed '/,v/d' | sed '/~/d' |
+     sed '/In top level/d' | sed '/Create TODO/d' | sed '/date &gt; TODO/d' |
+     sed '/grep TODO/d' | sed '/EXTRA_DIST/d' &gt;&gt; TODO
+</pre>
+<h3 class="section">13.14 Create ump.info File</h3>
+
+<p>Go to <code>ump-ver/doc</code> directory.
+
+<pre class="example">     # For ump.info
+     makeinfo ump
+     
+     # For ump.html; just one large html file supported now.
+     makeinfo --html ump
+     
+</pre>
+   <h3 class="section">13.15 Running repeated throws</h3>
+
+<p><a name="index-repeating-381"></a>        Run <code>while ( test "$ans " = " " )do ump.x -a; sleep 25; done;</code>.
+   <pre class="sp">
+
+</pre>
+    When you have a few stored up, go to an <code>xterm</code> to the <code>main directory</code> that <code>Blink</code> is running.  Load up an environment variable such as <code>list=`ls -1 | grep 2005-11-26`</code>.  Then iteratively run <code>for i in $list; do cp video?.cal $i; cd $i; ump.x -s -R; cd..; done</code>.
+
+<h3 class="section">13.16 Running repeated still shots</h3>
+
+<p>Take <code>stills</code> using <code>Blink</code>.  <code>store</code> them.
+   <pre class="sp">
+
+</pre>
+    When you have a few stored up, go to an <code>xterm</code> to the <code>main directory</code> that <code>Blink</code> is running.  Load up an environment variable such as <code>list=`ls -1 | grep 2005-11-26`</code>.  Then iteratively run <code>for i in $list; do cp video?.cal $i; cd $i; ump.x -s -R; cd..; done</code>.
+
+<h3 class="section">13.17 Checking calibration</h3>
+
+<p><a name="index-octave-382"></a><a name="index-matlab-383"></a><a name="index-check-calibration-384"></a>        There is a matlab script that will faithfully calculate the required rotation matrix.  It is in the scripts directory of the source distribution, <code>extCal.m</code>.  Open it, add your data, and run it in <code>octave</code>.
+   <pre class="sp">
+
+</pre>
+    One thing learned the hard way is that the cameras have an internal shift; the one I had in one camera was in the x-direction.  It became evident because the shift changes with image resolution while I had assumed that internal calibration could be scaled with resolution.  The <code>Rg</code> parameters were added for this reason.  It is recommended that you perform calibration at the same resolution you will be running at, to avoid the possibility of this happening.
+
+<h3 class="section">13.18 Accuracy</h3>
+
+<p><a name="index-accuracy-385"></a>        The accuracy consists of static gage R&amp;R plus a dynamic uncertainty error.  The basic static uncertainty is approximately 1 pixel.  The project report provides sensitivity of a +/- 1 pixel to measured position.
+<pre class="example">     For example, thetaLeft=7 deg, phiLeft=38 deg, thetaRight=18 deg, phiRight=36 deg corresponds to a setup I had in the basement.  In that setup, a ball appears to be 3 pixel wide on average at 160x120.  From the charts, the left camera sensitivity is (1.3, 0.6, 0.5) pixels/pixel and the right camera sensitivity is (0.8, 0.6, 0.6) pixels/pixel.  The rss of these are 1.5 left and 1.2 right, pixels/pixel. Because a ball appears to be 3 pixels wide at 160x120, the static accuracies are 0.5 and 0.4 balls/pixel.  Overall, +/-0.5 balls/pixel static accuracy.  For 320x240 the improves to +/-0.25 balls/pixel.
+     <pre class="sp">
+     
+     </pre>
+         Dynamic accuracy is +/-0.75 balls (TODO: need to explain this better).  Adding these two together rss yields a predicted accuracy of +/-1 balls.
+     
+</pre>
+   <p>The example is representative of a real ball field including the number of pixels per ball.
+
+   </body></html>
+

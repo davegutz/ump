@@ -1,0 +1,33 @@
+#!/bin/sh
+# Wrapper script to spawn an interactive driver for ump program
+# Uncomment srcdir line in ump.x to test from src
+
+
+if ( test "$srcdir " == " " )
+    then
+    srcdir=$srcdir
+    buildsrcdir=$srcdir
+else
+    buildsrcdir=$PWD
+    cd $srcdir
+    srcdir=$PWD
+    cd $buildsrcdir
+fi
+if ( test "$srcdir " == ". " )
+    then
+    srcdir=$PWD
+    buildsrcdir=$srcdir
+fi
+srcdirpath="$srcdir/"
+buildsrcdirpath="$buildsrcdir/"
+export PATH="$buildsrcdirpath:$PATH"
+
+echo ""
+echo ""
+echo "$0: Spawning xterm with ump.x program."
+echo "$0: do not expect indication of success or failure here."
+echo "$0: examine spawned window for problems."
+xterm -sl 1000 -fg yellow -bg DeepSkyBlue4 -title "Ump" -geom 80x29-0+0\
+    -e "$srcdirpath"ump.x -n &
+echo "$0:  NORMAL completion of driving script.  Check spawned window."
+sleep 2

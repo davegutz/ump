@@ -1,0 +1,44 @@
+#!/bin/sh
+# Wrapper script to spawn an interactive driver for ump program
+# Initialize
+help=0
+version=0
+
+# getopt  from /usr/lib/getopt/parse.bash
+TEMP=`getopt -o hV --long help,version \
+     -n 'Ump' -- "$@"`
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$TEMP"
+while true ; do
+	case "$1" in
+	    -h|--help)        help=1;           shift ;;
+	    -V|--version)     version=1;        shift ;;
+	    --) shift ; break ;;
+	    *) echo "Internal error!" ; exit 1 ;;
+	esac
+done
+
+if ( test $help -eq "1" )
+then
+   echo "usage"
+   echo "  $0 [options]"
+   echo "  options:"
+   echo " -h,  --help         this screen"
+   echo " -V,  --version      print version"
+   echo " arg list passed through to ump program"
+   echo " "
+   exit 0
+fi
+
+args=$*
+
+if ( test $version -eq "1" )
+then
+   echo '$Id: Ump,v 1.1 2007/02/17 01:08:29 davegutz Exp davegutz $'
+   echo "Written by Dave Gutz, Copyright (C) 2007"
+   echo " "
+   exit 0
+fi
+
+xterm -sl 1000 -fg yellow -bg DeepSkyBlue4 -title "Ump" -geom 103x29-0+0\
+      -e ump.x $args &

@@ -1,0 +1,140 @@
+#!/bin/sh
+# Script snapshots for Blink
+# D. Gutz 3/8/06
+# Initialize
+help=0
+version=0
+imWidth=0
+imHeight=0
+rawL=""
+rawR=""
+ballColor=0
+snapL=""
+snapR=""
+devices="L R"
+
+# getopt  from /usr/lib/getopt/parse.bash
+TEMP=`getopt -o hV --long help,version \
+     -n '$0' -- "$@"`
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$TEMP"
+while true ; do
+    case "$1" in
+	-h|--help) help=1 ;        break ;;
+	-V|--version) version=1 ;  break ;;
+	--) shift ; break ;;
+	*) echo "Internal error!" ; exit 1 ;;
+    esac
+done
+
+if ( test $help -eq "1" )
+    then
+    echo "usage"
+    echo "  $0 [options] \'working directory\' \'imWidth\' \'imHeight'\ \\"
+    echo "       \'left raw file\' \'right raw file\' \
+\'ballColor\'(=\'black\' or \'white\')\' \\"
+    echo "       \'left snap name'\ \'right snap name\'"
+    echo "  options:"
+    echo " -h,  --help         this screen"
+    echo " -V,  --version      print version"
+    exit 0;
+fi
+
+if ( test $version -eq "1" )
+    then
+    echo '$Id: shootSnaps,v 1.1 2006/08/16 22:42:17 davegutz Exp $'
+    echo "Written by Dave Gutz, Copyright (C) 2006"
+    exit 0;
+fi
+
+# Get commands
+if ( test $# -ne "8" )
+    then
+    echo "ERROR($0):  wrong number of arguments."
+    help=1;
+else
+    wd=$1;
+    imWidth=$2;
+    imHeight=$3;
+    rawL=$4;
+    rawR=$5;
+    ballColor=$6;
+    snapL=$7;
+    snapR=$8;
+fi
+
+# Change directory
+cd $wd
+if ( test $? )
+    then
+    echo "ERROR($0):  Directory not found"
+    exit 1;
+fi
+
+
+# For exits
+trap 'killUmp >/dev/null; rm -f temp; rm -f core; \
+mv $wd/video0.mask.sav $wd/video0.mask; mv $wd/video1.mask.sav $wd/video1.mask;\ ' 0
+
+# Backup the mask files
+mv video0.mask video0.mask.sav
+mv video1.mask video1.mask.sav
+
+# remove the snap image, so can check on success later.  Leave .raw
+# so if ump doesn't run because no camera cards, still can complete
+# calibration.
+
+rm -f $snapL
+rm -f $snapR
+
+>temp ump -s"$imWidth"x"$imHeight" -t8 -o$rawL -o$rawR 2>&1
+if ( test -s $rawL )
+    then
+    echo "MESSAGE($0):  wrote $rawL"
+    rawLExists=1
+else
+    echo "MESSAGE($0): failed to write $rawL"
+    rawLExists=0
+fi
+if ( test -s $rawR )
+    then
+    echo "MESSAGE($0):  wrote $rawR"
+    rawRExists=1
+else
+    echo "MESSAGE($0): failed to write $rawL"
+    rawRExists=0
+fi
+
+if ( test $ballColor -eq "white" )
+    then
+    cp tempRC0003.ppm $snapL
+    cp tempRC1003.ppm $snapR
+
+    if ( test -s $snapL )
+	then
+	echo "MESSAGE($0):  wrote $snapL"
+	snapLExists=1
+    else
+	echo "MESSAGE($0): failed to write $snapL"
+	snapLExists=0
+    fi
+    if ( test -s $snapR )
+	then
+	echo "MESSAGE($0):  wrote $snapR"
+	snapRExists=1
+    else
+	echo "MESSAGE($0): failed to write $snapL"
+	snapRExists=0
+    fi
+fi  # ballColor
+    
+if ( test "$rawLExists "  -eq "0 " ||
+     test "$rawRExists "  -eq "0 " ||
+     test "$snapLExists " -eq "0 " ||
+     test "$snapRExists " -eq "0 "   )
+    then
+    echo "ERROR($0):  failed."
+    exit 1;
+fi
+
+exit 0;

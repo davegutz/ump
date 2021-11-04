@@ -1,0 +1,108 @@
+#!/bin/sh
+# test installation of ump application program.
+# Run in real-time mode with dummy
+# image loading to check synchronization.
+# This script is utility for debugging application.
+# It is not intended to be called by 'make check'
+# but will be installed as executable script.
+
+# Initialize
+help=0
+version=0
+# getopt  from /usr/lib/getopt/parse.bash
+TEMP=`getopt -o hV --long help,version \
+     -n 'checkRealAll' -- "$@"`
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$TEMP"
+while true ; do
+	case "$1" in
+	        -h|--help)        help=1;           shift ;;
+	        -V|--version)     version=1;        shift ;;
+		--) shift ; break ;;
+		*) echo "Internal error!" ; exit 1 ;;
+	esac
+done
+
+if ( test $help -eq "1" )
+then
+   echo "usage"
+   echo "  $0 [options]"
+   echo "  options:"
+   echo " -h,  --help         this screen"
+   echo " -V,  --version      print version"
+   echo "  Test installation of ump application program."
+   echo "  Run in real-time mode with dummy"
+   echo "  image loading to check synchronization."
+  exit 0;
+fi
+
+if ( test $version -eq "1" )
+then
+   echo '$Id: checkRealAll,v 1.1 2007/02/17 02:09:06 davegutz Exp davegutz $'
+   echo "Written by Dave Gutz, Copyright (C) 2005"
+   exit 0;
+fi
+
+# Check real-time operation
+if (    !(test -s video0.cal) \
+     || !(test -s video1.cal) )
+then
+   echo "ERROR($0):  need video0.cal and video1.cal in local directory."
+   exit 1
+fi
+
+# Initialize
+loadlist="1 0"
+sublist="1 2"
+sizelistN="48x32 60x40 90x60 120x90 160x120 180x135 200x150 220x165 240x180"
+sizelistL1="48x32 60x40 70x53 80x60 90x60 120x90"
+sizelistL2="48x32 60x40 90x60 120x90 140x105 150x113 160x120"
+
+trap 'killUmp >/dev/null; rm -f temp; rm -f core' 0
+
+for LEVEL in $loadlist
+do
+for SUB in $sublist
+do
+if ( test $LEVEL = "1" )
+then
+   if ( test $SUB = "1" )
+   then
+      sizelist=$sizelistL1
+   else
+      sizelist=$sizelistL2
+   fi
+else
+   sizelist=$sizelistN
+fi
+for SIZE in $sizelist
+do
+   if ( test $LEVEL = "1" )
+   then
+      echo ""
+      echo "$0:  performing LOADED real-time loading test, size=$SIZE, sub=$SUB:"
+      LETT=RL
+   else
+      echo ""
+      echo "$0:  performing UNLOADED real-time loading test, size=$SIZE, sub=$SUB:"
+      LETT=RN
+   fi
+#   ump -R2 -l"$LEVEL" -v4 -t800 -s"$SIZE" -S"$SUB" -w11 > temp
+   ump -R2 -l"$LEVEL" -t800 -s"$SIZE" -S"$SUB" -w11 > temp
+      cat temp |
+      grep "load test motion" |
+      awk '{printf("video%s %s\n",$1,$6)}' | sort | uniq |
+      awk ' {delta=$2-past; printf("%s %7.4f\n",$0,delta); past=$2}' \
+      > "$LETT""$SIZE"S"$SUB".tim
+   echo "one moment..."
+   sleep 3
+   echo "see file ""$LETT""$SIZE"S"$SUB".tim
+done  # SIZE
+done  # SUB
+done  # LEVEL
+
+# Cleanup
+echo ""
+echo "$0: DONE."
+echo ""
+echo ""

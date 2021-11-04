@@ -1,0 +1,6 @@
+Sat Dec 24 10:33:27 EST 2005
+src/Image.cc:// TODO:  use ASCII .tim file
+src/main.cc:      // TODO:  there is a small memory leak somewhere.
+src/main.cc:	  //TODO:  change 2-d balls into 'discs' and things into 'blobs'
+doc/ump.texi:TODO:  Update abstract in cuts.ps reference.
+doc/ump.texi: TODO:  dvi barfs on finding exmask.eps here:  @image{exmask, 6in}

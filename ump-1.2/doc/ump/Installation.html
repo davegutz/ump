@@ -1,0 +1,109 @@
+<html lang="en">
+<head>
+<title>Installation - Umpire Practical Ball Vision Device</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Umpire Practical Ball Vision Device">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="Overview.html#Overview" title="Overview">
+<link rel="next" href="Install-Video-Cards.html#Install-Video-Cards" title="Install Video Cards">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Installation"></a>Next:&nbsp;<a rel="next" accesskey="n" href="Install-Video-Cards.html#Install-Video-Cards">Install Video Cards</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Overview.html#Overview">Overview</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr><br>
+</div>
+
+<!-- node-name,                next,    previous,      up -->
+<h2 class="chapter">2 Installation</h2>
+
+<ul class="menu">
+<li><a accesskey="1" href="What-Gets-Installed.html#What-Gets-Installed">What Gets Installed</a>:   Programs installed. 
+<li><a accesskey="2" href="Checks.html#Checks">Checks</a>:                Automatic make checks
+<li><a accesskey="3" href="Dependencies.html#Dependencies">Dependencies</a>:          What's needed to make the program work. 
+<li><a accesskey="4" href="blas.html#blas">blas</a>:                  How to try the blas libraries. 
+</ul>
+
+<p>Install a new release of ump as follows:
+
+<pre class="example">     NEWVER=0.12  # Enter the version you want here
+     NEWREL=7
+     cd ~/Desktop
+     
+     # get rpms if need to.  Create process install them in ~
+     ftp upload.comcast.net
+     computergutz
+     
+     prompt
+     mget ump-*
+     quit
+     
+     su -c "rpm -ev ump --allmatches"   # if reinstalling
+     su -c "rpm -ivh ump-$NEWVER-$NEWREL.i386.rpm"
+     su -c "rpm -ivh ump-$NEWVER-$NEWREL.src.rpm"
+     rpm -q ump
+     hash -r   # clear the path
+     which ump  # should be /usr/bin/ump.
+                # If /usr/local/bin/ump-&lt;some ver&gt; then
+                # do 'su -c"make -s uninstall" in the
+                # ump-&lt;some ver&gt; directory that is the culprit.
+                # Follow that up with 'hash -r' as a regular user
+                # to force new path search.
+     
+     #su -c "cp /usr/src/redhat/SOURCES/ump-$NEWVER.tar.gz\
+                                              ~/redhat/SOURCES/."
+     #su -c "cp /usr/src/redhat/SPECS/ump-$NEWVER.spec     ~/redhat/SPECS/."
+     cd /usr/src/redhat/SOURCES/
+     su -c "tar zxvf ump-$NEWVER.tar.gz"
+     cd ump-$NEWVER
+     ./configure &amp;&amp; make -s check
+     # ERROR(lptout): Couldn't get the port at 378
+     # is due to local copy of lptout run that cannot have root permissions
+     # Will work OK after install.
+     su -c "make -s install"
+</pre>
+   <p><code>rpm</code> installs binaries in /usr/bin. If later do <code>make install</code> then new binaries are installed in /usr/local/bin.  Your PATH should have /usr/local/bin before /usr/bin.  Do <code>make -s uninstall</code> as root then <code>hash -r</code> as user to look at the <code>rpm</code> version again.
+
+   <p><a name="index-install-14"></a><a name="index-configure-15"></a>
+   <pre class="sp">
+
+
+</pre>
+Instructions: follow the typical build process
+
+<pre class="example">     $NEWVER=0.12
+     prog=ump-$NEWVER
+     tar zxvf $prog.tar.gz
+     cd $prog
+     ./configure &amp;&amp; make -s
+     # login as root, run
+     su -c "make -s install"
+</pre>
+   <pre class="sp">
+
+
+</pre>
+The structure did not work well with a ./build directory because the scripts that stand alone in the ./scripts directory would not get copied over and installed.<br>
+   <pre class="sp">
+
+
+</pre>
+See <a href="External-Calibration.html#External-Calibration">External Calibration</a>, for first setup.
+
+   </body></html>
+

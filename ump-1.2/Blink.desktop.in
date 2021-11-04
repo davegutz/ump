@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Blink Ball Vision
+Comment=Call balls and strikes
+Name=blink - call balls and strikes
+TryExec=Blink
+Exec=Blink
+Icon=Blink.png
+Terminal=true
+Type=Application
+Categories=GNOME;Application;AudioVideo;

@@ -1,0 +1,48 @@
+<html lang="en">
+<head>
+<title>Install Video Cards - Umpire Practical Ball Vision Device</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Umpire Practical Ball Vision Device">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="Installation.html#Installation" title="Installation">
+<link rel="next" href="Blink-GUI.html#Blink-GUI" title="Blink GUI">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Install-Video-Cards"></a>Next:&nbsp;<a rel="next" accesskey="n" href="Blink-GUI.html#Blink-GUI">Blink GUI</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Installation.html#Installation">Installation</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr><br>
+</div>
+
+<!-- node-name,         next, previous,      up -->
+<h2 class="chapter">3 Install Video Cards</h2>
+
+<p>The minimum recommended computer architecture is Pentium II, 350 MHz, 128 MB ram.  Anything less will set the user up for a frustrating experience with dropped frames due to slow operation.
+
+   <p><a name="index-computer-98"></a><a name="index-PCI-99"></a><a name="index-Brooktree-100"></a><a name="index-sysinit-101"></a><a name="index-bttv-102"></a><a name="index-tuner-103"></a><a name="index-video-cards-104"></a>
+     <ul>
+<li>Install the PCI Brooktree 84x video cards.  Follow the instructions that come with the card.  Linux (RedHat 6.1) will recognize the cards but will not automatically load the bttv drivers. 
+<li>Edit /etc/rc.d/rc.sysinit and add the following lines BEFORE "Now that we":
+     <pre class="example">          # Attach bttv
+          action "Starting tuner..." /sbin/modprobe -k tuner
+          action "Starting bttv..." /sbin/modprobe -a bttv
+     </pre>
+     </ul>
+
+   </body></html>
+

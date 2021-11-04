@@ -1,0 +1,84 @@
+<html lang="en">
+<head>
+<title>What Gets Installed - Umpire Practical Ball Vision Device</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Umpire Practical Ball Vision Device">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Installation.html#Installation" title="Installation">
+<link rel="prev" href="Installation.html#Installation" title="Installation">
+<link rel="next" href="Checks.html#Checks" title="Checks">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="What-Gets-Installed"></a>Next:&nbsp;<a rel="next" accesskey="n" href="Checks.html#Checks">Checks</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Installation.html#Installation">Installation</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Installation.html#Installation">Installation</a>
+<hr><br>
+</div>
+
+<!-- node-name,    next,     previous,            up -->
+<h3 class="section">2.1 What Gets Installed</h3>
+
+<p><code>su -c "make -s install"</code> run as root puts the following scripts and programs available to all users.  The <code>make -s check</code> scripts exercise these capabilities.  The user needs to get in the habit of running from a directory with needed tuning files.
+
+     <dl>
+<dt><code>annoppm</code><dd><a name="index-annoppm-16"></a><a name="index-annotating-the-images-17"></a>      A program that takes the <span class="file">.lbl</span> file output from <code>ump</code> that is associated with each <span class="file">.ppm</span> file and uses Image Magick to write the <span class="file">.lbl</span> information onto the <span class="file">.ppm</span> file.
+
+     <br><dt><code>checkRealAll</code><dd><a name="index-checkRealAll-18"></a><a name="index-throughput-19"></a><a name="index-time-20"></a>      Script that cycles through real-time loading combinations to produce .tim files for analysis in a spreadsheet.
+
+     <br><dt><code>checkSetup</code><dd><a name="index-checkSetup-21"></a><a name="index-camera-external-calibration-22"></a><a name="index-pointing-the-cameras-23"></a><a name="index-calibrating-24"></a>      Script that exercises the camera external calibration programs.
+
+     <br><dt><code>convertTsai</code><dd><a name="index-convertTsai-25"></a><a name="index-Tsai-format-26"></a>      Program that takes Tsai format camera position files and puts out external calibration files for the ump application.
+
+     <br><dt><code>mm2ppm</code><dd><a name="index-mm2ppm-27"></a>      A program that take the <span class="file">.mm</span> and <span class="file">.lbl</span> output files of <code>ump</code> real-time operation with <code>-W</code> option and writes viewable <span class="file">.ppm</span> files. The <span class="file">.mm</span> file format is the 'Matrix Market' format of array management.
+
+     <br><dt><code>savemms</code><dd><a name="index-savemms-28"></a><a name="index-saving-results-29"></a>      A script that takes the output of a real-time run <code>-w</code> and saves in a time-stamped directory located in the directory where the script was run.  Go to the directory and run <code>showmms</code>.
+
+     <br><dt><code>saveppms</code><dd><a name="index-saveppms-30"></a><a name="index-saving-results-31"></a>      A script that takes the output of a file run <code>-i</code> or <code>-o</code> and saves in a time-stamped directory located in the directory where the script was run.
+
+     <br><dt><code>showmms</code><dd><a name="index-showmms-32"></a><a name="index-displaying-results-33"></a>      A script that takes the output of a real-time run <code>-w</code> and creates viewable <span class="file">.ppm</span> files in a format like <code>showppms</code>.  Use the -r&lt;rownum&gt; option to create the contact sheet and display it the first time.
+
+     <br><dt><code>showppms</code><dd><a name="index-showppms-34"></a><a name="index-displaying-results-35"></a>      A script that displays <code>ump</code> output files in an animation loop.  It also leaves behind some static 'contact sheet' type of files for viewing.  Use the -r&lt;rownum&gt; option to create the contact sheet and display it the first time.
+
+     <br><dt><code>killUmp</code><dd><a name="index-killUmp-36"></a><a name="index-killing-processes-37"></a><a name="index-process-control-38"></a>      A script that hunts down and destroys all processes with <code>ump -</code> and <code>streamery</code> in the job name (as seen by <code>ps -axm</code> command) that would be for jobs such as <code>ump -M2</code> or <code>ump -R2</code> or <code>streamery</code>.
+
+     <br><dt><code>killSty</code><dd><a name="index-killSty-39"></a>      A script that hunts down and destroys all processes with <code>streamery</code> in the job name (as seen by <code>ps -axm</code> command) that would be for jobs such as <code>ump -ofile.raw</code>.  Normally called by <code>killUmp</code>.
+
+     <br><dt><code>sliceraw</code><dd><a name="index-sliceraw-40"></a><a name="index-reducing-image-file-size-41"></a><a name="index-melding-image-files-42"></a><a name="index-resizing-image-files-43"></a>      A program that takes long image sequences in <span class="file">.raw</span> files using the <code>-i</code> option files and produces shorter sequences specified using the <code>-t&lt;start&gt;:&lt;end&gt;</code> option in a single <span class="file">.raw</span> file using the <code>-o</code> option.  When two files are input simultaneously as <code>-i</code> files they are melded in alternating images.  The program automatically keeps track of the <span class="file">.tim</span> and <span class="file">.set</span> files and prints out the time and number of frames at the end.
+
+     <br><dt><code>tim2clk</code><dd><a name="index-tim2clk-44"></a><a name="index-transform-_002etim-files-to-ASCII-45"></a><a name="index-making-_002eclk-files-46"></a><a name="index-_002eclk-files-47"></a><a name="index-_002etim-files-48"></a>      A program that takes a binary time <span class="file">.tim</span> file and converts it into ASCII <span class="file">.clk</span> file.  The <span class="file">.tim</span> files have two longs for each time slice, corresponding to two longs from <code>timeval</code> structure for time utilities in <code>#include &lt;sys/time.h&gt;</code>.  These files are impossible to read so this utility program was written to allow a peek.
+
+     <br><dt><code>streamery</code><dd><a name="index-streamery-49"></a><a name="index-xawtv-50"></a><a name="index-frame_002dgrabber-51"></a>      A program to grab frames.  It operates either real time or as limited time to file.  Adapted from <span class="file">xawtv</span> program <span class="file">streamer</span>.
+
+     <br><dt><code>triangulate</code><dd><a name="index-triangulate-52"></a><a name="index-triangulation-53"></a><a name="index-three_002ddimensional-coordinates-54"></a>      A program that takes raw image coordinates from two different cameras and computes the three-dimensional location.  It is useful to use The Gimp program to derive raw image information.
+
+     <br><dt><code>ump</code><dd><a name="index-ump-55"></a><a name="index-main-application-56"></a><a name="index-wrapper-scripts-57"></a>      The main application.  The user may run with minimal options in two modes:  record/playback <code>-i || -o</code> and real time <code> -Rx </code>.  Wrapper script <code>Ump</code> runs the application.
+
+     <br><dt><code>Ump</code><dd><a name="index-Ump-58"></a>      A wrapper script that runs the application in a new xterm window that is sized just right proportions to display the results.
+
+     <br><dt><code>ump.info</code><dd><a name="index-info-59"></a>      A teXinfo file.  You may have to hand-edit the <span class="file">dir</span> file where the ump.info file gets installed.
+
+     <br><dt><code>ump.x</code><dd><a name="index-ump_002ex-60"></a>      A script called by the wrapper to give the arguments to <code>ump</code>.  It will also run still shots by <code>ump.x -s</code> and replay those shots with <code>ump.x -s -R</code>
+
+     <br><dt><code>extCal</code><dd><a name="index-extCal-61"></a><a name="index-external-calibration-62"></a><a name="index-pointing-the-cameras-63"></a>      A program that takes <span class="file">.cam</span> and <span class="file">.dat</span> geometry file information to produce a calibration <span class="file">.cal</span> file used by <code>ump</code>.  Called by <code>checkSetup</code>.
+
+     <br><dt><code>makeUmpDist</code><dd><a name="index-makeUmpDist-64"></a><a name="index-distribution-65"></a><a name="index-new-versions-66"></a><a name="index-makeing-rpm_0027s-67"></a>      A script that the user calls with arguments for old release, new release, and new version.  The script goes through all the necessary file edits, with user interaction, to build new distribution rpm's for ump.  The script must be run with root permissions.
+
+   </dl>
+
+   </body></html>
+

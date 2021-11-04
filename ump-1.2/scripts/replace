@@ -1,0 +1,54 @@
+#!/bin/sh
+#replace:	Replace str1 in files with str2, in place.
+# D. Gutz	03-Mar-93	From Kernighan, B. W. & Pike, R.,
+#				The UNIX Programming Environment, Bell
+#				Labs, Murray Hill, NJ, 1984.
+# J. Beseler    14-Dec-99       Removed local PATH assignment statement
+# D. Gutz       13-May-06       Add getopt & grep for existence before touching
+
+# getopt  from /usr/lib/getopt/parse.bash
+help=0
+version=0
+TEMP=`getopt -o hr:V --long help,rows:,version \
+     -n 'replace' -- "$@"`
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$TEMP"
+while true ; do
+    case "$1" in
+	-h|--help)    help=1 ;     break ;;
+	-V|--version) version=1 ;  break ;;
+	--) shift ; break ;;
+	*) echo "Internal error!" ; exit 1 ;;
+    esac
+done
+if ( test $help -eq "1" )
+    then
+    echo "Replace str1 in files with str2, in place."
+    echo "USAGE: replace [-h|--help -V|--version] str1 str2 files"
+    echo "    str1                ASCII target string"
+    echo "    str2                ASCII replace string"
+    echo "    files               file list"
+    echo "    -h|--help           help and quit"
+    echo "    -V|--version        print version and quit"
+    exit 0
+fi
+if ( test $version -eq "1" )
+    then
+    echo '$Id: replace,v 1.1 2006/08/16 22:42:17 davegutz Exp $'
+    echo "Written by Dave Gutz, Copyright (C) 2006"
+    exit 0;
+fi
+
+case $# in
+    0|1|2) replace -h 1>&2; exit 1
+esac
+
+left="$1"; right="$2"; shift; shift
+
+for i
+  do
+  if ( grep -q $left $i )
+      then
+      overwrite $i sed "s@$left@$right@g" $i
+  fi
+done

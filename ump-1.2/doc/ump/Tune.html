@@ -1,0 +1,97 @@
+<html lang="en">
+<head>
+<title>Tune - Umpire Practical Ball Vision Device</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Umpire Practical Ball Vision Device">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="Messages.html#Messages" title="Messages">
+<link rel="next" href="Maintenance.html#Maintenance" title="Maintenance">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Tune"></a>Next:&nbsp;<a rel="next" accesskey="n" href="Maintenance.html#Maintenance">Maintenance</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Messages.html#Messages">Messages</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr><br>
+</div>
+
+<!-- node-name,         next,           previous,        up -->
+<h2 class="chapter">12 Tune</h2>
+
+<p><a name="index-tuning-370"></a><a name="index-Gaussian-371"></a><a name="index-agauss-372"></a><a name="index-prox-373"></a>The user needs to tune the device for best accuracy.  It will certainly run as installed but may not even detect motion unless tuned.
+
+<h3 class="section">12.1 Tune Segment Calibration</h3>
+
+<p>The basic actions are, as needed:
+
+     <ul>
+<li>Take some reference photos with three balls in known location. Also take photo of no balls. Create faux motion sequence by mixing blank photos with ball photos in preparation for external calibration so program can find balls.
+
+     <li>Tune dead-band in <code>ump</code> to eliminate random flashes identified in the .ppm files after segmentation.
+
+     <li>Tune 'agauss' in <code>ump</code> to make pixels be selected together.  Use 'agaussScalar.'
+
+     <li>Tune 'minProx' in <code>ump</code> to get pixel clumps to combine appropriately.  Use 'minProxScalar.'  Increase it to gather more clumps.
+
+     <li>Tune 'bgauss' in <code>ump</code> to get light and dark pixels to clump appropriately.  Use 'bgaussScalar.'
+
+   </ul>
+
+<h3 class="section">12.2 Tune for Throughput</h3>
+
+<p><a name="index-tune-374"></a><a name="index-throughput-375"></a><a name="index-real_002dtime-376"></a>The basic actions are, as needed:
+
+     <ul>
+<li>load up real time program <code>ump -R2 -l -v4</code>. Examine time step and look at CPU and MEM in <code>top</code> function. Tune -S or -s until runs.
+
+     <li>Take largest possible record/playback pictures <code>ump -o&lt;filename&gt; -o&lt;filename&gt; -s&lt;width&gt;x&lt;height&gt;</code> to determine limit. Examine time step.
+
+     <li>Select optimum image for your setup. The largest image size possible produces most accurate result. Sub-sample to speed up. About 2 is a good value. There probably is no reason to sub-sample for the record/playback method.
+
+     <li>Run the script <code>checkRealAll</code> to save some time with this task
+</ul>
+
+<h3 class="section">12.3 aberration</h3>
+
+<p><a name="index-aberration-377"></a><a name="index-internal-calibration-378"></a><a name="index-barrel-distortion-379"></a><a name="index-fish_002deye-380"></a>The application is not all that sensitive to device internal calibration aberration errors such as &ldquo;barrel distortion&rdquo; or &ldquo;fish-eye&rdquo; provided the cameras point approximately to the position in front of the plate where you wish the call to be made.  See the project report <span class="file">cuts.ps</span> for more information.  Also see the spreadsheets for examples.   The basic actions are, if needed:
+
+     <ul>
+<li>edit <span class="file">.xls</span> file using <code>gnumeric</code> or <code>excel</code>.  Add xf,yf
+<li>calculate AbConstant etc and add to <span class="file">videoX.dat</span> files. 
+<li>run <code>calibrate</code>  # to get correct AbConstant etc into <span class="file">videoX.cal</span> for data collection
+</ul>
+
+   <p>The equations for correction are:
+<pre class="example">     // Adjust for Aberration Error
+     iim = float(i)   - CAL_-&gt;im();
+     jmj = CAL_-&gt;jm() -   float(j) * CAL_-&gt;SY();
+     rho = sqrt( iim*iim + jmj*jmj );
+     rat = CAL_-&gt;AbConstant() +
+           CAL_-&gt;Abrqw2()  * ( rho*rho / float(n_*n_) ) +
+           CAL_-&gt;AbipimR() *   iim     / float(n_)      +
+           CAL_-&gt;AbjpjmR() *   jmj     / float(n_);
+     xr_[index] = rat *  iim   +  CAL_-&gt;im();
+     yr_[index] = rat *(-jmj)  +  CAL_-&gt;jm();
+     
+     // Adjust for Register Error
+     xr_[index] += ( float(n_) / float(CAL_-&gt;imWidthCalEx())  - 1.0 ) *
+       (CAL_-&gt;RgSir()  + CAL_-&gt;RgSiri()*xr_[index]);
+     yr_[index] += ( float(m_) / float(CAL_-&gt;imHeightCalEx()) - 1.0 ) *
+       (CAL_-&gt;RgSjr()  + CAL_-&gt;RgSjrj()*yr_[index]);
+</pre>
+   </body></html>
+

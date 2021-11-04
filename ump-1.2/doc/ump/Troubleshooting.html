@@ -1,0 +1,175 @@
+<html lang="en">
+<head>
+<title>Troubleshooting - Umpire Practical Ball Vision Device</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Umpire Practical Ball Vision Device">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="When-Things-Go-Wrong.html#When-Things-Go-Wrong" title="When Things Go Wrong">
+<link rel="next" href="Streamer-Functions.html#Streamer-Functions" title="Streamer Functions">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Troubleshooting"></a>Next:&nbsp;<a rel="next" accesskey="n" href="Streamer-Functions.html#Streamer-Functions">Streamer Functions</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="When-Things-Go-Wrong.html#When-Things-Go-Wrong">When Things Go Wrong</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr><br>
+</div>
+
+<!-- node-name,               next,             previous,      up -->
+<h2 class="chapter">7 Troubleshooting</h2>
+
+<p>While running, the application may not perform satisfactorily for various reasons.  Below is a troubleshooting table to assist in system-level debugging.
+
+   <p><a name="index-agauss-282"></a>
+     
+<a name="index-too-many-pixels-changes-283"></a>
+<dl><dt><code>Symptom - too many pixels changed</code><dd>
+     <pre class="sp">
+     
+     </pre>
+     Isolation:  Lots of <span class="samp">*</span> messages.  Taking a video snap with <span class="samp">-W</span> option reveals players moving in the images.<br>
+     <pre class="sp">
+     
+     </pre>
+     Action:  verify  camera setup - there should be no players normally in image.  Also consider using a mask, See <a href="Input-Files.html#Input-Files">Input Files</a>.
+
+     <br><dt><code>Symptom - too many pixels changed</code><dd>
+     <pre class="sp">
+     
+     </pre>
+     Isolation:  Lots of <span class="samp">*</span> messages.  Taking a video snap with <span class="samp">-W</span> option shows just balls moving through image sequence, See <a href="Options.html#Options">Options</a>.<br>
+     <pre class="sp">
+     
+     </pre>
+     Action:  Focal length changed or cameras moved too close.  Action: adjust the focal length and distance per the recommendations of the project report which will produce 4 ball streaks on each pitch.  Re-run the camera setup.  See See <a href="External-Calibration.html#External-Calibration">External Calibration</a>.
+
+     <p><a name="index-no-balls-284"></a><a name="index-BALL-SPEED-REJECT-285"></a><br><dt><code>Symptom - no balls</code><dd>
+     <pre class="sp">
+     
+     </pre>
+     Isolation:  Running with <span class="samp">-v2</span> option shows lots of detected moving balls, <span class="samp">BALL VELOCITY =</span> but no call and lots of <span class="samp">BALL SPEED REJECT</span> annunciations, See <a href="Options.html#Options">Options</a>.<br>
+     <pre class="sp">
+     
+     </pre>
+     Action:  Tune <code>velThresh</code> or <code>velMax</code> in <code>zone.tune</code>, See <a href="Input-Files.html#Input-Files">Input Files</a>.  Note especially that balls coming toward the umpire are negative so balls <span class="samp">greater than</span> the value are slower and will be rejected with <span class="samp">BALL SPEED REJECT</span>  Make the <code>velThresh</code> less negative to detect small negative velocities.  For example, if <code>velThresh=-500</code> and the typical velocity is -80, then change <code>velThresh=-50</code> to detect.  It is not possible to set to reject negative velocities while accepting positive velocities though a large positive <code>velThresh</code> will accept all velocities.
+
+     <br><dt><code>Symptom - no balls</code><dd>
+     <pre class="sp">
+     
+     </pre>
+     Isolation:   Running with <span class="samp">-v3</span> option shows few detected moving balls, <span class="samp">ball:</span>.  Also running with <span class="samp">-W</span> option and running <span class="samp">showmms</span> shows balls streaking across the corner of the image, See <a href="Options.html#Options">Options</a>. See <a href="What-Gets-Installed.html#What-Gets-Installed">What Gets Installed</a>.<br>
+     <pre class="sp">
+     
+     </pre>
+     Action:  Point the cameras to focus at a point in front of the action and on the flight path of the ball so that the ball travels diagonally across both camera images.  Re-run the setup process.  See See <a href="External-Calibration.html#External-Calibration">External Calibration</a>.
+
+     <p><a name="index-BALL-TRIANGULATION-REJECT-286"></a><a name="index-triangulationScalar-287"></a><br><dt><code>Symptom - no balls</code><dd>
+     <pre class="sp">
+     
+     </pre>
+     Isolation:   Running with <span class="samp">-v2</span> option shows lots of triangulation rejects, <span class="samp">BALL TRIANGULATION REJECT</span>.<br>
+     <pre class="sp">
+     
+     </pre>
+     Action:  The cameras have moved or the external calibration was performed incorrectly.  Re-run the setup process.  See See <a href="External-Calibration.html#External-Calibration">External Calibration</a>.  You can adjust <code>triangulationScalar</code> in <code>zone.tune</code> to get by. 
+<a name="index-triangulationScalar-288"></a>
+<br><dt><code>Symptom - no balls</code><dd>
+     <pre class="sp">
+     
+     </pre>
+     Isolation:   Running with <span class="samp">-v3</span> option shows few detected moving balls, <span class="samp">ball:</span>.  Also running with <span class="samp">-W</span> option and running <span class="samp">showmms</span> shows only one or two smears for each pitch, See <a href="Options.html#Options">Options</a>. See <a href="What-Gets-Installed.html#What-Gets-Installed">What Gets Installed</a>.<br>
+     <pre class="sp">
+     
+     </pre>
+     Action:  Move the cameras further away or shorten lens focal length until at least 3 smears show up in each camera for each pitch.  Re-run the setup process.  See See <a href="External-Calibration.html#External-Calibration">External Calibration</a>.
+
+     <p><a name="index-POSSIBLY-SWAPPED-CAMERA-WIRES-289"></a><br><dt><code>Symptom - no balls</code><dd>
+     <pre class="sp">
+     
+     </pre>
+     Isolation:   Running with <span class="samp">-v3</span> option shows few detected moving balls, <span class="samp">ball:</span>.  Also there are numerous messages <span class="samp">POSSIBLY SWAPPED CAMERA WIRES</span>.<br>
+     <pre class="sp">
+     
+     </pre>
+     Action:  Swap the camera device wires.  It is not advisable to swap the <span class="samp">.cal</span> files.
+
+     <p><a name="index-agauss-290"></a><br><dt><code>Symptom - no balls</code><dd>
+     <pre class="sp">
+     
+     </pre>
+     Isolation:   Running with <span class="samp">-v3</span> option shows few detected moving balls, <span class="samp">ball:</span>.  Possibly the perceptual grouping needs to be tuned.
+     <pre class="sp">
+     
+     </pre>
+     Action:  Tune <code>agauss</code>.
+
+     <p><a name="index-too-little-light-291"></a><a name="index-too-much-sub_002dsampling-292"></a><a name="index-dirty-ball-293"></a><a name="index-too-light-background-294"></a><a name="index-camera-too-far-away-295"></a><a name="index-focal-length-too-small-296"></a><br><dt><code>Symptom - no balls</code><dd>
+     <pre class="sp">
+     
+     </pre>
+     Isolation:   Running with <span class="samp">-v3</span> option shows few detected moving balls, <span class="samp">ball:</span> and there are many <span class="samp">area too small</span> messages.  Also running with <span class="samp">-W</span> option and running <span class="samp">showmms</span> shows few excited pixels, See <a href="Options.html#Options">Options</a>. See <a href="What-Gets-Installed.html#What-Gets-Installed">What Gets Installed</a>.<br>
+     <pre class="sp">
+     
+     </pre>
+     Possibilities:  This is ambiguous isolation.  The possibilities are:
+     <pre class="sp">
+     
+     </pre>
+          <dl>
+<dt><span class="samp">too little light</span><dd>     Action:  open camera iris or increase lighting. 
+<br><dt><span class="samp">too much sub-sampling</span><dd>     Action:  educe the <span class="samp">-S</span> size, See <a href="Options.html#Options">Options</a>. 
+<br><dt><span class="samp">dirty ball</span><dd>     Action: use clean, white baseballs. 
+<br><dt><span class="samp">light background</span><dd>     The application has difficulty detecting baseballs if there is not enough contrast with the background.  A uniform dark background is best.  Patches of dirt look like baseballs.  Action:  darken the background (paint?). 
+<br><dt><span class="samp">camera too far away</span><dd>     Action:  Move the cameras closer until at least 3 smears show up in each camera for each pitch.  Re-run the setup process.  See See <a href="External-Calibration.html#External-Calibration">External Calibration</a>. 
+<br><dt><span class="samp">focal length too small</span><dd>     Action:  increase lens focal length until at least 3 smears show up in each camera for each pitch.  Re-run the setup process.  See See <a href="External-Calibration.html#External-Calibration">External Calibration</a>.  You may also need to re-calibrate the device aberration coefficients in the <span class="samp">video?.cam</span> files for new focal length. 
+</dl>
+
+     <br><dt><code>Symptom - inaccurate calls</code><dd>
+     <pre class="sp">
+     
+     </pre>
+     Isolation:  Plenty of balls, just wrong<br>
+     <pre class="sp">
+     
+     </pre>
+     Possibilities:
+     <pre class="sp">
+     
+     </pre>
+          <dl>
+<dt><span class="samp">never externally calibrated</span><dd>     Perhaps the sample external calibration files were installed but the process was never followed to generate new files for this site.  Action:  run the setup process.  See See <a href="External-Calibration.html#External-Calibration">External Calibration</a>.  You may also need to calibrate the device aberration coefficients in the <span class="samp">video?.cam</span> files. 
+<br><dt><span class="samp">wrong directory</span><dd>     Perhaps you started the application in the wrong directory.  Action:  change to the correct directory. 
+<br><dt><span class="samp">cameras changed</span><dd>     Focal length changed or cameras moved.  Action: run the setup process.  See See <a href="External-Calibration.html#External-Calibration">External Calibration</a>.  You may also need to calibrate the device aberration coefficients in the <span class="samp">video?.cam</span> files. 
+<br><dt><span class="samp">cameras swapped</span><dd>     It is easy to connect the video cables up backward.  Action:  verify video cables connected correctly. 
+<br><dt><span class="samp">tune</span><dd>     You may simply adjust the ball location or strike zone.  Action: adjust parameters in <span class="samp">zone.tune</span> file.  See See <a href="Input-Files.html#Input-Files">Input Files</a>. 
+<br><dt><span class="samp">cameras too far</span><dd>     There will be more than two balls called for every pitch.  Action: move cameras closer or increase lens focal length.  Re-run setup process.   See See <a href="External-Calibration.html#External-Calibration">External Calibration</a>.  You may also need to calibrate the device aberration coefficients in the <span class="samp">video?.cam</span> files. 
+</dl>
+
+     <p><a name="index-multiple-balls-297"></a><br><dt><code>Symptom - multiple balls</code><dd>
+     <pre class="sp">
+     
+     </pre>
+     Isolation:  Normal unless excessive.  If more than two balls for each pitch, then cameras are too far away or focal length is too large and the accuracy will be poor.  See the preceeding section.<br>
+     <pre class="sp">
+     
+     </pre>
+     Action: use last ball identified; it is most accurate because it is closest to the plate.
+
+   </dl>
+
+   </body></html>
+

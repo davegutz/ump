@@ -1,0 +1,141 @@
+#!/bin/sh
+# test installation of ump application program.
+# Run in real-time mode with dummy
+# image loading to check synchronization.
+
+DATA=$srcdir/../data/X
+MINUNLOADED=25
+MINLOADED=15
+
+if ( test "$srcdir " == " " )
+then
+   srcdir=$srcdir
+   buildsrcdir=$srcdir
+else
+   buildsrcdir=$PWD
+   cd $srcdir
+   srcdir=$PWD
+   cd $buildsrcdir
+fi
+if ( test "$srcdir " == ". " )
+then
+   srcdir=$PWD
+   buildsrcdir=$srcdir
+fi
+srcdirpath="$srcdir/"
+buildsrcdirpath="$buildsrcdir/"
+
+cd $DATA
+if ( test $? -ne 0 )
+then
+   echo "Run from ump package src directory or define 'srcdir'"
+   exit 1
+fi
+
+trap '"$srcdirpath"killUmp >/dev/null; rm -f temp temp1 core; sleep 2;' 0
+
+# Check real-time LOADED operation
+# Check operation with pre-recorded data files.
+if   ( test -c /dev/video0     \
+    && test -r /dev/video0     \
+    && test -c /dev/video1     \
+    && test -r /dev/video1     )
+    then
+    echo ""
+    echo "$0:  performing dual LOADED real-time loading test (wait 22 sec):"
+    echo -ne "			||\r"
+    > temp1 "$buildsrcdirpath"ump -R2 -l1 -t120 -s160x120 -S2 -w330 -X115 2>&1 &
+    job=$!
+elif (   test -c /dev/video0     \
+    &&   test -r /dev/video0     \
+    || ( test -c /dev/video1     \
+    &&   test -r /dev/video1     ) )
+    then
+    echo ""
+    echo "$0:  performing single LOADED real-time loading test (wait 22 sec):"
+    echo -ne "			||\r"
+    > temp1 "$buildsrcdirpath"ump -R1 -l1 -t120 -s160x120 -S2 -w330 -X115 2>&1 &
+    job=$!
+else
+    echo "MESSAGE($0):  /dev/video0 and /dev/video1 not found."
+    sleep 5
+    exit 77
+fi
+sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+sleep 1;echo ".";
+kill $job 2>/dev/null;success=$?
+cat temp1 | grep "load test motion" | sed 's/.S//g' | sed 's/:S//g' |
+awk '{printf("video%s %s\n",$1,$6)}' | sort | uniq |
+awk ' {delta=$2-past; printf("%s %7.4f\n",$0,delta); past=$2}' >temp
+fps=`grep "12\." temp | grep video0 | wc -l`
+echo "LOADED frames/second = $fps"
+if ( test $fps -lt $MINLOADED || test $success -ne 1 )
+    then
+    echo "WARNING($0):  ump failed.  Less than $MINLOADED frames /sec."
+    echo "Are both devices installed and available?"
+    echo "Try running 'ump -Rx -l1 -v4 -t100 -S2' from command line,"
+    echo "where x is the number of video devices installed."
+    sleep 5
+    exit 77
+fi
+echo "complete."
+
+
+# Check real-time UNLOADED operation
+if   ( test -c /dev/video0     \
+    && test -r /dev/video0     \
+    && test -c /dev/video1     \
+    && test -r /dev/video1     )
+    then
+    echo ""
+    echo "$0:  performing dual UNLOADED real-time loading test (wait 19 sec):"
+    sleep 3
+    echo -ne "		     ||\r"
+    > temp1 "$buildsrcdirpath"ump -R2 -l0 -t120 -s160x120 -S2 -w330 -X115 2>&1 &
+    job=$!
+elif (   test -c /dev/video0     \
+    &&   test -r /dev/video0     \
+    || ( test -c /dev/video1     \
+    && test -r /dev/video1     ) )
+    then
+    echo ""
+    echo "$0:  performing single UNLOADED real-time loading test (wait 19 sec):"
+    sleep 3
+    echo -ne "		     ||\r"
+    > temp1 "$buildsrcdirpath"ump -R1 -l0 -t120 -s160x120 -S2 -w330 -X115 2>&1 &
+    job=$!
+else
+    echo "$0:  /dev/video0 and /dev/video1 not found."
+    sleep 5
+    exit 77
+fi
+sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+sleep 1;echo -n "."; sleep 1;echo -n "."; sleep 1;echo -n ".";
+sleep 1;echo ".";
+kill $job 2>/dev/null;success=$?
+cat temp1 | grep "load test motion" | sed 's/.S//g' | sed 's/:S//g' |
+awk '{printf("video%s %s\n",$1,$6)}' | sort | uniq |
+awk ' {delta=$2-past; printf("%s %7.4f\n",$0,delta); past=$2}' > temp
+fps=`grep "11\." temp | grep video0 | wc -l`
+echo "UNLOADED frames/second = $fps"
+if ( test $fps -lt $MINUNLOADED || test $success -ne 1 )
+    then
+    echo "WARNING($0):  ump failed.  Less than $MINUNLOADED frames /sec."
+    sleep 5
+    exit 77
+fi
+
+# Cleanup
+echo ""
+echo "$0: SUCCESS."
+sleep 2

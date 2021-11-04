@@ -1,0 +1,81 @@
+ump
+===
+
+   Monitor dual video capture card, segment captured images to detect
+moving balls, and predict whether balls intersect strike zone.
+
+
+Dependencies
+============
+
+   System V IPC, pthread, Image Magic, GIMP, bttv, and (2) PCI BT8x8
+frame grabber cards.
+
+
+Installation
+============
+
+   For installation of the program, see INSTALL.
+
+   The program was developed under RH 6.1 but later updated
+to RHEL 3.0 kernel 4-21.  It no longer runs under RH 6.1 and
+also will not run on early versions of kernel 4 before the 
+pthread library was improved.  You should run kernel 4-21 or later.
+
+   The GIMP and Image Magic need to be installed when running ump.
+
+   The module bttv needs to be running when ump does. With RHEL this
+requires recompiling the kernel (sorry).  Remember to use kernel 4-21
+or later.  For the menuconfig settings I used:
+
+     Video for Linux
+        [*]Video for Linux
+           [*]v4l proc
+           [M]bt848
+     
+     Character devices
+         [*]i2c
+         [*]i2c bit banging
+
+     Main
+         [*]systemV IPC
+
+
+   In /etc/rc.d/rc.sysinit I added:
+
+      # Turn on video devices
+      modprobe bttv >/dev/null 2>&1
+
+
+   For help installing cameras and cards, you are on your own.  For help
+calibrating cameras and locating them there is help and scripts installed
+by the program.  See the info file:
+
+     info ump
+
+that will tell you how to run the checkSetup script interactively.
+
+
+
+Documentation
+=============
+
+   Run info for documentaion:
+
+
+     info ump
+
+
+   Sometimes it is necessary to add texinfo.tex by running 'automake
+--add-missing' from the top level ump-ver directory.
+
+   Then go to doc directory.  'make ump.info'.  Re-run 'make install'.
+View the ".info" file with:
+
+     info ump
+
+
+Optional Lights
+===============
+
+Optionally you can connect indicator light circuits to the lpt printer port for indication of pitch result.   Presently Ump turns on pins 2, 3, and 4 for BALL, STRIKE, and NO CALL respectively.  Pins 2-9 are controlled by values of 1, 2, 4, 8,...128. Pins 18 - 25 are grounds. Pins 1,14,16, & 17 are 5 vdc sources. Use low current LEDs (2 mA) and drop a resistor so no more than 2.6 mA is drawn at 2.4 vdc total drop. 

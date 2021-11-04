@@ -1,0 +1,17 @@
+#MESSAGE(Tune): cal for device video0:
+imWidthCalEx   = 320
+imHeightCalEx  = 240
+focalCalEx     = 358
+AbConstant = 0.993084
+Abrqw2     = 0.334932
+AbipimR    = -0.020826
+AbjpjmR    = 0.004861
+ARC        = 1.3675
+RgSir      = 0
+RgSiri     = 0
+RgSjr      = 0
+RgSjrj     = 0
+P          = [ -10.5  -4.5  17.75  ]
+ACPW       = [ 0.772766 0.441691 0.5302 
+              -0.694888 0.384289 0.642752 
+              -0.0990627 0.84505 -0.554444 ]

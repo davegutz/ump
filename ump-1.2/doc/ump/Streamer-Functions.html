@@ -1,0 +1,78 @@
+<html lang="en">
+<head>
+<title>Streamer Functions - Umpire Practical Ball Vision Device</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Umpire Practical Ball Vision Device">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="Troubleshooting.html#Troubleshooting" title="Troubleshooting">
+<link rel="next" href="External-Calibration.html#External-Calibration" title="External Calibration">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Streamer-Functions"></a>Next:&nbsp;<a rel="next" accesskey="n" href="External-Calibration.html#External-Calibration">External Calibration</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Troubleshooting.html#Troubleshooting">Troubleshooting</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr><br>
+</div>
+
+<!-- node-name,  next,                 previous,            up -->
+<h2 class="chapter">8 Streamer Functions</h2>
+
+<p><a name="index-xawtv-298"></a><a name="index-Gerd-Knorr-299"></a><a name="index-streamer-program-construction-300"></a>
+The idea of the streamery functions are to patch Gerd Knorr's <code>xawtv</code> <code>streamer</code> program to provide streaming video to the ump program.  This application extracts several files from <code>xawtv/src/stream</code> directory and enhances one existing function and creates two new ones:
+     <ul>
+<li>extends <code>writer_file</code> function to create companion files to the <code>.raw</code> single file output to record time (<code>.tim</code>) and image vital statistics (<code>.set</code>).
+
+     <li>creates an endless loop that is <code>exec</code>'d by the application to calculate image rate and write to a shared memory sector.  This is available by the <code>ump -M2</code> option.
+
+     <li>create an endless loop that is attached to and <code>fork</code>'d by the application to calculate image rate and write to a shared memory sector.  This is available by the <code>ump -R2</code> option.  It differs from the <code>ump -M2</code> option because it saves a kernel call and runs slightly faster.
+
+   </ul>
+
+   <p>Extending <code>xawtv/src/stream/streamer</code> was difficult because it is part of a large project with many configure options to sort out and meld with the application's.  Moreover, the <code>streamer</code> program and its associated functions contain numerous static variables and functions that make it unsuitable for threading and difficult to <code>exec</code> multiple times.  This application deals with this by interfacing crudely to the static variables in a straightforward brute way.<br>
+   <pre class="sp">
+
+</pre>
+
+   These are the steps used to make the <code>realstream</code> contents:
+
+     <ul>
+<li>install xawtv development version with source
+
+     <li>copy
+     <pre class="example">          byteorder.h, channel.c, channel.h, colorspace.c, colorspace.h,
+          commands.c, commands.h, frequencies.c, frequencies.h, grab.h,
+          parseconfig.c, parseconfig.h, videodev.h, videodev2.h, writefile.c
+     </pre>
+     <p>and <code>writefile.h</code> from <code>xawtv/src/stream</code> into <code>ump/src/realstream</code>.
+
+     <li>copy <code>grab.c, grab-v4l2.c, grab-v4l.c,</code> and <code>streamer</code> into <code>ump/src/realstream</code> and edit as shown in the files to create <code>graby.c, grab-v4l2y.c, grab-v4ly.c,</code> and <code>streamery.c</code>.
+
+     <li>write <code>grab-stat.h, grab-v4l-stat.h, realStream.c,</code> and <code>realStream.h</code> to interface with the <code>static</code> variables.
+
+   </ul>
+
+   <p>It is important to make a hack to the <code>grab-v4l.c</code> and <code>grab-v4l2.c grab_queue()</code> functions as follows (changed <code>#if 1</code> to <code>#if 0</code>):
+
+<pre class="example">     #if 0
+         /* might be useful for debugging driver problems */
+         memset(map + gb_buffers.offsets[frame],0,
+     	   gb_buffers.size/gb_buffers.frames);
+     #endif
+</pre>
+   </body></html>
+

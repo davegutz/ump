@@ -1,0 +1,231 @@
+#!/bin/sh
+# Script the program release process
+# D. Gutz 12/18/05 
+# Initialize
+help=0
+version=0
+origPWD=$PWD
+
+# getopt  from /usr/lib/getopt/parse.bash
+TEMP=`getopt -o hV --long help,version \
+     -n '$0' -- "$@"`
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$TEMP"
+while true ; do
+    case "$1" in
+	-h|--help) help=1 ;        break ;;
+	-V|--version) version=1 ;  break ;;
+	--) shift ; break ;;
+	*) echo "Internal error!" ; exit 1 ;;
+    esac
+done
+
+
+# Get commands
+if ( test $# -ne "4" )
+    then
+    echo "ERROR($0):  wrong number of arguments."
+    help=1;
+else
+    owner=$1; oldver=$2; newver=$3; newrel=$4;
+fi
+
+
+# Help and Version
+if ( test $help -eq "1" )
+    then
+    echo "$0:  Script the 'ump' package build process"
+    echo "USAGE:  $0 [ -hV|--help,version] accountowner oldver(0.12) newver(0.13)  newrel(7)"
+    echo "    -h|--help           help"
+    echo "    -V|--version        Print version info"
+    exit 0
+fi
+if ( test $version -eq "1" )
+    then
+    echo '$Id: makeUmpDist,v 1.2 2010/01/10 12:20:00 davegutz Exp $'
+    echo "Written by Dave Gutz, Copyright (C) 2005"
+    exit 0;
+fi
+
+
+# Check for root
+if ( test "`whoami`" != "root" )
+    then
+    echo "ERROR($0):  must be root for this to work."
+    exit 1;
+fi
+
+# Prepare rpm spec file
+echo "Making rpm package inputs..."
+printf "\n\
+Make sure .rpmmacros exists in $HOME and has line \n\
+   '%_topdir /u\sr/src/redhat'\n"
+printf "Changing to "
+cd /usr/src/redhat/SPECS
+printf "$PWD\n"
+if ( test -s ump-$newver.spec )
+    then
+    continue;
+else
+    cp ump-$oldver.spec ump-$newver.spec
+    chmod 777 ump-$newver.spec
+fi
+
+
+# Allow editor to work
+xhost +  >/dev/null
+printf "Changing to "
+cd /usr/src/redhat/SOURCES/ump-$oldver
+printf "$PWD\n"
+echo "Copying makeUmpDist in case of error"
+cp /usr/src/redhat/SOURCES/ump-$oldver/scripts/makeUmpDist $origPWD
+echo "Getting ready to edit configuration notes for new release..."
+printf "\n\
+In emacs window that opens next,
+  -change version number in ./configure.in, \n\
+  -add comment to ./ChangeLog                \n\
+  -add comment to ./NEWS\n\
+  -find and change ump version\n\
+  -make several changes in ump-$newver.spec\n\
+  -change version in INSTALL\n"
+su $owner -c "emacs configure.in ChangeLog NEWS src/main.cc /usr/src/redhat/SPECS/ump-$newver.spec INSTALL"
+
+
+echo "Uninstalling old version ump-$oldver in $PWD..."
+make -s uninstall  # nothing in /usr/local/bin to over-ri\de our new build
+echo "Resetting hash table as root and $owner"
+hash -r                           # reset hash table to do a full path s\earch
+su $owner -c "hash -r"            # reset hash table to do a full path s\earch
+
+echo "Uninstalling the rpm package:  ump..."
+rpm -ev ump --allmatches
+
+echo "Remaking configuration files..."
+printf "\n\
+When autogen.sh and make (next step), warnings are expected: \n\
+  - channel.c: In function read_config: \n\
+  - channel.c:395: warning: operation on list may be undefined \n\
+These warnings cannot be fixed without breaking the program.\n"
+su $owner -c "./autogen.sh && make -s"
+
+
+echo "Making new distribution tar file..."
+printf "\n\
+When make dist (next step), errors are expected: \n\
+  -ERROR(lptout): Couldn't get the port at 378        \n\
+is due to local copy of lptout run that cannot have root permissions.\n"
+make -s dist
+if ( test "$?" -ne 0 )
+    then
+    printf "ERROR(makeUmpDist):  \"make -s dist\" failed.  Try it yourself \n\
+before rerunning.\n"
+    exit 1
+fi
+cp ump-$newver.tar.gz ../.
+
+
+printf "\nBuilding rpm...\n"
+printf "Changing to "
+cd /usr/src/redhat/SPECS
+printf "$PWD\n"
+printf "\n\
+The messages for rpmbuild (next step): \n\
+  -...unable to open X server...\n\
+are normal; but I dont know what they mean.\n"
+rpmbuild -ba ump-$newver.spec
+if ( test "$?" -ne 0 ) 
+    then
+    echo "QUITTING"
+    exit 1;
+fi
+
+
+printf "\nGetting ready to install..."
+printf "\nChanging to "
+cd /usr/src/redhat/SOURCES/ump-$newver
+printf "$PWD\n"
+cp INSTALL ../../SRPMS/ump-$newver-$newrel-INSTALL
+
+printf "\nPrepare for installing $newver..."
+make -s uninstall
+printf "\nResetting hash tables again..."
+hash -r
+su $owner -c "hash -r"
+
+printf "\nCopying files for distribution to storage media by you...\n"
+printf "\nChanging to "
+cd /usr/src/redhat/RPMS/i386
+printf "$PWD\n"
+su $owner -c "cp ump-*$newver-$newrel* /home/$owner/Desktop/."
+chown $owner /home/$owner/Desktop/ump-$newver*
+printf "\nChanging to "
+cd ../../SRPMS
+printf "$PWD\n"
+su $owner -c "cp ump-$newver-$newrel* /home/$owner/Desktop/."
+chown $owner /home/$owner/Desktop/ump-$newver*
+printf "\nChanging to "
+cd /usr/src/redhat/SOURCES/ump-$oldver
+printf "$PWD\n"
+make -s uninstall
+hash -r
+su $owner -c "hash -r"
+printf "\nChanging to "
+cd /usr/src/redhat/RPMS/i386
+printf "$PWD\n"
+printf "Next step will throw normal messge about package ump is not installed\n\n"
+rpm -e ump --allmatches
+rpm -ivh ump-$newver-$newrel.i386.rpm
+printf "\nChanging to "
+cd ../../SRPMS
+printf "$PWD\n"
+echo "rpm -i src"
+rpm -ivh ump-$newver-$newrel.src.rpm
+
+
+printf "\nVerifying installation...\n"
+printf "\nYou should now see ump-$newver-$newrel:  "
+rpm -q ump
+printf "\nYou should now see /usr/bin/ump:  "
+which ump 
+
+if ( test "$oldver" != "$newver" )
+    then
+    printf "\nInstalling source...\n"
+    printf "\nChanging to "
+    cd /usr/src/redhat/SOURCES/
+    printf "$PWD\n"
+    mv ump-$oldver ump-"$oldver"old
+    tar zxvf ump-$newver.tar.gz
+fi
+
+printf "\nBuilding new...\n"
+printf "\nChanging to "
+cd /usr/src/redhat/SOURCES/ump-$newver
+printf "$PWD\n"
+printf "\n\
+When make (next step), errors are expected: \n\
+  -ERROR(lptout): Couldn't get the port at 378        \n\
+is due to local copy of lptout run that cannot have root permissions.\n\
+It will work after installation is complete."
+su $owner -c "./autogen.sh && make -s"
+printf "\n\nDone with autogen.sh and make.\n"
+printf "\nInstalling new build as local source...\n"
+make -s install
+
+
+printf "\n\nDONE.   In /home/$owner/Desktop are the resulting distribution files.\n\n"
+
+printf "\n\
+MESSAGE($0):  Made following files, with copies on /home/$owner/Desktop:\n\
+  - /usr/src/redhat/RPMS/i386/ump-$newver-$newrel.i386.rpm \n\
+  - /usr/src/redhat/RPMS/i386/ump-debuginfo-$newver-$newrel.i386.rpm \n\
+  - /usr/src/redhat/SRPMS/ump-$newver-$newrel.src.rpm \n\
+  - /usr/src/redhat/SRPMS/ump-$newver-$newrel-INSTALL \n\
+  - /usr/src/redhat/SOURCES/ump$newrelold \n\
+                      directory, copy of old ump-$newrel \n\
+   -/usr/src/redhat/SOURCES/ump-$newver.tar.gz \n\
+   -/usr/src/redhat/SOURCES/ump-$newver-$newrel\n\
+                      directory for edits and new builds\n\
+"
+
+exit 0;

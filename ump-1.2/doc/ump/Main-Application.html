@@ -1,0 +1,75 @@
+<html lang="en">
+<head>
+<title>Main Application - Umpire Practical Ball Vision Device</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Umpire Practical Ball Vision Device">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="Blink-Program-Notes.html#Blink-Program-Notes" title="Blink Program Notes">
+<link rel="next" href="Options.html#Options" title="Options">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Main-Application"></a>Next:&nbsp;<a rel="next" accesskey="n" href="Options.html#Options">Options</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Blink-Program-Notes.html#Blink-Program-Notes">Blink Program Notes</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr><br>
+</div>
+
+<!-- node-name,    next,            previous,  up -->
+<h2 class="chapter">5 Main Application</h2>
+
+<ul class="menu">
+<li><a accesskey="1" href="Options.html#Options">Options</a>:        Verbose explanation of command line options
+<li><a accesskey="2" href="Input-Files.html#Input-Files">Input Files</a>:    Explanation of format for ump input files
+<li><a accesskey="3" href="Output-Files.html#Output-Files">Output Files</a>:   Explanation of output files from ump
+<li><a accesskey="4" href="Program-Notes.html#Program-Notes">Program Notes</a>:  Miscellaneous information that doesn't fit anywhere else
+</ul>
+
+<p>This is the main application, invoked by <code>ump</code> or wrapper script <code>Ump</code> that:
+
+     <ul>
+<li>performs executive functions of starting and stopping streamer
+<li>starts an interrupt driven thread that starts and stops
+<li>spawns producer thread for each device
+
+          <ul>
+   <li>read input files
+   <li>create masks from input specifications <span class="file">.mask</span>. 
+   <li>pre-filter pixel map to detect light colored changes
+   <li>make edges of affinity between pixels
+   <li>segment edges into affine clusters
+   <li>determine shape of clusters and select balls
+   <li>output cluster properties
+   <li>color clusters and write image to file <span class="file">.ppm</span>. 
+</ul>
+
+     <li>spawns a consumer thread
+          <ul>
+   <li>collects balls from each producer thread
+   <li>interpolate by time to synchronize balls
+   <li>triangulate position of ball
+   <li>calculate trajectory of ball
+   <li>predict strike zone
+   <li>output strike zone results
+</ul>
+     </ul>
+
+   <p><a name="index-Brooktree-180"></a><a name="index-frame-grabber-181"></a><a name="index-record_002dplayback-182"></a><a name="index-real_002dtime-183"></a><a name="index-Gaussian-weighting-184"></a>
+The ump application has been tested solely with Brooktree (Bt) PCI frame-grabber cards.  The xawtv UNIX application is a standard system application interface to frame-grabbers which were used to check basic operation.  Many low-level driver functions from xawtv streamer program were borrowed to drive the ump application.
+
+   </body></html>
+

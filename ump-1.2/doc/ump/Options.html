@@ -1,0 +1,109 @@
+<html lang="en">
+<head>
+<title>Options - Umpire Practical Ball Vision Device</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Umpire Practical Ball Vision Device">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Main-Application.html#Main-Application" title="Main Application">
+<link rel="prev" href="Main-Application.html#Main-Application" title="Main Application">
+<link rel="next" href="Input-Files.html#Input-Files" title="Input Files">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Options"></a>Next:&nbsp;<a rel="next" accesskey="n" href="Input-Files.html#Input-Files">Input Files</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Main-Application.html#Main-Application">Main Application</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Main-Application.html#Main-Application">Main Application</a>
+<hr><br>
+</div>
+
+<!-- node-name,         next,         previous,               up -->
+<h3 class="section">5.1 Options</h3>
+
+<p>The application has no default mode.  At least, the R option must be selected for real-time streaming, or the -i option must be selected for record-playback.  The record-playback option keeps the image stream in 'raw' image file for each device and also paints the segmented images and stores them in 'ppm' image files for each image from each device including masks.  The entire list of options are:
+
+   <p><a name="index-Gaussian-weighting-185"></a><a name="index-agauss-186"></a><a name="index-bgauss-187"></a><a name="index-flashing-screen-188"></a><a name="index-screen-flash-189"></a>
+     <dl>
+<dt><code>-h, --help</code><dd>        this screen
+
+     <br><dt><code>-a, --gauss</code><dd>        weight, pixels norm to 160 [ 4.00].  This is the distance affinity weighting factor as described by <code>a</code> in the report <span class="file">cuts.ps</span>.  It is normalized to an image width of 160 and the nominal value is 4.  This means a=4 for size=160xheight and is scaled proportional to image size to preserve the physical world correspondence.  The pixel intensity weighting factor described by 'b' in the report <span class="file">cuts.ps</span> is nominal 30 counts out of 256 full scale and is unadjustable without changing the value in file Image.h and recompiling.
+
+     <p><a name="index-sub_002dsampling-190"></a><a name="index-load-test-191"></a>
+<br><dt><code>-S, --sub</code><dd>        subsample multiple          [1].  This is the image pixel map sub-sampling factor.  Nominally for record-playback mode the factor is 1 which samples every pixel and segments it.  Nominally for real-time mode the factor is 2 which samples every other pixel when forming the pre-filtered pixel map.  The savings in throughput is approximately 4 times for a factor of 2 since the number of affine edges increases with the square of number of changed pixels.   There is little loss of accuracy for a factor of 2.  Larger factors, they may be 3, 4, 5, so on, save throughput more but usually result in poor segmentation performance.  The application automatically scales all other factors as appropriately with the sub-sampling factor to maintain physical world correspondence.
+
+     <br><dt><code>-l, --load</code><dd>         do a load test.  This option works with -R real-time mode to feed the threads with the maximum possible number of pre-filtered pixel changes.  The resulting frame times indicate slippage or not dependent on image size and sub-sampling factors.
+
+     <p><a name="index-image-size-192"></a><a name="index-restrictions-on-image-size-193"></a><a name="index-frame-grabber-capability-194"></a><a name="index-calibration-195"></a><a name="index-device-specification-196"></a><a name="index-image-width-197"></a><a name="index-image-height-198"></a><a name="index-aspect-ratio-199"></a>
+<br><dt><code>-s, --size</code><dd>         capture WIDTHxHEIGHT     [160x120].  This is the frame-grabber image size controlled at the device level.  The application automatically queries the frame-grabber devices to ensure the image size will work.  The user is free to try any image size within the constraints of the frame grabber.  The calibration is automatically adjusted.
+
+     <p><a name="index-no-images-200"></a><a name="index-_002eppm-images-missing-201"></a><a name="index-force-images-202"></a>
+<br><dt><code>-C, --calibrate</code><dd>    doing calibration           [0].  This option over-rides many of the high-level perceptual grouping options normally used to identify a moving baseball so that still baseballs can be used to externally calibrate the two devices.  Alternate black and white still baseballs images in playback mode create a pseudo-motion that will cause ump to output pixel locations useful for external calibration.  This option always produces .ppm images regardless of motion present.
+
+     <br><dt><code>-c, --device</code><dd>          [/dev/video0 &amp; /dev/video1].  Use this to provide the UNIX system file handle to the frame-grabber devices.  It is recommended that video0 be the umpire's left hand side camera and video1 be the right hand side.  Then the geometry information in world.dat will be Pl for left and Pr for right camera locations with respect to world coordinates.  The orientation information in the video.cal files will correctly align the cameras with the real world.  The first device on the command line is first, and so on.  The user could switch devices this way but that is best done with the wires because the calibration files go with the device name which goes with the card which goes with the wires.  I is recommended that camera be calibrated with frame grabber and be kept together unless re-calibrated.<br>
+     <pre class="sp">
+     
+     </pre>
+     The <span class="samp">ump</span> application has simple logic when running triangulation to detect reversed wiring and print a fault isolation message.
+
+     <p><a name="index-frame-rate-203"></a><a name="index-limiting-run-time-204"></a><a name="index-warm_002dup-205"></a><a name="index-pre_002dfiltering-206"></a><a name="index-deadband-207"></a>
+<br><dt><code>-r, --fps</code><dd>          frame rate, fps             [30].  This is the frame-grabber frame rate.  The frame-grabber will not complain if the application requests faster rates.  If greater than 30 is requested, the application throws just a warning.
+
+     <p><a name="index-memory-mapping-208"></a><a name="index-shared-memory-209"></a><a name="index-IPC-210"></a><a name="index-real_002dtime-211"></a>
+<br><dt><code>-M, --memtime</code><dd>   memory mapped process.  This is identical to -R except that the application <code>exec</code>s a <code>streamery</code> process and that maps the results to the application using shared System V memory mapping with token passing IPC using <code>pipe</code>s.
+
+     <br><dt><code>-R, --realtime</code><dd>   acquire/calc loop, # devices.  This specifies that the application run in real-time mode.   The argument is the total number of devices, from 1 to 2, to acquire.  The application <code>fork</code>s a streamer process which performs grabbing and pre-filtering and leaves the filtered pixmap definition in a small area of shared V memory.  When saving in this mode with the -W option only these pre-filtered pixmap is plotted on a gray background.
+
+     <br><dt><code>-t, --absframes</code><dd>    frames after warm-up         [45].  These are the total number of frames to be captured in the record function.  The number is the number to be saved by each producer thread after the warm-up period has expired.
+
+     <br><dt><code>-D, --deadband</code><dd>     deadband passed onto        [30].  This is the pre-filter noise threshold.  To be detected as a changed pixel, the difference with the previous update must exceed this value.  Then the entire difference is used (not just how much it exceeds the threshold).  The default of 30 is +/-30 counts out of +/-256 possible.
+
+     <p><a name="index-input-files-212"></a><a name="index-debugging-with-dump-files-213"></a><a name="index-output-files-214"></a>
+<br><dt><code>-i, --in</code><dd>           specify file name (.raw), may have two on separate -i inputs .  This is the primary option to make the application perform playback mode.  The first occurrence of an -i option assumes device0.  The second assumes device1.  Each device requires a separate -i invocation followed by a file name to save the images for playback.  The resulting files are in 'raw' format, a straight binary dump of the unsigned character pixel map values.  It is traditional to give these a .raw extension though this is left to the user because an <code>xawtv</code> source program is being re-used that required user input of file suffix.  The off-line non real-time option for ump (-i and -o) are asynchronous to emulate the real-time behavior.  As a result, results vary.  There should be just two variants depending on which thread wins the race condition as the first image used.
+
+     <br><dt><code>-d, --dump</code><dd>         look for .dmp files.  This switch asks the application to dump debugging information into various files.  The files all have .dmp extension.  Some dumps are cumulative; others are from the last frame.
+
+     <br><dt><code>-o, --out</code><dd>          specify file name (.raw).  This is the primary option to make the application perform record mode.  Immediately following record, the -i option is automatically invoked as described above. The user may run the -i option by itself to use saved files for off-line running.  The first occurrence of an -i or -o option assumes device0.  The second assumes device1.  Each device requires a separate -o invocation followed by a file name to save the images for playback.  The resulting files are in 'raw' format, a straight binary dump of the unsigned character pixel map values.  It is a convention left from <span class="samp">xawtv</span> to give these a .raw extension though this is left to the user.
+
+     <p><a name="index-verbose-215"></a>
+<br><dt><code>-v, --verbose</code><dd>         print lots of information             [0].  This is useful for troubleshooting various problems, especially used in <span class="samp">ump -R2 -v3 &gt;tempfile</span>. 
+<br><dt><code>-v0, --verbose0</code><dd>         Does nothing.  Useful for scripting perhaps. 
+<br><dt><code>-v1, --verbose1</code><dd>         Print very minor memory and basic diagnostics. 
+<br><dt><code>-v2, --verbose2</code><dd>         Print basic BALL selection information. 
+<br><dt><code>-v3, --verbose3</code><dd>         First level of debug.  Can look at basic perceptual grouping reject messages here to help determine why a setup is not detecting pitches. 
+<br><dt><code>-v4, --verbose4</code><dd>         More detailed debugging from 3. 
+<br><dt><code>-v5, --verbose5</code><dd>         Triangulation debugging. 
+<br><dt><code>-v6, --verbose6</code><dd>         Print synchronization debug information to the screen.  This was used during development to correct a race condition.  The parameter nready.nready should not be incremented without signaling the nready mutex.  The <code>-v6</code> option was run and the resulting output counted for number of times wait for nready compared to signaled nready.  The hung jobs had equal or greater number of waits as signals.
+
+     <br><dt><code>-w, --warmup</code><dd>       card warm-up, sec         [ 1.50].  Some frame-grabber cards are not fully functional until a small time has passed since the query for an image stream.  The image fades in.  This option discards all information in both cards until the specified time has passed.
+
+     <p><a name="index-uncertainty-216"></a><a name="index-triangulation-217"></a>
+<br><dt><code>-T&lt;num&gt;, --tri&lt;num&gt;</code><dd>      specify number of iterations to slide the 'other' images times scale to try to line up the rays from each camera in perfect intersection.  This presumes that the reason for poor uncertainty in triangulation is uncertainty in time resolution between cameras.
+
+     <p><a name="index-units-218"></a>
+<br><dt><code>-U, --units</code><dd>       speed units, char string   [mph].  If you change speedDisplayScalar in zone.tune for different units you can change display of units using this parameter.
+
+     <br><dt><code>-W, --write</code><dd>        write circular 100 files (.mm).  This requests that the real-time mode write a sampling of images for display by application 'showmms.'  This function may be invoked by the interrupt handler, too.  These files will not display the masks, unlike the record-playback mode which are less time-critical.
+
+     <p><a name="index-running-with-single-camera-219"></a><a name="index-single-camera-mode-220"></a>
+<a name="index-too-many-pixels-changed-221"></a><a name="index-maxedgepix-222"></a>
+<br><dt><code>-X, --maxedgepix</code><dd>        specify maximum pixels changed [200].  Increase if message "too many pixels changed."  Throughput affected.  The cameras may be too close or the focal length too large.  Also consider if masks are needed to filter extraneous motion.
+
+     <br><dt><code>-e, --singledist</code><dd>   single cam to object (in)   [48.00].  This is a special mode that uses a single camera to dupe a second image stream useful for some debugging.  The argument is the distance to the object assumed for artificial triangulation calculations.
+
+   </dl>
+
+   </body></html>
+
